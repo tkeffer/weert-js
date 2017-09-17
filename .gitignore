@@ -1,3 +1,6 @@
+# IDE detritus
+.idea
+
 # Logs
 logs
 *.log
