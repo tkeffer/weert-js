@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Tom Keffer <tkeffer@gmail.com>
+ * Copyright (c) 2016-2017 Tom Keffer <tkeffer@gmail.com>
  *
  *  See the file LICENSE for your full rights.
  */

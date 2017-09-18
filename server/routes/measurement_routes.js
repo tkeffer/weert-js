@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2016 Tom Keffer <tkeffer@gmail.com>
+ * Copyright (c) 2016-2017 Tom Keffer <tkeffer@gmail.com>
  *
  *  See the file LICENSE for your full rights.
  */
@@ -11,14 +11,14 @@
 
 'use strict'
 
-var debug = require('debug')('weert:server')
-var express = require('express')
+const debug = require('debug')('weert:server')
+const express = require('express')
 
-var auxtools = require('../auxtools')
+const auxtools = require('../auxtools')
 
-var MeasurementRouterFactory = function (measurement_manager) {
+const MeasurementRouterFactory = function (measurement_manager) {
 
-  var router = express.Router()
+  const router = express.Router()
 
   // POST a single packet to a measurement
   router.post('/measurements/:measurement/packets', function (req, res) {
@@ -60,7 +60,7 @@ var MeasurementRouterFactory = function (measurement_manager) {
           res.sendStatus(404)
         else {
           // Add a nanosecond timestamp
-          packet.timestamp = packet.time.getNanoTime()
+          packet['timestamp'] = packet.time.getNanoTime()
           // Calculate the actual URL of the returned packet
           // and include it in the Location response header.
           const replaceUrl = req.originalUrl.replace(req.params.timestamp, packet.timestamp)
@@ -80,7 +80,7 @@ var MeasurementRouterFactory = function (measurement_manager) {
   // DELETE a specific packet
   router.delete('/measurements/:measurement/packets/:timestamp', function (req, res) {
     // Get the measurement and timestamp out of the route path
-    var measurement = req.params.measurement
+    const measurement = req.params.measurement
     var dbQuery
     try {
       dbQuery = auxtools.formTimeQuery(req.params, {match: 'exact'})
@@ -115,7 +115,7 @@ var MeasurementRouterFactory = function (measurement_manager) {
   // GET metadata about a single measurement
   router.get('/measurements/:measurement', function (req, res) {
     // Get the measurement out of the route path
-    var measurement = req.params.measurement
+    const measurement = req.params.measurement
 
     measurement_manager
       .findMeasurement(measurement)
@@ -136,7 +136,7 @@ var MeasurementRouterFactory = function (measurement_manager) {
   // DELETE a measurement
   router.delete('/measurements/:measurement', function (req, res) {
     // Get the measurement out of the route path
-    var measurement = req.params.measurement
+    const measurement = req.params.measurement
 
     measurement_manager
       .delete_measurement(measurement)
@@ -168,7 +168,7 @@ var MeasurementRouterFactory = function (measurement_manager) {
     }
 
     // Get the measurement out of the route path
-    var measurement = req.params.measurement
+    const measurement = req.params.measurement
 
     // Accept either 'aggregate_type' or 'agg_type'. Former takes precedence.
     req.query.aggregate_type = req.query.aggregate_type || req.query.agg_type
@@ -177,7 +177,7 @@ var MeasurementRouterFactory = function (measurement_manager) {
     if (req.query.aggregate_type) {
       // Yes, an aggregation is being requested.
       dbQuery.aggregate_type = req.query.aggregate_type
-      var obs_type = req.query.obs_type
+      const obs_type = req.query.obs_type
       measurement_manager
         .aggregatePackets(measurement, obs_type, dbQuery)
         .then(function (result) {

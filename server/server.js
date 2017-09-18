@@ -56,7 +56,7 @@ influx.getDatabaseNames()
         // Catch it and forward to error handler
         app.use(function (req, res, next) {
           debug('caught 404')
-          var err = new Error('Page not found: ' + req.originalUrl)
+          let err = new Error('Page not found: ' + req.originalUrl)
           err.status = 404
           next(err)
         })
@@ -87,7 +87,7 @@ influx.getDatabaseNames()
          * Start the server
          */
 
-        var server = http.createServer(app)
+        let server = http.createServer(app)
         // Trap any error events and exit
         server.on('error', (err) => {
           console.log('Unable to start server')

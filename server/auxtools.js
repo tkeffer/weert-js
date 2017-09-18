@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Tom Keffer <tkeffer@gmail.com>
+ * Copyright (c) 2016-2017 Tom Keffer <tkeffer@gmail.com>
  *
  *  See the file LICENSE for your full rights.
  */
@@ -9,8 +9,8 @@
  */
 'use strict'
 
-var url = require('url')
-var normalizeUrl = require('normalize-url')
+const url = require('url')
+const normalizeUrl = require('normalize-url')
 
 var locationPath = function (originalUrl, protocol, host, name) {
   var base_pathname = url.parse(originalUrl).pathname
