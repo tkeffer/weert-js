@@ -20,46 +20,6 @@ var MeasurementRouterFactory = function (measurement_manager) {
 
   var router = express.Router()
 
-  // GET metadata about a single measurement
-  router.get('/measurements/:measurement', function (req, res) {
-    // Get the measurement out of the route path
-    var measurement = req.params.measurement
-
-    measurement_manager
-      .findMeasurement(measurement)
-      .then(function (measurement_metadata) {
-        if (measurement_metadata) {
-          res.json(measurement_metadata)
-        } else {
-          res.sendStatus(404)    // Status 404 Resource Not Found
-        }
-      })
-      .catch(function (err) {
-        debug('GET /measurements/:measurement error:', err)
-        error.sendError(err, res)
-      })
-  })
-
-  // DELETE a measurement
-  router.delete('/measurements/:measurement', function (req, res) {
-    // Get the measurement out of the route path
-    var measurement = req.params.measurement
-
-    measurement_manager
-      .deleteMeasurement(measurement)
-      .then(result => {
-        if (result) {
-          res.sendStatus(204)
-        } else {
-          res.sendStatus(404)    // Status 404 Resource Not Found
-        }
-      })
-      .catch(err => {
-        debug('DELETE /measurements/:measurement error:', err)
-        error.sendError(err, res)
-      })
-  })
-
   // POST a single packet to a measurement
   router.post('/measurements/:measurement/packets', function (req, res) {
     // Make sure the incoming packet is encoded in JSON.
@@ -71,15 +31,16 @@ var MeasurementRouterFactory = function (measurement_manager) {
       // Insert the packet into the database
       measurement_manager
         .insert_packet(measurement, packet)
-        .then(function (result) {
+        .then(function () {
+          // Form the URL of the newly created resource and send it back in the 'Location' header
           var resource_url = auxtools.resourcePath(req, packet.time)
-          res.status(201)
-             .location(resource_url)
-             .json(packet)
+          res.location(resource_url)
+             .sendStatus(201)
         })
         .catch(function (err) {
           debug('POST /measurements/:measurement/packets error:', err)
-          error.sendError(err, res)
+          res.json(auxtools.fromError(400, err))
+             .sendStatus(400)
         })
     } else {
       res.status(415)
@@ -87,75 +48,13 @@ var MeasurementRouterFactory = function (measurement_manager) {
     }
   })
 
-  // GET all packets which satisfies a search query.
-  router.get('/measurements/:measurement/packets', function (req, res) {
-    var dbQuery
-    try {
-      dbQuery = auxtools.formSpanQuery(req.query)
-    }
-    catch (err) {
-      err.description = req.query
-      debug('GET /measurements/:measurement/packets error forming query:', err)
-      res.status(400)
-         .json(auxtools.fromError(400, err))
-      return
-    }
-
-    // Get the measurement out of the route path
-    var measurement = req.params.measurement
-
-    // Accept either 'aggregate_type' or 'agg_type'. Former takes precedence.
-    req.query.aggregate_type = req.query.aggregate_type || req.query.agg_type
-
-    // Is an aggregation being requested?
-    if (req.query.aggregate_type) {
-      // Yes, an aggregation is being requested.
-      dbQuery.aggregate_type = req.query.aggregate_type
-      var obs_type = req.query.obs_type
-      measurement_manager
-        .aggregatePackets(measurement, obs_type, dbQuery)
-        .then(function (result) {
-          res.json(result)
-        })
-        .catch(function (err) {
-          debug('GET /measurements/:measurement/packets aggregation error:', err)
-          error.sendError(err, res)
-        })
-    } else {
-      // An aggregation is not being request. Return the matched packets.
-      measurement_manager
-        .findPackets(measurement, dbQuery)
-        .then(function (packet_array) {
-          debug('# of packets=', packet_array.length)
-          res.json(packet_array)
-        })
-        .catch(function (err) {
-          debug('GET /measurements/:measurement/packets find error:', err)
-          error.sendError(err, res)
-        })
-    }
-  })
-
   // GET a packet with a specific timestamp
   router.get('/measurements/:measurement/packets/:timestamp', function (req, res) {
     // Get the measurement and timestamp out of the route path
     var measurement = req.params.measurement
-    var dbQuery
-    try {
-      if (req.query.match === undefined)
-        req.query.match = 'exact'
-      dbQuery = auxtools.formTimeQuery(req.params, req.query)
-    }
-    catch (err) {
-      err.description = req.query
-      debug('GET /measurements/:measurement/packets/:timestamp error forming query:', err)
-      res.status(400)
-         .json(auxtools.fromError(400, err))
-      return
-    }
-
+    var timestamp = req.params.timestamp
     measurement_manager
-      .findPacket(measurement, dbQuery)
+      .find_packet(measurement, timestamp, req.query.platform, req.query.stream)
       .then(function (packet) {
         if (packet === null)
           res.sendStatus(404)
@@ -209,6 +108,98 @@ var MeasurementRouterFactory = function (measurement_manager) {
         error.sendError(err, res)
       })
   })
+
+  // GET metadata about a single measurement
+  router.get('/measurements/:measurement', function (req, res) {
+    // Get the measurement out of the route path
+    var measurement = req.params.measurement
+
+    measurement_manager
+      .findMeasurement(measurement)
+      .then(function (measurement_metadata) {
+        if (measurement_metadata) {
+          res.json(measurement_metadata)
+        } else {
+          res.sendStatus(404)    // Status 404 Resource Not Found
+        }
+      })
+      .catch(function (err) {
+        debug('GET /measurements/:measurement error:', err)
+        res.status(400)
+           .json(auxtools.fromError(400, err))
+      })
+  })
+
+  // DELETE a measurement
+  router.delete('/measurements/:measurement', function (req, res) {
+    // Get the measurement out of the route path
+    var measurement = req.params.measurement
+
+    measurement_manager
+      .delete_measurement(measurement)
+      .then(result => {
+        if (result) {
+          res.sendStatus(204)
+        } else {
+          res.sendStatus(404)    // Status 404 Resource Not Found
+        }
+      })
+      .catch(err => {
+        debug('DELETE /measurements/:measurement error:', err)
+        error.sendError(err, res)
+      })
+  })
+
+  // GET all packets which satisfies a search query.
+  router.get('/measurements/:measurement/packets', function (req, res) {
+    var dbQuery
+    try {
+      dbQuery = auxtools.formSpanQuery(req.query)
+    }
+    catch (err) {
+      err.description = req.query
+      debug('GET /measurements/:measurement/packets error forming query:', err)
+      res.status(400)
+         .json(auxtools.fromError(400, err))
+      return
+    }
+
+    // Get the measurement out of the route path
+    var measurement = req.params.measurement
+
+    // Accept either 'aggregate_type' or 'agg_type'. Former takes precedence.
+    req.query.aggregate_type = req.query.aggregate_type || req.query.agg_type
+
+    // Is an aggregation being requested?
+    if (req.query.aggregate_type) {
+      // Yes, an aggregation is being requested.
+      dbQuery.aggregate_type = req.query.aggregate_type
+      var obs_type = req.query.obs_type
+      measurement_manager
+        .aggregatePackets(measurement, obs_type, dbQuery)
+        .then(function (result) {
+          res.json(result)
+        })
+        .catch(function (err) {
+          debug('GET /measurements/:measurement/packets aggregation error:', err)
+          error.sendError(err, res)
+        })
+    } else {
+      // An aggregation is not being request. Return the matched packets.
+      measurement_manager
+        .findPackets(measurement, dbQuery)
+        .then(function (packet_array) {
+          debug('# of packets=', packet_array.length)
+          res.json(packet_array)
+        })
+        .catch(function (err) {
+          debug('GET /measurements/:measurement/packets find error:', err)
+          error.sendError(err, res)
+        })
+    }
+  })
+
+
 
   return router
 
