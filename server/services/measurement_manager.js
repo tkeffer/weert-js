@@ -17,7 +17,7 @@ class MeasurementManager {
   }
 
   insert_packet (measurement, deep_packet) {
-    console.log('deep packet about to be inserted=', deep_packet)
+
     const wrapped = [deep_packet]
     return this.influx
                .writeMeasurement(measurement, wrapped)
@@ -36,6 +36,15 @@ class MeasurementManager {
                .then(results => {
                  return Promise.resolve(results[0])
                })
+  }
+
+  delete_packet(measurement, timestamp, platform = undefined, stream = undefined){
+    let delete_stmt = `DELETE FROM ${measurement} WHERE time=${timestamp}`
+    if (platform)
+      delete_stmt += ` AND platform=${platform}`
+    if (stream)
+      delete_stmt += ` AND stream=${stream}`
+    return this.influx.query(delete_stmt)
   }
 }
 

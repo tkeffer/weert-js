@@ -81,75 +81,17 @@ const MeasurementRouterFactory = function (measurement_manager) {
   router.delete('/measurements/:measurement/packets/:timestamp', function (req, res) {
     // Get the measurement and timestamp out of the route path
     const measurement = req.params.measurement
-    var dbQuery
-    try {
-      dbQuery = auxtools.formTimeQuery(req.params, {match: 'exact'})
-    }
-    catch (err) {
-      err.description = req.query
-      debug('DELETE /measurements/:measurement/packets/:timestamp error forming query', err)
-      res.status(400)
-         .json(auxtools.fromError(400, err))
-      return
-    }
-    debug('Request to delete packet at timestamp', dbQuery.timestamp)
-
+    const timestamp = req.params.timestamp
     measurement_manager
-      .deletePacket(measurement, dbQuery)
-      .then(function (result) {
-        // The property 'n' holds the number of documents deleted
-        if (result.result.n) {
-          // Success.
-          res.sendStatus(204)
-        } else {
-          // Couldn't find the doc
-          res.sendStatus(404)
-        }
+      .delete_packet(measurement, timestamp, req.query.platform, req.query.stream)
+      .then(() => {
+        // No way to tell success or failure with Influx. Just assume Success.
+        res.sendStatus(204)
       })
       .catch(function (err) {
         debug('DELETE /measurements/:measurement/packets/:timestamp delete error:', err)
-        error.sendError(err, res)
-      })
-  })
-
-  // GET metadata about a single measurement
-  router.get('/measurements/:measurement', function (req, res) {
-    // Get the measurement out of the route path
-    const measurement = req.params.measurement
-
-    measurement_manager
-      .findMeasurement(measurement)
-      .then(function (measurement_metadata) {
-        if (measurement_metadata) {
-          res.json(measurement_metadata)
-        } else {
-          res.sendStatus(404)    // Status 404 Resource Not Found
-        }
-      })
-      .catch(function (err) {
-        debug('GET /measurements/:measurement error:', err)
         res.status(400)
            .json(auxtools.fromError(400, err))
-      })
-  })
-
-  // DELETE a measurement
-  router.delete('/measurements/:measurement', function (req, res) {
-    // Get the measurement out of the route path
-    const measurement = req.params.measurement
-
-    measurement_manager
-      .delete_measurement(measurement)
-      .then(result => {
-        if (result) {
-          res.sendStatus(204)
-        } else {
-          res.sendStatus(404)    // Status 404 Resource Not Found
-        }
-      })
-      .catch(err => {
-        debug('DELETE /measurements/:measurement error:', err)
-        error.sendError(err, res)
       })
   })
 
@@ -202,7 +144,46 @@ const MeasurementRouterFactory = function (measurement_manager) {
     }
   })
 
-
+  // // GET metadata about a single measurement
+  // router.get('/measurements/:measurement', function (req, res) {
+  //   // Get the measurement out of the route path
+  //   const measurement = req.params.measurement
+  //
+  //   measurement_manager
+  //     .findMeasurement(measurement)
+  //     .then(function (measurement_metadata) {
+  //       if (measurement_metadata) {
+  //         res.json(measurement_metadata)
+  //       } else {
+  //         res.sendStatus(404)    // Status 404 Resource Not Found
+  //       }
+  //     })
+  //     .catch(function (err) {
+  //       debug('GET /measurements/:measurement error:', err)
+  //       res.status(400)
+  //          .json(auxtools.fromError(400, err))
+  //     })
+  // })
+  //
+  // // DELETE a measurement
+  // router.delete('/measurements/:measurement', function (req, res) {
+  //   // Get the measurement out of the route path
+  //   const measurement = req.params.measurement
+  //
+  //   measurement_manager
+  //     .delete_measurement(measurement)
+  //     .then(result => {
+  //       if (result) {
+  //         res.sendStatus(204)
+  //       } else {
+  //         res.sendStatus(404)    // Status 404 Resource Not Found
+  //       }
+  //     })
+  //     .catch(err => {
+  //       debug('DELETE /measurements/:measurement error:', err)
+  //       error.sendError(err, res)
+  //     })
+  // })
 
   return router
 

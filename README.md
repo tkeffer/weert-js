@@ -44,7 +44,7 @@ to be aware of the differences.
    {
      "time" : 1492891404989186223,
      "measurement" : "highway_data"
-     "tags" : {"platform_name" : "Red chevy", "stream_name" : "engine_parameters"}
+     "tags" : {"platform" : "Red chevy", "stream" : "engine_parameters"}
      "fields" : {"temperature" : 108.3, "rpm" : 1850, "unit_system" : 16}
     }
   ```
@@ -57,8 +57,8 @@ to be aware of the differences.
    ```json
    {
      "time" : 1492891404989186223,
-     "platform_name" : "Red chevy",
-     "stream_name" : "engine_parameters",
+     "platform" : "Red chevy",
+     "stream" : "engine_parameters",
      "temperature" : 108.3, 
      "rpm" : 1850, 
      "unit_system" : 16
@@ -69,12 +69,12 @@ to be aware of the differences.
   This protocol is designed for on-the-wire efficiency. It is not explicitly used within WeeRT. It looks something like this:
  
    ~~~
-   highway_data, platform_name="Red chevy",stream_name="engine_parameters" temperature=108.3,rpm=1850 1492891404989186223
+   highway_data, platform="Red chevy",stream="engine_parameters" temperature=108.3,rpm=1850 1492891404989186223
    ~~~
 
- WeeRT tries to consistently traffic in "deep packets." Data going in and out of the WeeRT server
- are in this format. There are utility functions in module `weert.database` for building a deep packet, 
- as well as for converting to and from flattened packets. 
+WeeRT tries to consistently traffic in "deep packets." Data going in and out of the WeeRT server
+are in this format. There are utility functions in module `weert.database` for building a deep packet,
+as well as for converting to and from flattened packets.
  
 # API
  
@@ -107,7 +107,7 @@ Server: Werkzeug/0.12.1 Python/2.7.12
 Date: Wed, 26 Apr 2017 22:03:02 GMT
 
 [
-    "wxpackets,platform_name=default_platform,stream_name=default_stream"
+    "wxpackets,platform=default_platform,stream=default_stream"
 ]
 ```
 
@@ -165,8 +165,8 @@ Server: Werkzeug/0.12.1 Python/2.7.12
 Date: Wed, 26 Apr 2017 22:08:12 GMT
 
 {
-  "code": 404, 
-  "description": "measurement not found: foo", 
+  "code": 404,
+  "description": "measurement not found: foo",
   "message": "Non-existent measurement foo"
 }
 ```
@@ -183,8 +183,8 @@ GET /api/v1/measurements/:measurement/packets
 
 | *Name*          | *Type*  | *Description*                                                                                                                      |
 |:----------------|:--------|:-----------------------------------------------------------------------------------------------------------------------------------|
-| `platform_name` | string  | Include only packets on the platform `platform_name`.                                                                              |
-| `stream_name`   | string  | Include only packets on the stream `stream_name`.                                                                                  |
+| `platform`      | string  | Include only packets on the platform `platform`.                                                                                   |
+| `stream`        | string  | Include only packets on the stream `stream`.                                                                                       |
 | `start`         | integer | All packets greater than this timestamp will be included in the results. Default: first available packet.                          |
 | `stop`          | integer | All packets less than or equal to this timestamp will be included in the results. Default: last available packet.                  |
 | `limit`         | integer | Limit the number of returned packets to this value. Default: no limit.                                                             |
@@ -218,8 +218,8 @@ Date: Wed, 26 Apr 2017 22:20:08 GMT
         }, 
         "measurement": "test_measurement", 
         "tags": {
-            "platform_name": "test_platform1", 
-            "stream_name": "test_stream1"
+            "platform": "test_platform1", 
+            "stream": "test_stream1"
         }, 
         "time": 1483228800000000000
     }, 
@@ -229,8 +229,8 @@ Date: Wed, 26 Apr 2017 22:20:08 GMT
         }, 
         "measurement": "test_measurement", 
         "tags": {
-            "platform_name": "test_platform2", 
-            "stream_name": "test_stream2"
+            "platform": "test_platform2", 
+            "stream": "test_stream2"
         }, 
         "time": 1483228800000000000
     }
@@ -240,7 +240,7 @@ Date: Wed, 26 Apr 2017 22:20:08 GMT
 Query again, but this time ask for only those packets on platform `test_platform2`:
 
 ```shell
-$ curl -i --silent -X GET 'http://localhost:5000/api/v1/measurements/test_measurement/packets?limit=2&platform_name=test_platform2'
+$ curl -i --silent -X GET 'http://localhost:5000/api/v1/measurements/test_measurement/packets?limit=2&platform=test_platform2'
 HTTP/1.0 200 OK
 Content-Type: application/json
 Content-Length: 572
@@ -254,8 +254,8 @@ Date: Wed, 26 Apr 2017 22:46:40 GMT
         }, 
         "measurement": "test_measurement", 
         "tags": {
-            "platform_name": "test_platform2", 
-            "stream_name": "test_stream2"
+            "platform": "test_platform2", 
+            "stream": "test_stream2"
         }, 
         "time": 1483228800000000000
     }
@@ -266,7 +266,7 @@ Query, constraining by time and platform name, returning results in reverse orde
 
 
 ```shell
-curl -i -X GET 'http://localhost:5000/api/v1/measurements/test_measurement/packets?start=1483228802000000000&stop=1483228805000000000&platform_name=test_platform1&direction=desc'
+curl -i -X GET 'http://localhost:5000/api/v1/measurements/test_measurement/packets?start=1483228802000000000&stop=1483228805000000000&platform=test_platform1&direction=desc'
 HTTP/1.0 200 OK
 Content-Type: application/json
 Content-Length: 857
@@ -280,8 +280,8 @@ Date: Wed, 26 Apr 2017 22:51:31 GMT
         }, 
         "measurement": "test_measurement", 
         "tags": {
-            "platform_name": "test_platform1", 
-            "stream_name": "test_stream1"
+            "platform": "test_platform1", 
+            "stream": "test_stream1"
         }, 
         "time": 1483228805000000000
     }, 
@@ -291,8 +291,8 @@ Date: Wed, 26 Apr 2017 22:51:31 GMT
         }, 
         "measurement": "test_measurement", 
         "tags": {
-            "platform_name": "test_platform1", 
-            "stream_name": "test_stream1"
+            "platform": "test_platform1", 
+            "stream": "test_stream1"
         }, 
         "time": 1483228804000000000
     }, 
@@ -302,8 +302,8 @@ Date: Wed, 26 Apr 2017 22:51:31 GMT
         }, 
         "measurement": "test_measurement", 
         "tags": {
-            "platform_name": "test_platform1", 
-            "stream_name": "test_stream1"
+            "platform": "test_platform1", 
+            "stream": "test_stream1"
         }, 
         "time": 1483228803000000000
     }
@@ -321,10 +321,10 @@ GET /api/v1/measurements/:measurement/packets/:timestamp
 
 **Parameters**
 
-| *Name*          | *Type*  | *Description*                                                                                                                      |
-|:----------------|:--------|:-----------------------------------------------------------------------------------------------------------------------------------|
-| `platform_name` | string  | Include only packets on the platform `platform_name`.                                                                              |
-| `stream_name`   | string  | Include only packets on the stream `stream_name`.                                                                                  |
+| *Name*          | *Type*  | *Description*                                                                                                            |
+|:----------------|:--------|:-------------------------------------------------------------------------------------------------------------------------|
+| `platform` | string  | Include only packets on the platform `platform`.                                                                              |
+| `stream`   | string  | Include only packets on the stream `stream`.                                                                                  |
 
 **Response code**
 
@@ -337,7 +337,7 @@ GET /api/v1/measurements/:measurement/packets/:timestamp
 **Example**
 
 ```shell
-$ curl -i -X GET 'http://localhost:5000/api/v1/measurements/test_measurement/packets/1483228802000000000?platform_name=test_platform1'
+$ curl -i -X GET 'http://localhost:5000/api/v1/measurements/test_measurement/packets/1483228802000000000?platform=test_platform1'
 HTTP/1.0 200 OK
 Content-Type: application/json
 Content-Length: 287
@@ -351,8 +351,8 @@ Date: Thu, 27 Apr 2017 15:06:34 GMT
         }, 
         "measurement": "test_measurement", 
         "tags": {
-            "platform_name": "test_platform1", 
-            "stream_name": "test_stream1"
+            "platform": "test_platform1", 
+            "stream": "test_stream1"
         }, 
         "time": 1483228802000000000
     }
@@ -391,7 +391,7 @@ The body of the response will hold a JSON representation of the posted packet.
 $ curl -i --silent -X POST -H Content-type:application/json \
 > -d '{"time" : 1493391753000000000, \,
 > "measurement" : "test_measurement", \
-> "tags" : {"platform_name": "my_platform", "stream_name" : "my_stream"}, \
+> "tags" : {"platform": "my_platform", "stream" : "my_stream"}, \
 > "fields" : {"outside_temperature" : 15.5}}' \
 > http://localhost:5000/api/v1/measurements/test_measurement/packets
 HTTP/1.0 201 CREATED
@@ -407,14 +407,51 @@ Date: Fri, 28 Apr 2017 15:18:31 GMT
     }, 
     "measurement": "test_measurement", 
     "tags": {
-        "platform_name": "my_platform", 
-        "stream_name": "my_stream"
+        "platform": "my_platform", 
+        "stream": "my_stream"
     }, 
     "time": 1493391753000000000
 }
 ```
 
 Note how the URL of the new resource is returned in the header `Location`.
+
+
+## Delete a specific timestamp
+
+Delete packets with a specific timestamp.
+
+
+```
+DELETE /api/v1/measurements/:measurement/packets/:timestamp
+```
+
+**Parameters**
+
+| *Name*     | *Type*  | *Description*                                                                                 |
+|:-----------|:--------|:----------------------------------------------------------------------------------------------|
+| `platform` | string  | Delete only packets on the platform `platform`.                                               |
+| `stream`   | string  | Delete only packets on the stream `stream`.                                                   |
+
+**Response code**
+
+| *Status* | *Meaning*             |
+|:---------|:----------------------|
+| 204      | Success               |
+
+The same response code (204) is returned irregardless of whether or not any packet fitting the criteria
+actually existed in the database.
+
+**Example**
+
+```shell
+
+```
+
+
+
+
+
 
 # License & Copyright
 
