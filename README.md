@@ -181,14 +181,14 @@ GET /api/v1/measurements/:measurement/packets
 
 **Parameters**
 
-| *Name*          | *Type*  | *Description*                                                                                                                      |
-|:----------------|:--------|:-----------------------------------------------------------------------------------------------------------------------------------|
-| `platform`      | string  | Include only packets on the platform `platform`.                                                                                   |
-| `stream`        | string  | Include only packets on the stream `stream`.                                                                                       |
-| `start`         | integer | All packets greater than this timestamp will be included in the results. Default: first available packet.                          |
-| `stop`          | integer | All packets less than or equal to this timestamp will be included in the results. Default: last available packet.                  |
-| `limit`         | integer | Limit the number of returned packets to this value. Default: no limit.                                                             |
-| `direction`     | string  | The direction of the sort. Can be either `asc` or `desc`. Default: `asc`.                                                          |
+| *Name*          | *Type*  | *Description*                                                                                                                    |
+|:----------------|:--------|:---------------------------------------------------------------------------------------------------------------------------------|
+| `platform`      | string  | Include only packets from platform `platform`.                                                                                   |
+| `stream`        | string  | Include only packets from stream `stream`.                                                                                       |
+| `start`         | integer | All packets greater than this timestamp will be included in the results. Default: first available packet.                        |
+| `stop`          | integer | All packets less than or equal to this timestamp will be included in the results. Default: last available packet.                |
+| `limit`         | integer | Limit the number of returned packets to this value. Default: no limit.                                                           |
+| `direction`     | string  | The direction of the sort. Can be either `asc` or `desc`. Default: `asc`.                                                        |
 
 
 **Response code**
@@ -197,7 +197,6 @@ GET /api/v1/measurements/:measurement/packets
 |:---------|:----------------------|
 | 200      | Success               |
 | 400      | Malformed query       |
-| 404      | Stream does not exist |
 
 **Example**
 
