@@ -25,22 +25,22 @@ var MeasurementRouterFactory = function (measurement_manager) {
     // Make sure the incoming packet is encoded in JSON.
     if (req.is('json')) {
       // Get the measurement
-      var measurement = req.params.measurement
+      const measurement = req.params.measurement
       // Get the packet out of the request body:
-      var packet = req.body
+      const packet = req.body
       // Insert the packet into the database
       measurement_manager
         .insert_packet(measurement, packet)
         .then(function () {
           // Form the URL of the newly created resource and send it back in the 'Location' header
-          var resource_url = auxtools.resourcePath(req, packet.time)
+          const resource_url = auxtools.resourcePath(req, packet.timestamp)
           res.location(resource_url)
              .sendStatus(201)
         })
         .catch(function (err) {
           debug('POST /measurements/:measurement/packets error:', err)
-          res.json(auxtools.fromError(400, err))
-             .sendStatus(400)
+          res.status(400)
+             .json(auxtools.fromError(400, err))
         })
     } else {
       res.status(415)
@@ -51,18 +51,20 @@ var MeasurementRouterFactory = function (measurement_manager) {
   // GET a packet with a specific timestamp
   router.get('/measurements/:measurement/packets/:timestamp', function (req, res) {
     // Get the measurement and timestamp out of the route path
-    var measurement = req.params.measurement
-    var timestamp = req.params.timestamp
+    const measurement = req.params.measurement
+    const timestamp = req.params.timestamp
     measurement_manager
       .find_packet(measurement, timestamp, req.query.platform, req.query.stream)
       .then(function (packet) {
-        if (packet === null)
+        if (packet === undefined)
           res.sendStatus(404)
         else {
+          // Add a nanosecond timestamp
+          packet.timestamp = packet.time.getNanoTime()
           // Calculate the actual URL of the returned packet
           // and include it in the Location response header.
-          var replaceUrl = req.originalUrl.replace(req.params.timestamp, packet.timestamp)
-          var resource_url = auxtools.locationPath(replaceUrl, req.protocol, req.get('host'), '')
+          const replaceUrl = req.originalUrl.replace(req.params.timestamp, packet.timestamp)
+          const resource_url = auxtools.locationPath(replaceUrl, req.protocol, req.get('host'), '')
           res.status(200)
              .location(resource_url)
              .json(packet)
@@ -70,7 +72,8 @@ var MeasurementRouterFactory = function (measurement_manager) {
       })
       .catch(function (err) {
         debug('GET /measurements/:measurement/packets/:timestamp find error', err)
-        error.sendError(err, res)
+        res.status(400)
+           .json(auxtools.fromError(400, err))
       })
   })
 

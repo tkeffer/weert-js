@@ -31,10 +31,10 @@ class MeasurementManager {
     if (stream)
       query_string += ' AND stream=${stream}'
     console.log("query_string=", query_string);
-    this.influx
+    return this.influx
         .query(query_string)
         .then(results => {
-          console.log('results=', results)
+          return Promise.resolve(results[0])
         })
   }
 }
