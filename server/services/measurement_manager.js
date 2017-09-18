@@ -30,7 +30,6 @@ class MeasurementManager {
             query_string += ` AND platform=${platform}`;
         if (stream)
             query_string += ` AND stream=${stream}`;
-        console.log('query_string=', query_string);
         return this.influx
             .query(query_string)
             .then(results => {
@@ -74,7 +73,6 @@ class MeasurementManager {
             query_string += ` LIMIT ${limit}`;
         }
 
-        console.log('query_string=', query_string);
         return this.influx
             .query(query_string)
             .then(results => {

@@ -1,1 +1,1 @@
-For GET packets, they should include a 'timestamp' field.
+For GET packets, returned packets should be deep packets.
