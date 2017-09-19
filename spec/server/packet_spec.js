@@ -85,7 +85,7 @@ describe('In the single packet tests', function () {
               })
               .done(doneFn);
     });
-    
+
     it('should DELETE a non-existing packet', function (doneFn) {
         let packet_url = packets_url + '/' + timestamp(0);
         // Try deleting a non-existing packet. Should also get a 204
