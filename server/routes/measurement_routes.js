@@ -35,16 +35,16 @@ const MeasurementRouterFactory = function (measurement_manager) {
                     // Form the URL of the newly created resource and send it back in the 'Location' header
                     const resource_url = auxtools.resourcePath(req, packet.timestamp);
                     res.location(resource_url)
-                        .sendStatus(201);
+                       .sendStatus(201);
                 })
                 .catch(function (err) {
                     debug('POST /measurements/:measurement/packets error:', err);
                     res.status(400)
-                        .json(auxtools.fromError(400, err));
+                       .json(auxtools.fromError(400, err));
                 });
         } else {
             res.status(415)
-                .json({code: 415, message: 'Invalid Content-type', description: req.get('Content-Type')});
+               .json({code: 415, message: 'Invalid Content-type', description: req.get('Content-Type')});
         }
     });
 
@@ -59,9 +59,6 @@ const MeasurementRouterFactory = function (measurement_manager) {
                 if (packet === undefined)
                     res.sendStatus(404);
                 else {
-                    // Replace the ISO formatted 'time' with a nanoseconds 'timestamp'
-                    packet['timestamp'] = packet.time.getNanoTime();
-                    delete packet.time;
                     // Convert to a deep packet
                     let deep_packet = auxtools.flat_to_deep(packet);
                     // Calculate the actual URL of the returned packet
@@ -69,14 +66,14 @@ const MeasurementRouterFactory = function (measurement_manager) {
                     const replaceUrl = req.originalUrl.replace(req.params.timestamp, packet.timestamp);
                     const resource_url = auxtools.locationPath(replaceUrl, req.protocol, req.get('host'), '');
                     res.status(200)
-                        .location(resource_url)
-                        .json(deep_packet);
+                       .location(resource_url)
+                       .json(deep_packet);
                 }
             })
             .catch(function (err) {
                 debug('GET /measurements/:measurement/packets/:timestamp find error', err);
                 res.status(400)
-                    .json(auxtools.fromError(400, err));
+                   .json(auxtools.fromError(400, err));
             });
     });
 
@@ -94,7 +91,7 @@ const MeasurementRouterFactory = function (measurement_manager) {
             .catch(function (err) {
                 debug('DELETE /measurements/:measurement/packets/:timestamp delete error:', err);
                 res.status(400)
-                    .json(auxtools.fromError(400, err));
+                   .json(auxtools.fromError(400, err));
             });
     });
 
@@ -109,14 +106,17 @@ const MeasurementRouterFactory = function (measurement_manager) {
             .find_packets(measurement, req.query.platform, req.query.stream,
                 start_time, stop_time, req.query.limit, req.query.direction)
             .then((result) => {
-                console.log("result from GET all packets=", result);
+                let deep_result = [];
+                for (let i in result) {
+                    deep_result[i] = auxtools.flat_to_deep(result[i]);
+                }
                 res.status(200)
-                    .json(result)
+                   .json(deep_result);
             })
-            .catch(err=>{
+            .catch(err => {
                 debug('GET /measurements/:measurement/packets/ error:', err);
                 res.status(400)
-                    .json(auxtools.fromError(400, err));
+                   .json(auxtools.fromError(400, err));
             });
 
     });

@@ -82,7 +82,6 @@ class MeasurementManager {
         return this.influx
             .query(query_string)
             .then(results => {
-                console.log('results from packet query=', results);
                 return Promise.resolve(results);
             });
     }

@@ -60,8 +60,9 @@ var flat_to_deep = function (flat_packet) {
             deep_packet['tags']['platform'] = flat_packet.platform;
         else if (key === 'stream')
             deep_packet['tags']['stream'] = flat_packet.stream;
-        else if (key === 'timestamp')
-            deep_packet['timestamp'] = flat_packet['timestamp'];
+        else if (key === 'time')
+            // timestamp will be a string. Maybe we want a number?
+            deep_packet['timestamp'] = flat_packet['time'].getNanoTime();
         else
             deep_packet['fields'][key] = flat_packet[key];
     }

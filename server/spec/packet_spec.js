@@ -17,6 +17,7 @@ var request = require('request');
 var config = require('../config');
 
 var test_url = 'http://localhost:3000' + config.server.api + '/measurements';
+var packet_url = test_url + '/test_measurement/packets/';
 
 var timestamp = function (i) {
     // Base time is 1-Jan-2015 0000 UTC:
@@ -41,7 +42,7 @@ var testSinglePacket = function () {
     // POST a single packet
     frisby
         .create("POST a single packet")
-        .post(test_url + '/test_measurement/packets',
+        .post(packet_url,
             form_deep_packet(0),
             {json: true}
         )
@@ -82,7 +83,7 @@ var testSinglePacket = function () {
     delete no_timestamp_packet.timestamp;
     frisby
         .create("Post a packet with no timestamp")
-        .post(test_url + '/test_measurement/packets',
+        .post(packet_url,
             no_timestamp_packet,
             {json: true}
         )
@@ -93,7 +94,7 @@ var testSinglePacket = function () {
     bad_measurement_packet.measurement = 'foo';
     frisby
         .create("Post a packet with a mis-matched value of 'measurement'")
-        .post(test_url + '/test_measurement/packets',
+        .post(packet_url,
             bad_measurement_packet,
             {json: true}
         )
@@ -105,7 +106,7 @@ var testSinglePacket = function () {
     good_measurement_packet.measurement = 'test_measurement';
     frisby
         .create("Post a packet with a matched value of 'measurement'")
-        .post(test_url + '/test_measurement/packets',
+        .post(packet_url,
             good_measurement_packet,
             {json: true}
         )
@@ -113,34 +114,206 @@ var testSinglePacket = function () {
         .toss();
 };
 
-// var testMiscellaneous = function () {
-//
-//     frisby
-//         .create("Get a single packet from a non-existent stream")
-//         .get(test_url + "/56a9962066c7ea36598cd4c3/packets/latest")
-//         .expectStatus(404)
-//         .toss();
-//
-//     frisby
-//         .create("Retrieve all packets from a non-existent stream")
-//         .get(test_url + "/56a9962066c7ea36598cd4c3/packets")
-//         .expectStatus(404)
-//         .toss();
-//
-//     frisby
-//         .create("POST to a non-existent stream")
-//         .post(test_url + "/56accd7718b4e21640adf305/packets",
-//             {
-//                 timestamp: timestamp(0),
-//                 outside_temperature: temperature(0)
-//             },
-//             {json: true}
-//         )
-//         .expectStatus(404)
-//         .toss();
-// };
-//
-//
+
+var testMultiplePackets = function () {
+    // How many packets to use for the test.
+    // Must be > 5 for the tests to work.
+    var N = 20;
+    var query;
+
+    var indices = [];
+    var packets = [];
+    var reverse_packets = [];
+    for (var i = 0; i < N; i++) {
+        indices[i] = i;
+        packets[i] = form_deep_packet(i);
+        reverse_packets[N - i - 1] = packets[i];
+    }
+
+    // This function will return the URI for the specific packet at a given timestamp
+    var time_link = function (timestamp) {
+        return normalizeUrl(packet_url + '/' + timestamp);
+    };
+
+    // Now launch the POSTs to create all the packets
+    // Use raw Jasmine for this.
+    describe("Launch and test " + N + " POSTs of packets", function () {
+        var results_finished = false;
+        var results_successful = false;
+
+        it("should launch all POSTS", function () {
+
+            runs(function () {
+
+                // Use the async library to asynchronously launch the N posts
+                async.each(indices, function (i, callback) {
+                    request({
+                        url: packet_url,
+                        method: 'POST',
+                        json: packets[i]
+                    }, function (error) {
+                        return callback(error);
+                    });
+                }, function (err) {
+                    // This function is called when finished. Signal that we're finished, and whether
+                    // there were any errors
+                    results_finished = true;
+                    results_successful = !err;
+                });
+
+            });
+
+            // This function will spin until its callback return true. Then the thread of control
+            // proceeds to the next run statement
+            waitsFor(function () {
+                return results_finished;
+            }, "results to be finished", 2000);
+
+            // All the async POSTs are done. We can test the results.
+            runs(function () {
+                expect(results_successful).toBeTruthy();
+
+                frisby.create("Retrieve all packets in default order")
+                    .get(packet_url)
+                    .expectStatus(200)
+                    .expectJSONTypes('', Array)
+                    .expectJSON('', packets)
+                    .toss();
+
+                // frisby.create("Retrieve all packets in reverse order")
+                //     .get(packet_url + '?direction=desc')
+                //     .expectStatus(200)
+                //     .expectJSONTypes('', Array)
+                //     .expectJSON('', reverse_packets)
+                //     .toss();
+                //
+                // frisby.create("Retrieve packets sorted by temperature")
+                //     .get(packet_url + '?sort=outside_temperature&direction=asc')
+                //     .expectStatus(200)
+                //     .expectJSONTypes('', Array)
+                //     .expectJSON('', reverse_packets)
+                //     .toss();
+                //
+                // frisby.create("Retrieve packets reverse sorted by temperature")
+                //     .get(packet_url + '?sort=outside_temperature&direction=desc')
+                //     .expectStatus(200)
+                //     .expectJSONTypes('', Array)
+                //     .expectJSON('', packets)
+                //     .toss();
+                //
+                // frisby.create("Test packets using bad sort direction")
+                //     .get(packet_url + '?direction=foo')
+                //     .expectStatus(400)
+                //     .toss();
+                //
+                // frisby.create("Get aggregate_type max")
+                //     .get(packet_url + '?aggregate_type=max&obs_type=outside_temperature')
+                //     .expectStatus(200)
+                //     .afterJSON(function (json) {
+                //         expect(json).toEqual(temperature(0));
+                //     })
+                //     .toss();
+                //
+                // frisby.create("Get agg_type min value")
+                //     .get(packet_url + '?agg_type=min&obs_type=outside_temperature')
+                //     .expectStatus(200)
+                //     .afterJSON(function (json) {
+                //         expect(json).toEqual(temperature(N - 1));
+                //     })
+                //     .toss();
+                //
+                // frisby.create("Get min value of a bogus observation type")
+                //     .get(packet_url + '?agg_type=min&obs_type=bogus_temperature')
+                //     .expectStatus(200)
+                //     .afterJSON(function (json) {
+                //         expect(json).toEqual(null);
+                //     })
+                //     .toss();
+                //
+                // // Test a query. Select only packets where temperature <= the temperature in record 5. Because
+                // // temperatures descend with time, this will exclude the first 5 records.
+                // // So, there should be N-5 left.
+                // query = '&query=' + encodeURIComponent(JSON.stringify({outside_temperature: {$lte: temperature(5)}}));
+                // frisby.create("Get packets by value with query")
+                //     .get(packet_url + '?as=values&' + query)
+                //     .expectStatus(200)
+                //     .afterJSON(function (json) {
+                //         expect(json).toEqual(packets.slice(5));     // Exclude first 5 records
+                //     })
+                //     .toss();
+                //
+                // // Test adding an arbitrary query to the aggregation. In this case, look for the min
+                // // temperature in the records restricted to those with temperature >= the temperature
+                // // in the N-3 record. Because temperatures are descending with time, this should be
+                // // the temperature of the N-3 record
+                // query = '&query=' + encodeURIComponent(JSON.stringify({outside_temperature: {$gte: temperature(N - 3)}}));
+                // frisby.create("Get aggregate with query")
+                //     .get(packet_url + '?agg_type=min&obs_type=outside_temperature' + query)
+                //     .expectStatus(200)
+                //     .afterJSON(function (json) {
+                //         expect(json).toEqual(temperature(N - 3));
+                //     })
+                //     .toss();
+                //
+                // frisby.create("Search for last packet")
+                //     .get(time_link('latest'))
+                //     .expectStatus(200)
+                //     .expectJSON('', packets[N - 1])
+                //     .after(function (error, res) {
+                //         describe("Test that search for last packet", function () {
+                //             it("contains the packet link", function () {
+                //                 expect(res.headers.location).toEqual(time_link(timestamp(N - 1)));
+                //             });
+                //         });
+                //     })
+                //     .toss();
+                //
+                // frisby.create("Search for default match of a timestamp, which is exact")
+                //     .get(time_link(packets[2].timestamp))
+                //     .expectStatus(200)
+                //     .expectJSON('', packets[2])
+                //     .toss();
+                //
+                // frisby.create("Search for an explicit exact match")
+                //     .get(time_link(packets[2].timestamp) + '?match=exact')
+                //     .expectStatus(200)
+                //     .expectJSON('', packets[2])
+                //     .toss();
+                //
+                // frisby.create("Search for an exact match of a non-existing timestamp")
+                //     .get(time_link(packets[2].timestamp - 1) + '?match=exact')
+                //     .expectStatus(404)
+                //     .toss();
+                //
+                // frisby.create("Search for lastBefore a timestamp")
+                //     .get(time_link(packets[2].timestamp - 1) + '?match=lastBefore')
+                //     .expectStatus(200)
+                //     .expectJSON('', packets[1])
+                //     .after(function (error, res) {
+                //         describe("Test that search for lastBefore packet", function () {
+                //             it("contains the packet link", function () {
+                //                 expect(res.headers.location).toEqual(time_link(timestamp(1)));
+                //             });
+                //         });
+                //     })
+                //     .toss();
+                //
+                // frisby.create("Search for firstAfter a timestamp")
+                //     .get(time_link(packets[2].timestamp + 1) + '?match=firstAfter')
+                //     .expectStatus(200)
+                //     .expectJSON('', packets[3])
+                //     .toss();
+                //
+                // frisby.create("Search for a location using a bad match")
+                //     .get(time_link(packets[2].timestamp) + '?match=foo')
+                //     .expectStatus(400)
+                //     .toss();
+            });
+        });
+    });
+};
+
+
 // var testMultiplePackets = function () {
 //     // How many packets to use for the test.
 //     // Must be > 5 for the tests to work.
@@ -176,10 +349,10 @@ var testSinglePacket = function () {
 //             // Get the URI for the just created stream resource
 //             var stream_link = res.headers.location;
 //             // Use it to form the URI for the packets resource
-//             var stream_packet_link = normalizeUrl(stream_link + '/packets');
+//             var packet_url = normalizeUrl(stream_link + '/packets');
 //             // This function will return the URI for the specific packet at a given timestamp
 //             var time_link = function (timestamp) {
-//                 return normalizeUrl(stream_packet_link + '/' + timestamp);
+//                 return normalizeUrl(packet_url + '/' + timestamp);
 //             };
 //
 //             // Now launch the POSTs to create all the packets
@@ -195,7 +368,7 @@ var testSinglePacket = function () {
 //                         // Use the async library to asynchronously launch the N posts
 //                         async.each(indices, function (i, callback) {
 //                             request({
-//                                 url: stream_packet_link,
+//                                 url: packet_url,
 //                                 method: 'POST',
 //                                 json: packets[i]
 //                             }, function (error) {
@@ -221,40 +394,40 @@ var testSinglePacket = function () {
 //                         expect(results_successful).toBeTruthy();
 //
 //                         frisby.create("Retrieve all packets in default order")
-//                             .get(stream_packet_link)
+//                             .get(packet_url)
 //                             .expectStatus(200)
 //                             .expectJSONTypes('', Array)
 //                             .expectJSON('', packets)
 //                             .toss();
 //
 //                         frisby.create("Retrieve all packets in reverse order")
-//                             .get(stream_packet_link + '?direction=desc')
+//                             .get(packet_url + '?direction=desc')
 //                             .expectStatus(200)
 //                             .expectJSONTypes('', Array)
 //                             .expectJSON('', reverse_packets)
 //                             .toss();
 //
 //                         frisby.create("Retrieve packets sorted by temperature")
-//                             .get(stream_packet_link + '?sort=outside_temperature&direction=asc')
+//                             .get(packet_url + '?sort=outside_temperature&direction=asc')
 //                             .expectStatus(200)
 //                             .expectJSONTypes('', Array)
 //                             .expectJSON('', reverse_packets)
 //                             .toss();
 //
 //                         frisby.create("Retrieve packets reverse sorted by temperature")
-//                             .get(stream_packet_link + '?sort=outside_temperature&direction=desc')
+//                             .get(packet_url + '?sort=outside_temperature&direction=desc')
 //                             .expectStatus(200)
 //                             .expectJSONTypes('', Array)
 //                             .expectJSON('', packets)
 //                             .toss();
 //
 //                         frisby.create("Test packets using bad sort direction")
-//                             .get(stream_packet_link + '?direction=foo')
+//                             .get(packet_url + '?direction=foo')
 //                             .expectStatus(400)
 //                             .toss();
 //
 //                         frisby.create("Get aggregate_type max")
-//                             .get(stream_packet_link + '?aggregate_type=max&obs_type=outside_temperature')
+//                             .get(packet_url + '?aggregate_type=max&obs_type=outside_temperature')
 //                             .expectStatus(200)
 //                             .afterJSON(function (json) {
 //                                 expect(json).toEqual(temperature(0));
@@ -262,7 +435,7 @@ var testSinglePacket = function () {
 //                             .toss();
 //
 //                         frisby.create("Get agg_type min value")
-//                             .get(stream_packet_link + '?agg_type=min&obs_type=outside_temperature')
+//                             .get(packet_url + '?agg_type=min&obs_type=outside_temperature')
 //                             .expectStatus(200)
 //                             .afterJSON(function (json) {
 //                                 expect(json).toEqual(temperature(N - 1));
@@ -270,7 +443,7 @@ var testSinglePacket = function () {
 //                             .toss();
 //
 //                         frisby.create("Get min value of a bogus observation type")
-//                             .get(stream_packet_link + '?agg_type=min&obs_type=bogus_temperature')
+//                             .get(packet_url + '?agg_type=min&obs_type=bogus_temperature')
 //                             .expectStatus(200)
 //                             .afterJSON(function (json) {
 //                                 expect(json).toEqual(null);
@@ -282,7 +455,7 @@ var testSinglePacket = function () {
 //                         // So, there should be N-5 left.
 //                         query = '&query=' + encodeURIComponent(JSON.stringify({outside_temperature: {$lte: temperature(5)}}));
 //                         frisby.create("Get packets by value with query")
-//                             .get(stream_packet_link + '?as=values&' + query)
+//                             .get(packet_url + '?as=values&' + query)
 //                             .expectStatus(200)
 //                             .afterJSON(function (json) {
 //                                 expect(json).toEqual(packets.slice(5));     // Exclude first 5 records
@@ -295,7 +468,7 @@ var testSinglePacket = function () {
 //                         // the temperature of the N-3 record
 //                         query = '&query=' + encodeURIComponent(JSON.stringify({outside_temperature: {$gte: temperature(N - 3)}}));
 //                         frisby.create("Get aggregate with query")
-//                             .get(stream_packet_link + '?agg_type=min&obs_type=outside_temperature' + query)
+//                             .get(packet_url + '?agg_type=min&obs_type=outside_temperature' + query)
 //                             .expectStatus(200)
 //                             .afterJSON(function (json) {
 //                                 expect(json).toEqual(temperature(N - 3));
@@ -362,6 +535,5 @@ var testSinglePacket = function () {
 //         .toss();
 // };
 
-testSinglePacket();
-// testMiscellaneous();
-// testMultiplePackets();
+//testSinglePacket();
+testMultiplePackets();
