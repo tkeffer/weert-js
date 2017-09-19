@@ -16,6 +16,10 @@ class MeasurementManager {
         this.influx = influx;
     }
 
+    delete_measurement(measurement){
+        return this.influx.dropMeasurement(measurement);
+    }
+
     insert_packet(measurement, deep_packet) {
 
         // Make sure the packet has a timestamp.

@@ -20,6 +20,23 @@ const MeasurementRouterFactory = function (measurement_manager) {
 
     const router = express.Router();
 
+    // DELETE a measurement
+    router.delete('/measurements/:measurement', function (req, res) {
+        const measurement = req.params.measurement;
+        measurement_manager
+            .delete_measurement(measurement)
+            .then(function () {
+                // No way to tell success or failure with Influx. Just assume Success.
+                res.sendStatus(204);
+            })
+            .catch(function (err) {
+                debug('DELETE /measurements/:measurement error:', err);
+                console.log('err=', err);
+                res.status(400)
+                   .json(auxtools.fromError(400, err));
+            });
+    });
+
     // POST a single packet to a measurement
     router.post('/measurements/:measurement/packets', function (req, res) {
         // Make sure the incoming packet is encoded in JSON.
