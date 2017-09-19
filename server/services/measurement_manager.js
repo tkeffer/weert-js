@@ -18,6 +18,12 @@ class MeasurementManager {
 
     insert_packet(measurement, deep_packet) {
 
+        // Make sure the packet has a timestamp.
+        if(deep_packet.timestamp === undefined)
+            return Promise.reject(new Error("No timestamp"));
+        if (deep_packet.measurement !== undefined && deep_packet.measurement !== measurement){
+            return Promise.reject(new Error("Value of 'measurement' in packet does not match given value."))
+        }
         const wrapped = [deep_packet];
         return this.influx
             .writeMeasurement(measurement, wrapped);

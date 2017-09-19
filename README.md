@@ -369,8 +369,9 @@ POST /api/v1/measurements/:measurement/packets
 
 **JSON input**
 
-A deep packet must be included in the body of the request. Its value for
-`measurement` must match the value given in the URL. 
+A deep packet must be included in the body of the request. If included,
+its value for `measurement` must match the value given in the URL. It must
+include a value for `timestamp`.
 
 **Response code**
 
@@ -382,7 +383,6 @@ A deep packet must be included in the body of the request. Its value for
 
 If successful, the server will return a response code of 201, with the
 response `Location` field set to the URL of the newly created resource (packet).
-The body of the response will hold a JSON representation of the posted packet.
 
 **Example**
 
