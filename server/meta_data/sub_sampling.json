@@ -1,0 +1,8 @@
+{
+    "wxpackets": [
+        {
+            "destination": "wxrecords",
+            "cq_policy"  : "Standard5"
+        }
+    ]
+}

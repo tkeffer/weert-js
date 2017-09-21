@@ -14,7 +14,7 @@ var frisby = require('frisby');
 var normalizeUrl = require('normalize-url');
 var request = require('request');
 
-var config = require('../../server/config');
+var config = require('../../server/config/config');
 
 var measurements_url = 'http://localhost:3000' + config.server.api + '/measurements';
 var packets_url = measurements_url + '/test_measurement/packets';
