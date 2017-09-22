@@ -2,7 +2,8 @@
     "wxpackets": [
         {
             "destination": "wxrecords",
-            "cq_policy"  : "Standard5"
+            "cq_policy"  : "Standard5",
+            "cq_name"    : "archive_5m"
         }
     ]
 }

@@ -18,6 +18,7 @@ const Influx = require('influx');
 
 const config = require('./config/config');
 const MeasurementManager = require('./services/measurement_manager');
+const subsampling = require('./services/subsampling');
 const measurement_router_factory = require('./routes/measurement_routes');
 
 // Set up the view engine
@@ -38,9 +39,24 @@ influx.getDatabaseNames()
       .then(names => {
           // Check to see if the chosen database has been created
           if (!names.includes(config.influxdb.database)) {
-              return influx.createDatabase(config.influxdb.database);
+              // The database does not exist. Create it.
+              return influx.createDatabase(config.influxdb.database)
+                           .then(() => {
+                               debug(`Created database '${config.influxdb.database}'`);
+                               // Having created the database, create the continuous queries
+                               // for any measurements. This type of metadata should probably be in a database,
+                               // but for now, retrieve it from a JSON file
+                               const all_ss_configs = require('./meta_data/sub_sampling');
+                               return subsampling.run_all_cqs(influx, all_ss_configs);
+                           })
+                           .then(result => {
+                               debug(`Set up ${result.length} continuous queries`);
+                               return Promise.resolve();
+                           });
+          } else {
+              debug(`Database '${config.influxdb.database}' already exists.`);
+              return Promise.resolve();
           }
-          return Promise.resolve();
       })
       .then(() => {
 
