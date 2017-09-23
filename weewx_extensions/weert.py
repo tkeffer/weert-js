@@ -1,5 +1,5 @@
 #
-#  Copyright (c) 2015-2016 Tom Keffer <tkeffer@gmail.com>
+#  Copyright (c) 2017 Tom Keffer <tkeffer@gmail.com>
 #
 #     See the file LICENSE for your full rights.
 #
@@ -9,286 +9,308 @@
 # in weewx.
 #
 
-import json
-import os.path
-import sys
-import syslog
-import time
-import urlparse
-import urllib
-import urllib2
+import math
+import threading
 import Queue
+import syslog
 
-import weewx.units
+import configobj
+
 import weewx.restx
 
-from weewx.restx import StdRESTful, RESTThread
+defaults_ini = """
+[WeeRT]
 
-DEFAULT_WEERT_HOST = "http://localhost:3000"
-USER_ENDPOINT = "/api/v1/users/"
-STREAM_ENDPOINT = "/api/v1/streams/"
+    # The WeeRT server
+    host = localhost
+    port = 3000
+
+    # A unique name for the location of the stream
+    platform_name = default_platform
+
+    # A unique name within the platform for the stream
+    stream_name = default_stream
+
+    # The "measurement" name (this is an InfluxDB terminology). 
+    measurement = wxpackets
+
+    [[loop_filters]]
+        # These items will be included in the post to the database.
+        # The right-hand side can be any Python expression
+        UV = UV
+        altimeter = altimeter
+        barometer = barometer
+        consBatteryVoltage = consBatteryVoltage
+        extraHumid1 = extraHumid1
+        extraHumid2 = extraHumid2
+        extraTemp1 = extraTemp1
+        extraTemp2 = extraTemp2
+        extraTemp3 = extraTemp3
+        inHumidity = inHumidity
+        inTemp = inTemp
+        inTempBatteryStatus = inTempBatteryStatus
+        leafTemp1 = leafTemp1
+        leafTemp2 = leafTemp2
+        leafWet1 = leafWet1
+        leafWet2 = leafWet2
+        outHumidity = outHumidity
+        outTemp = outTemp
+        outTempBatteryStatus = outTempBatteryStatus
+        pressure = pressure
+        radiation = radiation
+        rain = rain
+        rainBatteryStatus = rainBatteryStatus 
+        soilMoist1 = soilMoist1
+        soilMoist2 = soilMoist2
+        soilMoist3 = soilMoist3
+        soilMoist4 = soilMoist4
+        soilTemp1 = soilTemp1
+        soilTemp2 = soilTemp2
+        soilTemp3 = soilTemp3
+        soilTemp4 = soilTemp4
+        usUnits = usUnits
+        xWind = windSpeed * math.cos(math.radians(90.0 - windDir)) if (windDir is not None and windSpeed is not None) else None
+        yWind = windSpeed * math.sin(math.radians(90.0 - windDir)) if (windDir is not None and windSpeed is not None) else None
+"""
+import StringIO
+
+weert_defaults = configobj.ConfigObj(StringIO.StringIO(defaults_ini))
+del StringIO
 
 class WeeRT(StdRESTful):
-    """Weewx service for posting using to a Node RESTful server.
-    
-    Manages a separate thread WeeRTThread"""
+    """Upload using to the WeeRT server."""
 
     def __init__(self, engine, config_dict):
-        
         super(WeeRT, self).__init__(engine, config_dict)
 
-        # Get the WeeRT options. The options 'stream_name', 'username', 
-        # and 'password' are required
-        _weert_dict = weewx.restx.get_site_dict(config_dict, 'WeeRT', 
-                                                'stream_name', 'username', 'password')
-
-        if _weert_dict is None:
+        weert_dict = weewx.restx.get_site_dict(config_dict, 'WeeRT', 'host', 'port')
+        if weert_dict is None:
             return
+        # Start with the defaults. Make a copy --- we will be modifying it
+        weert_config = configobj.ConfigObj(weert_defaults)['WeeRT']
+        # Merge in the overrides from the config file
+        weert_config.merge(weert_dict)
+
+        
+        host = weert_dict['host']
+        port = weert_dict['port']
 
         # Get the database manager dictionary:
-        _manager_dict = weewx.manager.get_manager_dict_from_config(config_dict,
-                                                                   'wx_binding')
-        self.loop_queue = Queue.Queue()
-        self.loop_thread = WeeRTThread(self.loop_queue,
-                                       _manager_dict,
-                                       **_weert_dict)
-        self.loop_thread.start()
-        self.bind(weewx.NEW_LOOP_PACKET, self.new_loop_packet)
+        manager_dict = weewx.manager.getmanager_dict_from_config(config_dict, 
+                                                                 'wx_binding')
 
-        syslog.syslog(syslog.LOG_INFO, "weert: LOOP packets will be posted.")
+        self.loop_queue = Queue.Queue()
+        self.archive_thread = WeeRTThread(self.loop_queue, manager_dict,
+                                          host, port,
+                                          **weert_dict)
+        self.archive_thread.start()
+
+        self.bind(weewx.NEW_ARCHIVE_RECORD, self.new_archive_record)
+        syslog.syslog(syslog.LOG_INFO, "restx: WeeRT: "
+                                       "Data for station %s will be posted" % 
+                                       weert_dict['station'])
 
     def new_loop_packet(self, event):
         self.loop_queue.put(event.packet)
+        
 
 
-class WeeRTThread(RESTThread):
-    """Concrete class for threads posting to a Node server"""
-    
+class WeeRTThread(weewx.restx.RESTThread):
+    """Thread that posts to an InfluxDB server"""
 
-    default_obs_types = ['outTemp',
-                         'dewpoint',
-                         'inTemp',
-                         'outHumidity',
-                         'barometer',
-                         'windSpeed',
-                         'windDir',
-                         'dayRain']
-    
-    # Maps from weewx names, to the names used in WeeRT:
-    map = {'outTemp'    : 'outside_temperature',
-           'dewpoint'   : 'dewpoint_temperature',
-           'inTemp'     : 'inside_temperature',
-           'outHumidity': 'outside_humidity',
-           'barometer'  : 'barometer_pressure',
-           'windSpeed'  : 'wind_speed',
-           'windDir'    : 'wind_direction',
-           'dayRain'    : 'day_rain'}
-
-    def __init__(self, queue,
-                 manager_dict,
-                 username,
-                 password,
-                 stream_name = None,
+    def __init__(self, queue, manager_dict,
+                 host, port,
+                 measurement='wxpackets',
+                 platform='default_platform', stream='default_stsream',
                  protocol_name="WeeRT",
-                 weert_host=DEFAULT_WEERT_HOST,
-                 obs_types=default_obs_types,
-                 max_backlog=sys.maxint, stale=60,
+                 post_interval=None, max_backlog=sys.maxint, stale=None,
                  log_success=True, log_failure=True,
-                 timeout=5, max_tries=1, retry_wait=5):
+                 timeout=10, max_tries=3, retry_wait=5, retry_login=3600,
+                 softwaretype="weewx-%s" % weewx.__version__,
+                 skip_upload=False):
 
         """
-        Initializer for the WeeMetThread class.
-        
-        Either stream_id or stream_name must be supplied.
-        
-        Required parameters:
+        Initializer for the WeeRThread class.
 
-          queue: An instance of Queue.Queue where the packets will appear.
+        Parameters specific to this class:
           
-          manager_dict: The database manager dictionary to be used for database
-          lookups.
+          host:
+          port: The host and port of the WeeRT server
           
-          stream_name: A unique name for the stream. Required.
-        
-        Optional parameters:
-        
-          weert_host: The URL for the WeeRT Node server. E.g., http://localhost:3000
-        
-          obs_types: A list of observation types to be sent to the Node
-          server [optional]
-        
-          max_backlog: How many records are allowed to accumulate in the queue
-          before the queue is trimmed.
-          Default is sys.maxint (essentially, allow any number).
+          measurement: The InfluxDB measurement name to use.
           
-          stale: How old a record can be and still considered useful.
-          Default is 60 (a minute).
+          platform: The platform name
           
-          log_success: If True, log a successful post in the system log.
-          Default is True.
-          
-          log_failure: If True, log an unsuccessful post in the system log.
-          Default is True.
-          
-          max_tries: How many times to try the post before giving up.
-          Default is 1
-          
-          timeout: How long to wait for the server to respond before giving up.
-          Default is 5 seconds.        
-
-          retry_wait: How long to wait between retries when failures.
-          Default is 5 seconds.
-        """        
-        # Initialize my superclass
+          stream: The stream name
+        """
         super(WeeRTThread, self).__init__(queue,
                                           protocol_name=protocol_name,
                                           manager_dict=manager_dict,
+                                          post_interval=post_interval,
                                           max_backlog=max_backlog,
                                           stale=stale,
                                           log_success=log_success,
                                           log_failure=log_failure,
                                           timeout=timeout,
                                           max_tries=max_tries,
-                                          retry_wait=retry_wait)
+                                          retry_wait=retry_wait,
+                                          retry_login=retry_login,
+                                          softwaretype=softwaretype,
+                                          skip_upload=skip_upload)  
 
-        self.obs_types = obs_types
-
-        # This will be something like http://localhost:3000/api/v1/users
-        user_endpoint_url = urlparse.urljoin(weert_host, USER_ENDPOINT)
-        # Authenticate and get a token from the server:
-        self.token = get_token(user_endpoint_url, username, password)
-
-        # This will be something like http://localhost:3000/api/v1/streams
-        stream_endpoint_url = urlparse.urljoin(weert_host, STREAM_ENDPOINT)
-
-        # Form an URL from the stream name:
-        streamname_url = self.get_stream_url(stream_endpoint_url, stream_name)
-
-        # Then form an URL for the packet stream        
-        self.packets_url = streamname_url.rstrip(' /') + '/packets'
-
-        syslog.syslog(syslog.LOG_NOTICE, "weert: Publishing to %s" % self.packets_url)
-
-    def process_record(self, record, dbmanager):
-        """Specialized version of process_record that posts to a node server."""
-
-        # Get the full record by querying the database ...
-        full_record = self.get_record(record, dbmanager)
-        # ... convert to Metric if necessary ...
-        metric_record = weewx.units.to_METRICWX(full_record)
-        
-        # Instead of sending every observation type, send only those in
-        # the list obs_types
-        abridged = dict((x, metric_record.get(x)) for x in self.obs_types)
-        
-        # Convert timestamps to JavaScript style:
-        abridged['timestamp'] = record['dateTime'] * 1000
-        
-        mapped = {}
-        for k in abridged:
-            new_k = WeeRTThread.map.get(k, k)
-            mapped[new_k] = abridged[k] 
-        
-        req = urllib2.Request(self.packets_url)
-        req.add_header('Content-Type', 'application/json')
-        req.add_header("User-Agent", "weewx/%s" % weewx.__version__)
-        req.add_header("Authorization", "Bearer %s" % self.token)
-
-        self.post_with_retries(req, payload=json.dumps(mapped))
-        
-    def checkresponse(self, response):
-        """Check the HTTP response code."""
-        if response.getcode() == 201:
-            # Success. Just return
-            return
-        else:
-            for line in response:
-                if line.startswith('Error'):
-                    # Server signals an error. Raise an exception.
-                    raise weewx.restx.FailedPost(line)
-
-    def get_stream_url(self, stream_endpoint_url, stream_name):
-    
-        """Given a stream_name, return its URL. If a stream has not been
-        allocated on the server, allocate one, and return that URL.
-        
-        stream_endpoint_url: The endpoint for WeeRT streams queries. Something
-        like http://localhost:3000/api/v1/streams
-        
-        stream_name: A unique name for the stream
-        """
-         
-        # First see if the stream name is already on the server    
-        stream_url = self.lookup_streamURL(stream_endpoint_url, stream_name)
-    
-        if stream_url:
-            # It has. Return it.
-            return stream_url
-        
-        # The stream has not been allocated. Ask the server to allocate one for us. 
-        # Build the request
-        req = urllib2.Request(stream_endpoint_url)
-        req.add_header('Content-Type', 'application/json')
-        req.add_header("User-Agent", "weewx/%s" % weewx.__version__)
-        req.add_header("Authorization", "Bearer %s" % self.token)
-        
-        # Set up the stream metadata:
-        payload = json.dumps({"_id" : stream_name,
-                              "description" :"Stream for weewx",
-                              "unit_group" : "METRICWX"})
-        
-        # Now send it off
-        response = urllib2.urlopen(req, data=payload)
-        
-        # Check the response code.
-        if response.code == 201:
-            # All is OK. Get the URL of the newly minted stream out 
-            # of the location field:
-            stream_url = response.info()['location']
-        else:
-            stream_url = None
-    
-        return stream_url
+        self.host = host
+        self.port = to_int(port)
+        self.measurement = measurement
+        self.platform = platform
+        self.stream = stream
 
 
-    def lookup_streamURL(self, stream_endpoint_url, stream_name):
-        """Given a stream_name, ask the server what its URL is.
-        Return None if not found.
-        
-        stream_endpoint_url: The endpoint for WeeRT streams queries. Something
-        like http://localhost:3000/api/v1/streams
-        
-        stream_name: A unique name for the stream
-        """
-         
-        # Query to look for a "name" field that matches the stream name
-        query = {"_id":{"$eq": stream_name}}
-        # Encode it with the proper escapes
-        param = urllib.urlencode({'query':json.dumps(query)})
-        # Form the full URL
-        full_url = urlparse.urljoin(stream_endpoint_url, '?%s' % param)
 
-        # Build the request    
-        req = urllib2.Request(full_url)
-        req.add_header('Content-Type', 'application/json')
-        req.add_header("User-Agent", "weewx/%s" % weewx.__version__)
-        req.add_header("Authorization", "Bearer %s" % self.token)
-        
-        # Hit the server
-        response = urllib2.urlopen(req)
-        result = response.read()
-        urlarray = json.loads(result)
-        return str(urlarray[0]) if urlarray else None
 
-def get_token(user_endpoint_url, username, password):
-    
-    params = urllib.urlencode({"password":password})
-    
-    if not user_endpoint_url.endswith('/'):
-        user_endpoint_url += '/'
-    full_url = user_endpoint_url + username + '/token?' + params
-    
-    response = urllib2.urlopen(full_url)
-    result = response.read()
-    token = json.loads(result)
-    return token
+
+
+
+
+
+
+
+
+
+
+
+
+# class WeeRT(weewx.restx.StdRESTful):
+#     """Post to an InfluxDB server"""
+# 
+#     def __init__(self, engine, config_dict):
+#         super(WeeRT, self).__init__(engine, config_dict)
+# 
+#         self.loop_queue = Queue.Queue()
+# 
+#         weert_dict = config_dict.get('WeeRT', {})
+# 
+#         self.loop_thread = WeeRTThread(self.loop_queue, weert_dict)
+#         self.loop_thread.start()
+# 
+#         self.bind(weewx.NEW_LOOP_PACKET, self.new_loop_packet)
+# 
+#     def new_loop_packet(self, event):
+#         self.loop_queue.put(event.packet)
+# 
+# 
+# class WeeRTThread(threading.Thread):
+#     """Thread that posts to an InfluxDB server"""
+# 
+#     def __init__(self, queue, weert_dict):
+#         # Initialize my superclass:
+#         threading.Thread.__init__(self, name="WeeRT-thread")
+# 
+#         self.queue = queue
+# 
+#         # Start with the defaults. Make a copy --- we will be modifying it
+#         weert_config = configobj.ConfigObj(weert_defaults)['WeeRT']
+#         # Merge in the overrides from the config file
+#         weert_config.merge(weert_dict)
+# 
+#         # Extract out the WeeRT specific parts:
+#         self.measurement = weert_config['measurement']
+#         self.platform_name = weert_config['platform_name']
+#         self.stream_name = weert_config['stream_name']
+# 
+#         # Compile the filter functions for the loop packets:
+#         self.filter_funcs = _compile_filters(weert_config['loop_filters'])
+# 
+#         # Make sure the port is an integer:
+#         self.host = weert_config['server']['port']
+#         self.port = int(weert_config['server']['port'])
+# 
+#         # Initialize the client with the InfluxDB specific parts of the configuration:
+#         self.client = influxdb.InfluxDBClient(**weert_config['influxdb'])
+# 
+#         # Create the InfluxDB database, if it hasn't already been created:
+#         self.database_name = weert_config['influxdb']['database']
+#         self.client.create_database(self.database_name)
+# 
+#         # Set up the continuous query:
+#         cq = _form_cq(weert_config)
+#         self.client.query(cq, database=self.database_name)
+# 
+#     def run(self):
+#         """Run the thread"""
+# 
+#         post_to_log = True
+# 
+#         while True:
+#             # This will block until a packet appears in the queue:
+#             packet = self.queue.get()
+# 
+#             # A "None" packet is our signal to exit:
+#             if packet is None:
+#                 return
+# 
+#             out_packet = {}
+#             # Subject all the types to be sent to a filter function.
+#             for k in self.filter_funcs:
+#                 # This will include only types included in the filter functions.
+#                 # If there is not enough information in the packet to support the filter
+#                 # function (exception NameError), then it will be skipped.
+#                 try:
+#                     out_packet[k] = eval(self.filter_funcs[k], {"math": math}, packet)
+#                 except NameError:
+#                     pass
+# 
+#             json_body = {"points": [{"measurement": self.measurement,
+#                                      "tags"       : {
+#                                          "platform_name": self.platform_name,
+#                                          "stream_name"  : self.stream_name
+#                                      },
+#                                      "time"       : int(packet["dateTime"] * 1000000000),  # Convert to nanoseconds
+#                                      "fields"     : out_packet
+#                                      }
+#                                     ]
+#                          }
+#             try:
+#                 # The database must be sent as an undocumented param.
+#                 self.client.write(json_body, params={'db': self.database_name})
+#                 if not post_to_log:
+#                     syslog.syslog(syslog.LOG_ERR, "post_influxdb: InfluxDB server back on line")
+#                 post_to_log = True
+#             except requests.exceptions.ConnectionError, e:
+#                 if post_to_log:
+#                     syslog.syslog(syslog.LOG_ERR, "post_influxdb: Unable to connect to InfluxDB server")
+#                     syslog.syslog(syslog.LOG_ERR, "         ****  %s" % e)
+#                     post_to_log = False
+# 
+# 
+# def _compile_filters(loop_filters):
+#     """Compile the filter statements"""
+#     filter_funcs = {}
+#     for obs_type in loop_filters:
+#         filter_funcs[obs_type] = compile(loop_filters[obs_type], "WeeRT", 'eval')
+#     return filter_funcs
+# 
+# 
+# def _form_cq(weert_config):
+#     """Form a continuous query statement from the configuration dictionary."""
+#     aggs = []
+#     agg_dict = weert_config['downsampling']['aggregation']
+#     for k in agg_dict:
+#         agg = agg_dict[k].lower()
+#         # Offer 'avg' as a synonym for 'mean':
+#         if agg == 'avg':
+#             agg = 'mean'
+#         aggs.append("%s(%s) as %s" % (agg, k, k))
+# 
+#     influx_sql = """CREATE CONTINUOUS QUERY "archive_%s" ON %s BEGIN
+#                         SELECT %s
+#                         INTO %s
+#                         FROM %s
+#                         GROUP BY time(%s)
+#                     END""" % (weert_config['downsampling']['interval'],
+#                               weert_config['influxdb']['database'],
+#                               ', '.join(aggs),
+#                               weert_config['downsampling']['measurement'],
+#                               weert_config['measurement'],
+#                               weert_config['downsampling']['interval'])
+# 
+#     return influx_sql
