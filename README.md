@@ -369,9 +369,15 @@ POST /api/v1/measurements/:measurement/packets
 
 **JSON input**
 
-A deep packet must be included in the body of the request. If included,
-its value for `measurement` must match the value given in the URL. It must
-include a value for `timestamp`.
+A deep packet must be included in the body of the request.
+
+The packet need not include a value for `measurement`, but, if included,
+it must match the value given in the URL.
+
+The packet must include a value for `timestamp`.
+
+Any fields with a `null` value will be ignored and not inserted into the
+database.
 
 **Response code**
 

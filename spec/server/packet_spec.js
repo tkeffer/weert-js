@@ -30,8 +30,8 @@ var temperature = function (i) {
 
 var form_deep_packet = function (i) {
     let obj = {
-        tags: {platform: 'test_platform'},
-        fields: {temperature: temperature(i)},
+        tags     : {platform: 'test_platform'},
+        fields   : {temperature: temperature(i)},
         timestamp: String(timestamp(i))
     };
     return obj;
@@ -42,7 +42,7 @@ describe('In the single packet tests', function () {
     // Before each test, delete the entire measurement.
     beforeEach(function (doneFn) {
         request({
-            url: measurements_url,
+            url   : measurements_url,
             method: 'DELETE'
         }, function (err) {
             doneFn();
@@ -79,11 +79,10 @@ describe('In the single packet tests', function () {
                         .expect('status', 204)
                         .then(function (res) {
                             // Make sure it's truly deleted. This also tests getting a non-existent packet
-                            frisby.get(packet_link)
-                                  .expect('status', 404)
-                                  .done(doneFn);
-                        });
-
+                            return frisby.get(packet_link)
+                                         .expect('status', 404);
+                        })
+                        .done(doneFn);
               });
     });
 
@@ -104,7 +103,7 @@ describe('Malformed packet tests', function () {
     // Before each test, delete the packet (which may or may not exist).
     beforeEach(function (doneFn) {
         request({
-            url: packet_url,
+            url   : packet_url,
             method: 'DELETE'
         }, function (err) {
             doneFn();
@@ -138,6 +137,26 @@ describe('Malformed packet tests', function () {
               .expect('status', 201)
               .done(doneFn);
     });
+
+    // Test inserting a null value
+    let packet_with_null = form_deep_packet(0);
+    packet_with_null.fields.humidity = null;
+    it("should allow insertion of a NULL value", function (doneFn) {
+        frisby.post(packets_url, packet_with_null, {json: true})
+              .expect('status', 201)
+              .then(function (res) {
+                  // We've POSTed the packet. Now retrieve it and make sure
+                  // the null value is not there.
+                  var packet_link = res.headers.get('location');
+                  // Retrieve and check the POSTed packet
+                  return frisby.get(packet_link)
+                               .expect('status', 200)
+                               .expect('json', form_deep_packet(0));
+              })
+              .done(doneFn);
+
+    });
+
 });
 
 // How many packets to use for the test.
@@ -167,15 +186,15 @@ describe("Launch and test " + N + " POSTs of packets", function () {
     beforeAll(function (doneFn) {
 
         request({
-            url: packets_url,
+            url   : packets_url,
             method: 'DELETE'
         }, function (err) {
             // Now asynchronously repopulate it.
             async.each(indices, function (i, callback) {
                 request({
-                    url: packets_url,
+                    url   : packets_url,
                     method: 'POST',
-                    json: packets[i]
+                    json  : packets[i]
                 }, function (error) {
                     return callback(error);
                 });

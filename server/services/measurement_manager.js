@@ -25,12 +25,17 @@ class MeasurementManager {
         // Make sure the packet has a timestamp.
         if (deep_packet.timestamp === undefined)
             return Promise.reject(new Error("No timestamp"));
-        if (deep_packet.measurement !== undefined && deep_packet.measurement !== measurement) {
+        if (deep_packet.measurement && deep_packet.measurement !== measurement) {
             return Promise.reject(new Error("Value of 'measurement' in packet does not match given value."));
         }
-        const wrapped = [deep_packet];
+        // Filter out any nulls because InfluxDB will reject them.
+        // This will mutate deep_packet!!
+        for (let k in deep_packet.fields){
+            if (deep_packet.fields[k] === null)
+                delete deep_packet.fields[k];
+        }
         return this.influx
-                   .writeMeasurement(measurement, wrapped);
+                   .writeMeasurement(measurement, [deep_packet]);
     }
 
     find_packet(measurement, timestamp, platform = undefined, stream = undefined) {

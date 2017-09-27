@@ -1,1 +1,5 @@
 For GET packets, returned packets should be deep packets.
+
+When returning the results of a CQ, they should be returned
+as deep packets.
+
