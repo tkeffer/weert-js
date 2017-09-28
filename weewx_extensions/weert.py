@@ -9,12 +9,15 @@
 # in weewx.
 #
 
+import json
 import math
 import threading
 import Queue
 import syslog
+import sys
 
 import configobj
+from weeutil.weeutil import to_int
 
 import weewx.restx
 
@@ -26,58 +29,52 @@ defaults_ini = """
     port = 3000
 
     # A unique name for the location of the stream
-    platform_name = default_platform
+    platform = default_platform
 
     # A unique name within the platform for the stream
-    stream_name = default_stream
+    stream = default_stream
 
-    # The "measurement" name (this is an InfluxDB terminology). 
+    # The "measurement" name (this is an InfluxDB terminology).
     measurement = wxpackets
 
     [[loop_filters]]
         # These items will be included in the post to the database.
         # The right-hand side can be any Python expression
-        UV = UV
-        altimeter = altimeter
-        barometer = barometer
-        consBatteryVoltage = consBatteryVoltage
-        extraHumid1 = extraHumid1
-        extraHumid2 = extraHumid2
-        extraTemp1 = extraTemp1
-        extraTemp2 = extraTemp2
-        extraTemp3 = extraTemp3
-        inHumidity = inHumidity
-        inTemp = inTemp
-        inTempBatteryStatus = inTempBatteryStatus
-        leafTemp1 = leafTemp1
-        leafTemp2 = leafTemp2
-        leafWet1 = leafWet1
-        leafWet2 = leafWet2
-        outHumidity = outHumidity
-        outTemp = outTemp
-        outTempBatteryStatus = outTempBatteryStatus
-        pressure = pressure
-        radiation = radiation
-        rain = rain
-        rainBatteryStatus = rainBatteryStatus 
-        soilMoist1 = soilMoist1
-        soilMoist2 = soilMoist2
-        soilMoist3 = soilMoist3
-        soilMoist4 = soilMoist4
-        soilTemp1 = soilTemp1
-        soilTemp2 = soilTemp2
-        soilTemp3 = soilTemp3
-        soilTemp4 = soilTemp4
-        usUnits = usUnits
-        xWind = windSpeed * math.cos(math.radians(90.0 - windDir)) if (windDir is not None and windSpeed is not None) else None
-        yWind = windSpeed * math.sin(math.radians(90.0 - windDir)) if (windDir is not None and windSpeed is not None) else None
+        extra1_humidity = extraHumid1
+        extra2_humidity = extraHumid2
+        inside_humidity = inHumidity
+        outside_humidity = outHumidity
+        altimeter_pressure = altimeter
+        sealevel_pressure = barometer
+        gauge_pressure = pressure
+        inside_temperature = inTemp
+        outside_temperature = outTemp
+        extra1_temperature = extraTemp1
+        extra2_temperature = extraTemp2
+        extra3_temperature = extraTemp3
+        leaf1_temperature = leafTemp1
+        leaf2_temperature = leafTemp2
+        soil1_temperature = soilTemp1
+        soil2_temperature = soilTemp2
+        soil3_temperature = soilTemp3
+        soil4_temperature = soilTemp4
+        inside_temperature_battery_status = inTempBatteryStatus
+        outside_temperature_battery_status = outTempBatteryStatus
+        rain_battery_status = rainBatteryStatus
+        radiation_radiation = radiation
+        rain_rain = rain
+        unit_system = usUnits
+        uv_uv = UV
+        x_wind_speed = windSpeed * math.cos(math.radians(90.0 - windDir)) if (windDir is not None and windSpeed is not None) else None
+        y_wind_speed = windSpeed * math.sin(math.radians(90.0 - windDir)) if (windDir is not None and windSpeed is not None) else None
+        console_voltage = consBatteryVoltage
 """
 import StringIO
 
 weert_defaults = configobj.ConfigObj(StringIO.StringIO(defaults_ini))
 del StringIO
 
-class WeeRT(StdRESTful):
+class WeeRT(weewx.restx.StdRESTful):
     """Upload using to the WeeRT server."""
 
     def __init__(self, engine, config_dict):
@@ -91,37 +88,29 @@ class WeeRT(StdRESTful):
         # Merge in the overrides from the config file
         weert_config.merge(weert_dict)
 
-        
-        host = weert_dict['host']
-        port = weert_dict['port']
-
         # Get the database manager dictionary:
-        manager_dict = weewx.manager.getmanager_dict_from_config(config_dict, 
+        manager_dict = weewx.manager.get_manager_dict_from_config(config_dict,
                                                                  'wx_binding')
 
         self.loop_queue = Queue.Queue()
         self.archive_thread = WeeRTThread(self.loop_queue, manager_dict,
-                                          host, port,
-                                          **weert_dict)
+                                          **weert_config)
         self.archive_thread.start()
 
-        self.bind(weewx.NEW_ARCHIVE_RECORD, self.new_archive_record)
-        syslog.syslog(syslog.LOG_INFO, "restx: WeeRT: "
-                                       "Data for station %s will be posted" % 
-                                       weert_dict['station'])
+        self.bind(weewx.NEW_LOOP_PACKET, self.new_loop_packet)
+        syslog.syslog(syslog.LOG_INFO, "weert: LOOP packets will be posted")
 
     def new_loop_packet(self, event):
         self.loop_queue.put(event.packet)
-        
-
 
 class WeeRTThread(weewx.restx.RESTThread):
     """Thread that posts to an InfluxDB server"""
 
     def __init__(self, queue, manager_dict,
                  host, port,
-                 measurement='wxpackets',
-                 platform='default_platform', stream='default_stsream',
+                 measurement,
+                 platform, stream,
+                 loop_filters,
                  protocol_name="WeeRT",
                  post_interval=None, max_backlog=sys.maxint, stale=None,
                  log_success=True, log_failure=True,
@@ -133,15 +122,17 @@ class WeeRTThread(weewx.restx.RESTThread):
         Initializer for the WeeRThread class.
 
         Parameters specific to this class:
-          
+
           host:
           port: The host and port of the WeeRT server
-          
+
           measurement: The InfluxDB measurement name to use.
-          
+
           platform: The platform name
-          
+
           stream: The stream name
+
+          loop_filters: A data structure holding what values are to be emitted.
         """
         super(WeeRTThread, self).__init__(queue,
                                           protocol_name=protocol_name,
@@ -156,7 +147,7 @@ class WeeRTThread(weewx.restx.RESTThread):
                                           retry_wait=retry_wait,
                                           retry_login=retry_login,
                                           softwaretype=softwaretype,
-                                          skip_upload=skip_upload)  
+                                          skip_upload=skip_upload)
 
         self.host = host
         self.port = to_int(port)
@@ -164,153 +155,40 @@ class WeeRTThread(weewx.restx.RESTThread):
         self.platform = platform
         self.stream = stream
 
+        # Compile the filter functions for the loop packets:
+        self.filter_funcs = _compile_filters(loop_filters)
 
+    def format_url(self, packet):
+        """Return the URL used to post to the WeeRT server"""
 
+        url = "http://%s:%s/api/v1/measurements/%s/packets" % (self.host, self.port, self.measurement)
+        return url
 
+    def get_post_body(self, packet):
+        """Supply the body and MIME type of the POST"""
 
+        out_packet = {}
+        # Subject all the types to be sent to a filter function.
+        for k in self.filter_funcs:
+            # This will include only types included in the filter functions.
+            # If there is not enough information in the packet to support the filter
+            # function (exception NameError), then it will be skipped.
+            try:
+                out_packet[k] = eval(self.filter_funcs[k], {"math": math}, packet)
+            except NameError:
+                pass
 
+        body = {"measurement": self.measurement,
+                     "tags"       : {"platform": self.platform, "stream"  : self.stream},
+                     "timestamp"   : int(packet["dateTime"] * 1000000000),  # Convert to nanoseconds
+                     "fields"     : out_packet
+                    }
+        json_body = json.dumps(body)
+        return (json_body, 'application/json')
 
-
-
-
-
-
-
-
-
-
-# class WeeRT(weewx.restx.StdRESTful):
-#     """Post to an InfluxDB server"""
-# 
-#     def __init__(self, engine, config_dict):
-#         super(WeeRT, self).__init__(engine, config_dict)
-# 
-#         self.loop_queue = Queue.Queue()
-# 
-#         weert_dict = config_dict.get('WeeRT', {})
-# 
-#         self.loop_thread = WeeRTThread(self.loop_queue, weert_dict)
-#         self.loop_thread.start()
-# 
-#         self.bind(weewx.NEW_LOOP_PACKET, self.new_loop_packet)
-# 
-#     def new_loop_packet(self, event):
-#         self.loop_queue.put(event.packet)
-# 
-# 
-# class WeeRTThread(threading.Thread):
-#     """Thread that posts to an InfluxDB server"""
-# 
-#     def __init__(self, queue, weert_dict):
-#         # Initialize my superclass:
-#         threading.Thread.__init__(self, name="WeeRT-thread")
-# 
-#         self.queue = queue
-# 
-#         # Start with the defaults. Make a copy --- we will be modifying it
-#         weert_config = configobj.ConfigObj(weert_defaults)['WeeRT']
-#         # Merge in the overrides from the config file
-#         weert_config.merge(weert_dict)
-# 
-#         # Extract out the WeeRT specific parts:
-#         self.measurement = weert_config['measurement']
-#         self.platform_name = weert_config['platform_name']
-#         self.stream_name = weert_config['stream_name']
-# 
-#         # Compile the filter functions for the loop packets:
-#         self.filter_funcs = _compile_filters(weert_config['loop_filters'])
-# 
-#         # Make sure the port is an integer:
-#         self.host = weert_config['server']['port']
-#         self.port = int(weert_config['server']['port'])
-# 
-#         # Initialize the client with the InfluxDB specific parts of the configuration:
-#         self.client = influxdb.InfluxDBClient(**weert_config['influxdb'])
-# 
-#         # Create the InfluxDB database, if it hasn't already been created:
-#         self.database_name = weert_config['influxdb']['database']
-#         self.client.create_database(self.database_name)
-# 
-#         # Set up the continuous query:
-#         cq = _form_cq(weert_config)
-#         self.client.query(cq, database=self.database_name)
-# 
-#     def run(self):
-#         """Run the thread"""
-# 
-#         post_to_log = True
-# 
-#         while True:
-#             # This will block until a packet appears in the queue:
-#             packet = self.queue.get()
-# 
-#             # A "None" packet is our signal to exit:
-#             if packet is None:
-#                 return
-# 
-#             out_packet = {}
-#             # Subject all the types to be sent to a filter function.
-#             for k in self.filter_funcs:
-#                 # This will include only types included in the filter functions.
-#                 # If there is not enough information in the packet to support the filter
-#                 # function (exception NameError), then it will be skipped.
-#                 try:
-#                     out_packet[k] = eval(self.filter_funcs[k], {"math": math}, packet)
-#                 except NameError:
-#                     pass
-# 
-#             json_body = {"points": [{"measurement": self.measurement,
-#                                      "tags"       : {
-#                                          "platform_name": self.platform_name,
-#                                          "stream_name"  : self.stream_name
-#                                      },
-#                                      "time"       : int(packet["dateTime"] * 1000000000),  # Convert to nanoseconds
-#                                      "fields"     : out_packet
-#                                      }
-#                                     ]
-#                          }
-#             try:
-#                 # The database must be sent as an undocumented param.
-#                 self.client.write(json_body, params={'db': self.database_name})
-#                 if not post_to_log:
-#                     syslog.syslog(syslog.LOG_ERR, "post_influxdb: InfluxDB server back on line")
-#                 post_to_log = True
-#             except requests.exceptions.ConnectionError, e:
-#                 if post_to_log:
-#                     syslog.syslog(syslog.LOG_ERR, "post_influxdb: Unable to connect to InfluxDB server")
-#                     syslog.syslog(syslog.LOG_ERR, "         ****  %s" % e)
-#                     post_to_log = False
-# 
-# 
-# def _compile_filters(loop_filters):
-#     """Compile the filter statements"""
-#     filter_funcs = {}
-#     for obs_type in loop_filters:
-#         filter_funcs[obs_type] = compile(loop_filters[obs_type], "WeeRT", 'eval')
-#     return filter_funcs
-# 
-# 
-# def _form_cq(weert_config):
-#     """Form a continuous query statement from the configuration dictionary."""
-#     aggs = []
-#     agg_dict = weert_config['downsampling']['aggregation']
-#     for k in agg_dict:
-#         agg = agg_dict[k].lower()
-#         # Offer 'avg' as a synonym for 'mean':
-#         if agg == 'avg':
-#             agg = 'mean'
-#         aggs.append("%s(%s) as %s" % (agg, k, k))
-# 
-#     influx_sql = """CREATE CONTINUOUS QUERY "archive_%s" ON %s BEGIN
-#                         SELECT %s
-#                         INTO %s
-#                         FROM %s
-#                         GROUP BY time(%s)
-#                     END""" % (weert_config['downsampling']['interval'],
-#                               weert_config['influxdb']['database'],
-#                               ', '.join(aggs),
-#                               weert_config['downsampling']['measurement'],
-#                               weert_config['measurement'],
-#                               weert_config['downsampling']['interval'])
-# 
-#     return influx_sql
+def _compile_filters(loop_filters):
+    """Compile the filter statements"""
+    filter_funcs = {}
+    for obs_type in loop_filters:
+        filter_funcs[obs_type] = compile(loop_filters[obs_type], "WeeRT", 'eval')
+    return filter_funcs

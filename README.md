@@ -6,7 +6,13 @@ A real-time logging and display server, using Node, Express, and InfluxDB
 - The server offers a RESTful API for storing, retrieving, deleting, and editing streams and data.
 - Data are stored in a [InfluxDB](https://www.influxdata.com/) server
 
-For experimental purposes. Tested on Node V6.9.5, although later versions should work fine.
+For experimental purposes.
+
+The WeeRT uploader requires WeeWX version 3.8 or later. Earlier versions will not work.
+
+Tested on Node V6.9.5, although later versions should work fine.
+
+Tested on InfluxDB V1.3.5.
 
 
 # Data model

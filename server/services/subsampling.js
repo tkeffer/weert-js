@@ -57,7 +57,7 @@ function _form_cq_stmt(database, measurement, ss_config) {
     let influx_sql =
         `CREATE CONTINUOUS QUERY ${ss_config.cq_name} ON ${database} ` +
         `BEGIN SELECT ${agg_array} INTO ${ss_config.destination} ` +
-        `FROM ${measurement} GROUP BY time(${cq_policy.interval}) END`;
+        `FROM ${measurement} GROUP BY time(${cq_policy.interval}), * END`;
 
     return influx_sql;
 }
