@@ -263,4 +263,22 @@ describe("Launch and test " + N + " POSTs of packets", function () {
               })
               .done(doneFn);
     });
+
+    it("should return a single timestamp", function(doneFn){
+        frisby.get(packets_url + '/' + timestamp(3))
+            .expect('status', 200)
+            .then(function(res){
+                expect(res.body).toEqual(packets[3]);
+            })
+            .done(doneFn);
+    });
+
+    it("should return a single timestamp on a specific platform", function(doneFn){
+        frisby.get(packets_url + '/' + timestamp(3) + '?platform=test_platform')
+              .expect('status', 200)
+              .then(function(res){
+                  expect(res.body).toEqual(packets[3]);
+              })
+              .done(doneFn);
+    })
 });

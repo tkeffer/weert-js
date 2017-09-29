@@ -83,99 +83,8 @@ are in this format. There are utility functions in module `weert.database` for b
 as well as for converting to and from flattened packets.
  
 # API
+
  
-## Get information about a measurement.
-
-Query the database for information about an InfluxDB measurement.
-
-```
-GET /api/v1/measurements/:measurement
-```
-
-
-**Return status**
-
-| *Status* | *Meaning*             |
-|:---------|:----------------------|
-| 200      | Success               |
-| 404      | Measurement not found |
-
-If successful, the server will return an array containing the series contained in the measurement `measurement`.
-
-**Example**
-
-```Shell
-$ curl -i --silent -X GET 'http://localhost:5000/api/v1/measurements/wxpackets'
-HTTP/1.0 200 OK
-Content-Type: application/json
-Content-Length: 78
-Server: Werkzeug/0.12.1 Python/2.7.12
-Date: Wed, 26 Apr 2017 22:03:02 GMT
-
-[
-    "wxpackets,platform=default_platform,stream=default_stream"
-]
-```
-
-**Do the example again, but using a bogus measurement name**
-
-```shell
-$ curl -i --silent -X GET http://localhost:5000/api/v1/measurements/foo
-HTTP/1.0 404 NOT FOUND
-Content-Type: application/json
-Content-Length: 61
-Server: Werkzeug/0.12.1 Python/2.7.12
-Date: Wed, 26 Apr 2017 22:04:06 GMT
-
-{
-  "code": 404, 
-  "message": "Measurement foo not found"
-}
-```
-
-## Delete a measurement
-
-Delete a measurement from the InfluxDB database.
-
-```
-DELETE ap/v1/measurements/:measurement
-```
-
-**Return status**
-
-| *Status* | *Meaning*             |
-|:---------|:----------------------|
-| 204      | Success / NO CONTENT  |
-| 404      | Measurement not found |
-
-
-```
-$curl -i --silent -X DELETE 'http://localhost:5000/api/v1/measurements/test_measurement'
-HTTP/1.0 204 NO CONTENT
-Content-Type: application/json
-Content-Length: 0
-Server: Werkzeug/0.12.1 Python/2.7.12
-Date: Wed, 26 Apr 2017 22:10:24 GMT
-```
-
-
-**Do it again, but using a bogus measurement name***
-
-
-```
-$ curl -i --silent -X DELETE 'http://localhost:5000/api/v1/measurements/foo'
-HTTP/1.0 404 NOT FOUND
-Content-Type: application/json
-Content-Length: 112
-Server: Werkzeug/0.12.1 Python/2.7.12
-Date: Wed, 26 Apr 2017 22:08:12 GMT
-
-{
-  "code": 404,
-  "description": "measurement not found: foo",
-  "message": "Non-existent measurement foo"
-}
-```
 
 ## Get packets
 
@@ -206,113 +115,214 @@ GET /api/v1/measurements/:measurement/packets
 
 **Example**
 
-Ask for the first two packets in the measurement `test_measurement`.
+Ask for all the packets in the measurement `examples`. This is the entire example database.
 
 ```shell
-$ curl -i --silent -X GET 'http://localhost:5000/api/v1/measurements/test_measurement/packets?limit=2'
-HTTP/1.0 200 OK
-Content-Type: application/json
-Content-Length: 572
-Server: Werkzeug/0.12.1 Python/2.7.12
-Date: Wed, 26 Apr 2017 22:20:08 GMT
+$ curl -i --silent -X GET 'http://localhost:3000/api/v1/measurements/examples/packets'
+
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Content-Length: 993
+ETag: W/"3e1-cEFYgsoYoMKa+fkx+m5jqbYWzbA"
+Date: Fri, 29 Sep 2017 23:11:51 GMT
+Connection: keep-alive
 
 [
     {
         "fields": {
-            "outside_temperature": 0.1
-        }, 
-        "measurement": "test_measurement", 
+            "pressure": 27.9,
+            "temperature": 177
+        },
         "tags": {
-            "platform": "test_platform1", 
-            "stream": "test_stream1"
-        }, 
-        "time": 1483228800000000000
-    }, 
+            "platform": "chevy",
+            "stream": "oil"
+        },
+        "timestamp": "1506713140000000000"
+    },
     {
         "fields": {
-            "outside_temperature": 0.1
-        }, 
-        "measurement": "test_measurement", 
+            "pressure": 27.9,
+            "temperature": 177
+        },
         "tags": {
-            "platform": "test_platform2", 
-            "stream": "test_stream2"
-        }, 
-        "time": 1483228800000000000
+            "platform": "truck",
+            "stream": "oil"
+        },
+        "timestamp": "1506713140000000000"
+    },
+    {
+        "fields": {
+            "pressure": 27.8,
+            "temperature": 181
+        },
+        "tags": {
+            "platform": "chevy",
+            "stream": "oil"
+        },
+        "timestamp": "1506713200000000000"
+    },
+    {
+        "fields": {
+            "pressure": 27.8,
+            "temperature": 181
+        },
+        "tags": {
+            "platform": "truck",
+            "stream": "oil"
+        },
+        "timestamp": "1506713200000000000"
+    },
+    {
+        "fields": {
+            "pressure": 27.6,
+            "temperature": 182
+        },
+        "tags": {
+            "platform": "chevy",
+            "stream": "oil"
+        },
+        "timestamp": "1506713260000000000"
+    },
+    {
+        "fields": {
+            "pressure": 27.6,
+            "temperature": 182
+        },
+        "tags": {
+            "platform": "truck",
+            "stream": "oil"
+        },
+        "timestamp": "1506713260000000000"
+    },
+    {
+        "fields": {
+            "pressure": 27.1,
+            "temperature": 184
+        },
+        "tags": {
+            "platform": "chevy",
+            "stream": "oil"
+        },
+        "timestamp": "1506713320000000000"
+    },
+    {
+        "fields": {
+            "pressure": 27.1,
+            "temperature": 184
+        },
+        "tags": {
+            "platform": "truck",
+            "stream": "oil"
+        },
+        "timestamp": "1506713320000000000"
     }
 ]
+
 ```
 
-Query again, but this time ask for only those packets on platform `test_platform2`:
+Query again, but this time ask for only those packets on platform `truck`, and limit it
+to 2 packets:
 
 ```shell
-$ curl -i --silent -X GET 'http://localhost:5000/api/v1/measurements/test_measurement/packets?limit=2&platform=test_platform2'
-HTTP/1.0 200 OK
-Content-Type: application/json
-Content-Length: 572
-Server: Werkzeug/0.12.1 Python/2.7.12
-Date: Wed, 26 Apr 2017 22:46:40 GMT
+$ curl -i --silent -X GET 'http://localhost:3000/api/v1/measurements/examples/packets?platform=truck&limit=2'
+
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Content-Length: 497
+ETag: W/"1f1-o8ohvg7wrsFnHHncG5Q4qZWDaxA"
+Date: Fri, 29 Sep 2017 23:11:51 GMT
+Connection: keep-alive
 
 [
     {
         "fields": {
-            "outside_temperature": 0.1
-        }, 
-        "measurement": "test_measurement", 
+            "pressure": 27.9,
+            "temperature": 177
+        },
         "tags": {
-            "platform": "test_platform2", 
-            "stream": "test_stream2"
-        }, 
-        "time": 1483228800000000000
+            "platform": "truck",
+            "stream": "oil"
+        },
+        "timestamp": "1506713140000000000"
+    },
+    {
+        "fields": {
+            "pressure": 27.8,
+            "temperature": 181
+        },
+        "tags": {
+            "platform": "truck",
+            "stream": "oil"
+        },
+        "timestamp": "1506713200000000000"
+    },
+    {
+        "fields": {
+            "pressure": 27.6,
+            "temperature": 182
+        },
+        "tags": {
+            "platform": "truck",
+            "stream": "oil"
+        },
+        "timestamp": "1506713260000000000"
+    },
+    {
+        "fields": {
+            "pressure": 27.1,
+            "temperature": 184
+        },
+        "tags": {
+            "platform": "truck",
+            "stream": "oil"
+        },
+        "timestamp": "1506713320000000000"
     }
 ]
+
 ```
 
 Query, constraining by time and platform name, returning results in reverse order:
 
 
 ```shell
-curl -i -X GET 'http://localhost:5000/api/v1/measurements/test_measurement/packets?start=1483228802000000000&stop=1483228805000000000&platform=test_platform1&direction=desc'
-HTTP/1.0 200 OK
-Content-Type: application/json
-Content-Length: 857
-Server: Werkzeug/0.12.1 Python/2.7.12
-Date: Wed, 26 Apr 2017 22:51:31 GMT
+$ curl -i -X GET 'http://localhost:3000/api/v1/measurements/examples/packets?start=1506713140000000000&stop=1506713260000000000&platform=chevy&direction=desc'
+
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Content-Length: 249
+ETag: W/"f9-24gaPxQBiCT4du1TnHz0Z12Z9ME"
+Date: Fri, 29 Sep 2017 23:11:51 GMT
+Connection: keep-alive
 
 [
     {
         "fields": {
-            "outside_temperature": 5.1
-        }, 
-        "measurement": "test_measurement", 
+            "pressure": 27.6,
+            "temperature": 182
+        },
         "tags": {
-            "platform": "test_platform1", 
-            "stream": "test_stream1"
-        }, 
-        "time": 1483228805000000000
-    }, 
+            "platform": "chevy",
+            "stream": "oil"
+        },
+        "timestamp": "1506713260000000000"
+    },
     {
         "fields": {
-            "outside_temperature": 4.1
-        }, 
-        "measurement": "test_measurement", 
+            "pressure": 27.8,
+            "temperature": 181
+        },
         "tags": {
-            "platform": "test_platform1", 
-            "stream": "test_stream1"
-        }, 
-        "time": 1483228804000000000
-    }, 
-    {
-        "fields": {
-            "outside_temperature": 3.1
-        }, 
-        "measurement": "test_measurement", 
-        "tags": {
-            "platform": "test_platform1", 
-            "stream": "test_stream1"
-        }, 
-        "time": 1483228803000000000
+            "platform": "chevy",
+            "stream": "oil"
+        },
+        "timestamp": "1506713200000000000"
     }
 ]
+
 ```
 
 ## Get a specific timestamp
@@ -342,26 +352,29 @@ GET /api/v1/measurements/:measurement/packets/:timestamp
 **Example**
 
 ```shell
-$ curl -i -X GET 'http://localhost:5000/api/v1/measurements/test_measurement/packets/1483228802000000000?platform=test_platform1'
-HTTP/1.0 200 OK
-Content-Type: application/json
-Content-Length: 287
-Server: Werkzeug/0.12.1 Python/2.7.12
-Date: Thu, 27 Apr 2017 15:06:34 GMT
+$ curl -i -X GET 'http://localhost:3000/api/v1/measurements/examples/packets/1506713200000000000?platform=truck'
 
-[
-    {
-        "fields": {
-            "outside_temperature": 2.1
-        }, 
-        "measurement": "test_measurement", 
-        "tags": {
-            "platform": "test_platform1", 
-            "stream": "test_stream1"
-        }, 
-        "time": 1483228802000000000
-    }
-]
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Location: http://localhost:3000/api/v1/measurements/examples/packets/undefined
+Content-Type: application/json; charset=utf-8
+Content-Length: 123
+ETag: W/"7b-A2xQJGDxzKCul2tKEX0f8WOgfpE"
+Date: Fri, 29 Sep 2017 23:11:51 GMT
+Connection: keep-alive
+
+{
+    "fields": {
+        "pressure": 27.8,
+        "temperature": 181
+    },
+    "tags": {
+        "platform": "truck",
+        "stream": "oil"
+    },
+    "timestamp": "1506713200000000000"
+}
+
 ```
 
 
@@ -400,29 +413,8 @@ response `Location` field set to the URL of the newly created resource (packet).
 
 ```shell
 $ curl -i --silent -X POST -H Content-type:application/json \
-> -d '{"time" : 1493391753000000000, \,
-> "measurement" : "test_measurement", \
-> "tags" : {"platform": "my_platform", "stream" : "my_stream"}, \
-> "fields" : {"outside_temperature" : 15.5}}' \
-> http://localhost:5000/api/v1/measurements/test_measurement/packets
-HTTP/1.0 201 CREATED
-Content-Type: application/json
-Content-Length: 234
-Location: http://localhost:5000/api/v1/measurements/test_measurement/packets/1493391753000000000
-Server: Werkzeug/0.12.1 Python/2.7.12
-Date: Fri, 28 Apr 2017 15:18:31 GMT
 
-{
-    "fields": {
-        "outside_temperature": 15.5
-    }, 
-    "measurement": "test_measurement", 
-    "tags": {
-        "platform": "my_platform", 
-        "stream": "my_stream"
-    }, 
-    "time": 1493391753000000000
-}
+
 ```
 
 Note how the URL of the new resource is returned in the header `Location`.
@@ -460,6 +452,98 @@ actually existed in the database.
 ```
 
 
+## Get information about a measurement.
+
+Query the database for information about an InfluxDB measurement.
+
+```
+GET /api/v1/measurements/:measurement
+```
+
+
+**Return status**
+
+| *Status* | *Meaning*             |
+|:---------|:----------------------|
+| 200      | Success               |
+| 404      | Measurement not found |
+
+If successful, the server will return an array containing the series contained in the measurement `measurement`.
+
+**Example**
+
+```Shell
+#$ curl -i --silent -X GET 'http://localhost:3000/api/v1/measurements/wxpackets'
+HTTP/1.0 200 OK
+Content-Type: application/json
+Content-Length: 78
+Server: Werkzeug/0.12.1 Python/2.7.12
+Date: Wed, 26 Apr 2017 22:03:02 GMT
+
+[
+    "wxpackets,platform=default_platform,stream=default_stream"
+]
+```
+
+**Do the example again, but using a bogus measurement name**
+
+```shell
+$ curl -i --silent -X GET http://localhost:3000/api/v1/measurements/foo
+
+HTTP/1.1 404 Not Found
+X-Powered-By: Express
+Content-Type: text/html; charset=utf-8
+Content-Length: 1138
+ETag: W/"472-XKm1PvTZ44bDFVPd6ihOe1k/lw8"
+Date: Fri, 29 Sep 2017 23:11:51 GMT
+Connection: keep-alive
+
+<h1>WeeRT server</h1><h2>Page not found: /api/v1/measurements/foo</h2><h3>Status: 404</h3><pre>Error: Page not found: /api/v1/measurements/foo    at /home/tkeffer/git/tkeffer/weert-js/server/server.js:75:25    at Layer.handle [as handle_request] (/home/tkeffer/git/tkeffer/weert-js/node_modules/express/lib/router/layer.js:95:5)    at trim_prefix (/home/tkeffer/git/tkeffer/weert-js/node_modules/express/lib/router/index.js:317:13)    at /home/tkeffer/git/tkeffer/weert-js/node_modules/express/lib/router/index.js:284:7    at Function.process_params (/home/tkeffer/git/tkeffer/weert-js/node_modules/express/lib/router/index.js:335:12)    at next (/home/tkeffer/git/tkeffer/weert-js/node_modules/express/lib/router/index.js:275:10)    at /home/tkeffer/git/tkeffer/weert-js/node_modules/express/lib/router/index.js:635:15    at next (/home/tkeffer/git/tkeffer/weert-js/node_modules/express/lib/router/index.js:260:14)    at Function.handle (/home/tkeffer/git/tkeffer/weert-js/node_modules/express/lib/router/index.js:174:3)    at router (/home/tkeffer/git/tkeffer/weert-js/node_modules/express/lib/router/index.js:47:12)</pre>
+```
+
+## Delete a measurement
+
+Delete a measurement from the InfluxDB database.
+
+```
+DELETE ap/v1/measurements/:measurement
+```
+
+**Return status**
+
+| *Status* | *Meaning*             |
+|:---------|:----------------------|
+| 204      | Success / NO CONTENT  |
+| 404      | Measurement not found |
+
+
+```
+#$curl -i --silent -X DELETE 'http://localhost:3000/api/v1/measurements/examples'
+HTTP/1.0 204 NO CONTENT
+Content-Type: application/json
+Content-Length: 0
+Server: Werkzeug/0.12.1 Python/2.7.12
+Date: Wed, 26 Apr 2017 22:10:24 GMT
+```
+
+
+**Do it again, but using a bogus measurement name***
+
+
+```
+#$ curl -i --silent -X DELETE 'http://localhost:3000/api/v1/measurements/foo'
+HTTP/1.0 404 NOT FOUND
+Content-Type: application/json
+Content-Length: 112
+Server: Werkzeug/0.12.1 Python/2.7.12
+Date: Wed, 26 Apr 2017 22:08:12 GMT
+
+{
+  "code": 404,
+  "description": "measurement not found: foo",
+  "message": "Non-existent measurement foo"
+}
+```
 
 
 

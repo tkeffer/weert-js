@@ -42,9 +42,9 @@ class MeasurementManager {
 
         let query_string = `SELECT * FROM ${measurement} WHERE time=${timestamp}`;
         if (platform)
-            query_string += ` AND platform=${platform}`;
+            query_string += ` AND platform='${platform}'`;
         if (stream)
-            query_string += ` AND stream=${stream}`;
+            query_string += ` AND stream='${stream}'`;
         return this.influx
                    .query(query_string)
                    .then(results => {
