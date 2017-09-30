@@ -1,6 +1,52 @@
 # WeeRT
 A real-time logging and display server, using Node, Express, and InfluxDB
 
+## Installation
+
+1. Download and install [InfluxDB](https://www.influxdata.com/). WeeRT was tested with
+version 1.3.5. Later versions should work fine.
+
+2. If necessary, start it by whatever means is needed for your operating system. This works
+on Ubuntu 16.04:
+
+  ```shell
+  $ systemctl start influxdb
+  ```
+
+3. Download and install [node](https://nodejs.org/en/). WeeRT was tested with version 6.9.5.
+Later versions should work fine.
+
+4. Download WeeRT from the git repository
+
+  ```shell
+  $ git clone https://github.com/tkeffer/weert-js.git
+  ```
+
+5. Enter the directory, and install the dependencies
+
+  ```shell
+  $ cd weert-js
+  $ npm install
+  ```
+
+6. Start the WeeRT server
+
+  ```shell
+  $ node server/server.js
+  Listening on port 3000
+  ```
+7. To run the test suites, in another shell download and install `jasmine` globally
+
+  ```shell
+  npm install -g jasmine
+  ```
+
+8. Run the suites
+
+  ```shell
+  jasmine spec/server/packet_spec.js
+  ```
+
 ## General architecture
 - Uses a [Node](https://nodejs.org/) server with the [Express framework](http://expressjs.com/)
 - The server offers a RESTful API for storing, retrieving, deleting, and editing streams and data.
