@@ -1,33 +1,31 @@
-"""Used to generate the example output.
+"""Runs the examples embedded in the README file, collecting the output,
+and plugs it into the markdown.
 
 To use:
 
- 1. Make sure InfluxDB is running
- 2. Drop the "weert" database from InfluxDB:
+1. Make sure InfluxDB is running
 
- $ influx
- > use weert
- > drop database weert
- > exit
+2. Make sure that the WeeRT server is running
 
- 3. Make sure that the WeeRT server is running
+3. Run the Python code:
 
- 4. Run the Python code:
-
- $ cd weert
-
+   $ cd weert
+   $ docs/run_examples README.md > test.md
+ 
+4. Look over test.md. If it looks good, substitute it for README.md
+ 
+   $ mv test.md README.md
 
 """
 import json
-import subprocess
 import optparse
+import subprocess
 import sys
+
 
 description = """Run the examples in the WeeRT API markdown documentation"""
 
 usage = """%prog: input-file [--help]"""
-
-MARGIN = 85
 
 class GenWithPeek(object):
     """Generator object which allows a peek at the next object to be returned.
@@ -85,7 +83,7 @@ class GenWithPeek(object):
             self.have_peek = True
         return self.peek_obj
 
-def extractCmd(gen):
+def extract_from_comments(gen):
     """Extract shell commands out of the markdown.
 
     Shell commands embedded in a markdown pseudo-comment are
@@ -97,27 +95,34 @@ def extractCmd(gen):
     """
     
     cmd = ""
+    lines = ""
     while True:
+        # Are we done?
         if not gen.peek().startswith('[//]'):
-            return cmd
+            return (cmd, lines)
+        # Get the next line
         line = gen.next()
+        # Find the command delimiters for this line
         left = line.index('(')
         right = line.index(')')
+        # Extract the command from the line and append it to the others
         cmd += line[left + 1: right] + '\n'
+        # Save the raw lines s well
+        lines += line
 
-def pretty_cmd(cmd):
-    result =  ""
-    current_line = "$ "
-    for x in cmd.split():
-        if len(current_line) + len(x) > MARGIN-2:
-            result += current_line + " \\\n"
-            current_line = ">   "
-        current_line += x + " "
-    result += current_line + "\n"
-    return result    
-
+def extract_multi_line(gen):
+    """Extract a (possibly) multi line command"""
+    
+    cmd = ""
+    lines = ""
+    for line in gen:
+        lines += line
+        cmd += line.replace('>', '')
+        if not line.endswith('\\\n'):
+            return (cmd, lines)
+        
 def prettify_string(str):
-
+    """Prettify the results returned from the curl commands"""
     result = ""
     for line in str.split('\n'):
         if line.startswith('{') or line.startswith('['):
@@ -152,55 +157,28 @@ def main():
             # They will be embedded in a markdown pseudo-comment.
             if gen.peek().startswith('[//]'):
                 # Found one. Extract it and run it, throwing away the output
-                cmd = extractCmd(gen)
+                cmd, comments = extract_from_comments(gen)
                 p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 _, _ = p.communicate(input=cmd)
+                print comments
             # Look for shell commands to be run "noisily," that is, their output
             # will be included
             elif gen.peek().startswith('$'):
-                line = gen.next()
-                stripped_line = line.strip()
-                shell_str = stripped_line[1:].strip()
+                shell_cmd, lines = extract_multi_line(gen)
                 # Fire off the curl command, collecting its standard output
-                p = subprocess.Popen(shell_str, shell=True, stdout=subprocess.PIPE)
+                p = subprocess.Popen(shell_cmd[1:], shell=True, stdout=subprocess.PIPE)
                 output, err = p.communicate()
-                print line
+                print lines
                 print prettify_string(output)
                 # Fast forward past any old shell output
                 while not gen.peek().startswith('```'):
                     gen.next()
             else:
+                # Just a regular line. Get it  and print it
                 line = gen.next()
                 print line,
         except StopIteration:
             sys.exit(0)
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-#     for line in fd:
-#         stripped_line = line.strip()
-#         if stripped_line.startswith('$'):
-#             curl_str = stripped_line[1:].strip()
-#             curl_cmd = curl_str.split(' ')
-#             # Get rid of any quote marks. They are not needed when running through Popen.
-#             curl_cmd[-1] = curl_cmd[-1].replace("'", '')
-#             print curl_cmd
-# 
-#             # Fire off the curl command, collecting its standard output
-#             p = Popen(curl_cmd, shell=False, stdout=PIPE)
-#             output, err = p.communicate()
-#             return_code = p.wait()
-#             if return_code:
-#                 raise IOError("Invalid return code from curl: %s" % return_code)
-#                     
-#             print output
     
 if __name__ == "__main__" :
     main()

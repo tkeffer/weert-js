@@ -84,6 +84,18 @@ as well as for converting to and from flattened packets.
  
 # API
 
+[//]: # (# The following commands will set up the database)
+[//]: # (curl -XPOST 'http://localhost:8086/query?db=weert' --data-urlencode 'q=DROP MEASUREMENT "examples"')
+[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=chevy,stream=oil temperature=177,pressure=27.9 1506713140000000000')
+[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=chevy,stream=oil temperature=181,pressure=27.8 1506713200000000000')
+[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=chevy,stream=oil temperature=182,pressure=27.6 1506713260000000000')
+[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=chevy,stream=oil temperature=184,pressure=27.1 1506713320000000000')
+[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=truck,stream=oil temperature=202,pressure=30.9 1506713140000000000')
+[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=truck,stream=oil temperature=204,pressure=31.2 1506713200000000000')
+[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=truck,stream=oil temperature=207,pressure=31.3 1506713260000000000')
+[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=truck,stream=oil temperature=209,pressure=31.3 1506713320000000000')
+
+
  
 
 ## Get packets
@@ -120,15 +132,7 @@ Ask for all the packets in the measurement `examples`. This is the entire exampl
 ```shell
 $ curl -i --silent -X GET 'http://localhost:3000/api/v1/measurements/examples/packets'
 
-HTTP/1.1 200 OK
-X-Powered-By: Express
-Content-Type: application/json; charset=utf-8
-Content-Length: 993
-ETag: W/"3e1-cEFYgsoYoMKa+fkx+m5jqbYWzbA"
-Date: Fri, 29 Sep 2017 23:11:51 GMT
-Connection: keep-alive
-
-[
+HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 993ETag: W/"3e1-jwaqdm8V1DWmEkSqaU2pW8b7QkI"Date: Sat, 30 Sep 2017 13:23:35 GMTConnection: keep-alive[
     {
         "fields": {
             "pressure": 27.9,
@@ -142,8 +146,8 @@ Connection: keep-alive
     },
     {
         "fields": {
-            "pressure": 27.9,
-            "temperature": 177
+            "pressure": 30.9,
+            "temperature": 202
         },
         "tags": {
             "platform": "truck",
@@ -164,8 +168,8 @@ Connection: keep-alive
     },
     {
         "fields": {
-            "pressure": 27.8,
-            "temperature": 181
+            "pressure": 31.2,
+            "temperature": 204
         },
         "tags": {
             "platform": "truck",
@@ -186,8 +190,8 @@ Connection: keep-alive
     },
     {
         "fields": {
-            "pressure": 27.6,
-            "temperature": 182
+            "pressure": 31.3,
+            "temperature": 207
         },
         "tags": {
             "platform": "truck",
@@ -208,8 +212,8 @@ Connection: keep-alive
     },
     {
         "fields": {
-            "pressure": 27.1,
-            "temperature": 184
+            "pressure": 31.3,
+            "temperature": 209
         },
         "tags": {
             "platform": "truck",
@@ -227,19 +231,11 @@ to 2 packets:
 ```shell
 $ curl -i --silent -X GET 'http://localhost:3000/api/v1/measurements/examples/packets?platform=truck&limit=2'
 
-HTTP/1.1 200 OK
-X-Powered-By: Express
-Content-Type: application/json; charset=utf-8
-Content-Length: 497
-ETag: W/"1f1-o8ohvg7wrsFnHHncG5Q4qZWDaxA"
-Date: Fri, 29 Sep 2017 23:11:51 GMT
-Connection: keep-alive
-
-[
+HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 249ETag: W/"f9-f2fSFZh9IkaIFnn6m/ZtH32aznQ"Date: Sat, 30 Sep 2017 13:23:35 GMTConnection: keep-alive[
     {
         "fields": {
-            "pressure": 27.9,
-            "temperature": 177
+            "pressure": 30.9,
+            "temperature": 202
         },
         "tags": {
             "platform": "truck",
@@ -249,36 +245,14 @@ Connection: keep-alive
     },
     {
         "fields": {
-            "pressure": 27.8,
-            "temperature": 181
+            "pressure": 31.2,
+            "temperature": 204
         },
         "tags": {
             "platform": "truck",
             "stream": "oil"
         },
         "timestamp": "1506713200000000000"
-    },
-    {
-        "fields": {
-            "pressure": 27.6,
-            "temperature": 182
-        },
-        "tags": {
-            "platform": "truck",
-            "stream": "oil"
-        },
-        "timestamp": "1506713260000000000"
-    },
-    {
-        "fields": {
-            "pressure": 27.1,
-            "temperature": 184
-        },
-        "tags": {
-            "platform": "truck",
-            "stream": "oil"
-        },
-        "timestamp": "1506713320000000000"
     }
 ]
 
@@ -290,15 +264,7 @@ Query, constraining by time and platform name, returning results in reverse orde
 ```shell
 $ curl -i -X GET 'http://localhost:3000/api/v1/measurements/examples/packets?start=1506713140000000000&stop=1506713260000000000&platform=chevy&direction=desc'
 
-HTTP/1.1 200 OK
-X-Powered-By: Express
-Content-Type: application/json; charset=utf-8
-Content-Length: 249
-ETag: W/"f9-24gaPxQBiCT4du1TnHz0Z12Z9ME"
-Date: Fri, 29 Sep 2017 23:11:51 GMT
-Connection: keep-alive
-
-[
+HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 249ETag: W/"f9-24gaPxQBiCT4du1TnHz0Z12Z9ME"Date: Sat, 30 Sep 2017 13:23:35 GMTConnection: keep-alive[
     {
         "fields": {
             "pressure": 27.6,
@@ -354,19 +320,10 @@ GET /api/v1/measurements/:measurement/packets/:timestamp
 ```shell
 $ curl -i -X GET 'http://localhost:3000/api/v1/measurements/examples/packets/1506713200000000000?platform=truck'
 
-HTTP/1.1 200 OK
-X-Powered-By: Express
-Location: http://localhost:3000/api/v1/measurements/examples/packets/undefined
-Content-Type: application/json; charset=utf-8
-Content-Length: 123
-ETag: W/"7b-A2xQJGDxzKCul2tKEX0f8WOgfpE"
-Date: Fri, 29 Sep 2017 23:11:51 GMT
-Connection: keep-alive
-
-{
+HTTP/1.1 200 OKX-Powered-By: ExpressLocation: http://localhost:3000/api/v1/measurements/examples/packets/undefinedContent-Type: application/json; charset=utf-8Content-Length: 123ETag: W/"7b-hB0MTLw6Mo2NOw1g6UNRhDfnu1o"Date: Sat, 30 Sep 2017 13:23:35 GMTConnection: keep-alive{
     "fields": {
-        "pressure": 27.8,
-        "temperature": 181
+        "pressure": 31.2,
+        "temperature": 204
     },
     "tags": {
         "platform": "truck",
@@ -412,9 +369,13 @@ response `Location` field set to the URL of the newly created resource (packet).
 **Example**
 
 ```shell
-$ curl -i --silent -X POST -H Content-type:application/json \
+$ curl -i --silent -X POST -H Content-type:application/json -d  \
+>   '{"timestamp" : 1506713320000000000, \
+>   "tags" : {"platform":"truck", "stream":"oil"}, \
+>   "fields" : {"temperature":209, "pressure": 31.4}} ' \
+>   http://localhost:3000/api/v1/measurements/examples/packets
 
-
+HTTP/1.1 400 Bad RequestX-Powered-By: ExpressContent-Type: text/html; charset=utf-8Content-Length: 857ETag: W/"359-i5Iu1C+V3tQSdIIemZu+CKrvkXA"Date: Sat, 30 Sep 2017 13:23:35 GMTConnection: keep-alive<h1>WeeRT server</h1><h2>Unexpected token \ in JSON at position 36</h2><h3>Status: 400</h3><pre>SyntaxError: Unexpected token \ in JSON at position 36    at Object.parse (native)    at parse (/home/tkeffer/git/tkeffer/weert-js/node_modules/body-parser/lib/types/json.js:89:19)    at /home/tkeffer/git/tkeffer/weert-js/node_modules/body-parser/lib/read.js:116:18    at invokeCallback (/home/tkeffer/git/tkeffer/weert-js/node_modules/raw-body/index.js:224:16)    at done (/home/tkeffer/git/tkeffer/weert-js/node_modules/raw-body/index.js:213:7)    at IncomingMessage.onEnd (/home/tkeffer/git/tkeffer/weert-js/node_modules/raw-body/index.js:273:7)    at emitNone (events.js:86:13)    at IncomingMessage.emit (events.js:185:7)    at endReadableNT (_stream_readable.js:974:12)    at _combinedTickCallback (internal/process/next_tick.js:74:11)</pre>
 ```
 
 Note how the URL of the new resource is returned in the header `Location`.
@@ -490,15 +451,7 @@ Date: Wed, 26 Apr 2017 22:03:02 GMT
 ```shell
 $ curl -i --silent -X GET http://localhost:3000/api/v1/measurements/foo
 
-HTTP/1.1 404 Not Found
-X-Powered-By: Express
-Content-Type: text/html; charset=utf-8
-Content-Length: 1138
-ETag: W/"472-XKm1PvTZ44bDFVPd6ihOe1k/lw8"
-Date: Fri, 29 Sep 2017 23:11:51 GMT
-Connection: keep-alive
-
-<h1>WeeRT server</h1><h2>Page not found: /api/v1/measurements/foo</h2><h3>Status: 404</h3><pre>Error: Page not found: /api/v1/measurements/foo    at /home/tkeffer/git/tkeffer/weert-js/server/server.js:75:25    at Layer.handle [as handle_request] (/home/tkeffer/git/tkeffer/weert-js/node_modules/express/lib/router/layer.js:95:5)    at trim_prefix (/home/tkeffer/git/tkeffer/weert-js/node_modules/express/lib/router/index.js:317:13)    at /home/tkeffer/git/tkeffer/weert-js/node_modules/express/lib/router/index.js:284:7    at Function.process_params (/home/tkeffer/git/tkeffer/weert-js/node_modules/express/lib/router/index.js:335:12)    at next (/home/tkeffer/git/tkeffer/weert-js/node_modules/express/lib/router/index.js:275:10)    at /home/tkeffer/git/tkeffer/weert-js/node_modules/express/lib/router/index.js:635:15    at next (/home/tkeffer/git/tkeffer/weert-js/node_modules/express/lib/router/index.js:260:14)    at Function.handle (/home/tkeffer/git/tkeffer/weert-js/node_modules/express/lib/router/index.js:174:3)    at router (/home/tkeffer/git/tkeffer/weert-js/node_modules/express/lib/router/index.js:47:12)</pre>
+HTTP/1.1 404 Not FoundX-Powered-By: ExpressContent-Type: text/html; charset=utf-8Content-Length: 1138ETag: W/"472-XKm1PvTZ44bDFVPd6ihOe1k/lw8"Date: Sat, 30 Sep 2017 13:23:35 GMTConnection: keep-alive<h1>WeeRT server</h1><h2>Page not found: /api/v1/measurements/foo</h2><h3>Status: 404</h3><pre>Error: Page not found: /api/v1/measurements/foo    at /home/tkeffer/git/tkeffer/weert-js/server/server.js:75:25    at Layer.handle [as handle_request] (/home/tkeffer/git/tkeffer/weert-js/node_modules/express/lib/router/layer.js:95:5)    at trim_prefix (/home/tkeffer/git/tkeffer/weert-js/node_modules/express/lib/router/index.js:317:13)    at /home/tkeffer/git/tkeffer/weert-js/node_modules/express/lib/router/index.js:284:7    at Function.process_params (/home/tkeffer/git/tkeffer/weert-js/node_modules/express/lib/router/index.js:335:12)    at next (/home/tkeffer/git/tkeffer/weert-js/node_modules/express/lib/router/index.js:275:10)    at /home/tkeffer/git/tkeffer/weert-js/node_modules/express/lib/router/index.js:635:15    at next (/home/tkeffer/git/tkeffer/weert-js/node_modules/express/lib/router/index.js:260:14)    at Function.handle (/home/tkeffer/git/tkeffer/weert-js/node_modules/express/lib/router/index.js:174:3)    at router (/home/tkeffer/git/tkeffer/weert-js/node_modules/express/lib/router/index.js:47:12)</pre>
 ```
 
 ## Delete a measurement
