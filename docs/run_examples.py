@@ -117,7 +117,7 @@ def extract_multi_line(gen):
     lines = ""
     for line in gen:
         lines += line
-        cmd += line.replace('>', '')
+        cmd += line.replace('>', '').replace('\\\n', '')
         if not line.endswith('\\\n'):
             return (cmd, lines)
         

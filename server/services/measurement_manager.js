@@ -99,9 +99,9 @@ class MeasurementManager {
     delete_packet(measurement, timestamp, platform = undefined, stream = undefined) {
         let delete_stmt = `DELETE FROM ${measurement} WHERE time=${timestamp}`;
         if (platform)
-            delete_stmt += ` AND platform=${platform}`;
+            delete_stmt += ` AND platform='${platform}'`;
         if (stream)
-            delete_stmt += ` AND stream=${stream}`;
+            delete_stmt += ` AND stream='${stream}'`;
         return this.influx.query(delete_stmt);
     }
 }
