@@ -30,7 +30,7 @@ class MeasurementManager {
         }
         // Filter out any nulls because InfluxDB will reject them.
         // This will mutate deep_packet!!
-        for (let k in deep_packet.fields){
+        for (let k in deep_packet.fields) {
             if (deep_packet.fields[k] === null)
                 delete deep_packet.fields[k];
         }
@@ -105,9 +105,14 @@ class MeasurementManager {
         return this.influx.query(delete_stmt);
     }
 
-    get_measurement_info(measurement){
-        let query = `SHOW SERIES FROM ${measurement};`
+    get_measurement_info(measurement) {
+        let query = `SHOW SERIES FROM ${measurement};`;
         return this.influx.query(query);
+    }
+
+    delete_measurement(measurement) {
+        let delete_stmt = `DROP MEASUREMENT ${measurement};`;
+        return this.influx.query(delete_stmt);
     }
 }
 

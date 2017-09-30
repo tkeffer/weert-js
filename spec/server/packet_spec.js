@@ -307,4 +307,13 @@ describe("Testing measurement", function () {
               })
               .done(doneFn);
     });
+    it("should delete a measurement", function (doneFn) {
+        frisby.del(measurements_url + '/test_measurement')
+              .expect('status', 204)
+              .then(function () {
+                  frisby.get(measurements_url + '/test_measurement')
+                        .expect('status', 404)
+                        .done(doneFn());
+              });
+    });
 });

@@ -116,23 +116,6 @@ const MeasurementRouterFactory = function (measurement_manager) {
             });
     });
 
-    // DELETE a measurement
-    router.delete('/measurements/:measurement', function (req, res) {
-        const measurement = req.params.measurement;
-        measurement_manager
-            .delete_measurement(measurement)
-            .then(function () {
-                // No way to tell success or failure with Influx. Just assume Success.
-                res.sendStatus(204);
-            })
-            .catch(function (err) {
-                debug('DELETE /measurements/:measurement error:', err);
-                console.log('err=', err);
-                res.status(400)
-                   .json(auxtools.fromError(400, err));
-            });
-    });
-
     // GET metadata about a single measurement
     router.get('/measurements/:measurement', function (req, res) {
         // Get the measurement out of the route path
@@ -153,26 +136,23 @@ const MeasurementRouterFactory = function (measurement_manager) {
                    .json(auxtools.fromError(400, err));
             });
     });
-    //
-    // // DELETE a measurement
-    // router.delete('/measurements/:measurement', function (req, res) {
-    //   // Get the measurement out of the route path
-    //   const measurement = req.params.measurement
-    //
-    //   measurement_manager
-    //     .delete_measurement(measurement)
-    //     .then(result => {
-    //       if (result) {
-    //         res.sendStatus(204)
-    //       } else {
-    //         res.sendStatus(404)    // Status 404 Resource Not Found
-    //       }
-    //     })
-    //     .catch(err => {
-    //       debug('DELETE /measurements/:measurement error:', err)
-    //       error.sendError(err, res)
-    //     })
-    // })
+
+    // DELETE a measurement
+    router.delete('/measurements/:measurement', function (req, res) {
+        const measurement = req.params.measurement;
+        measurement_manager
+            .delete_measurement(measurement)
+            .then(function () {
+                // No way to tell success or failure with Influx. Just assume Success.
+                res.sendStatus(204);
+            })
+            .catch(function (err) {
+                debug('DELETE /measurements/:measurement error:', err);
+                console.log('err=', err);
+                res.status(400)
+                   .json(auxtools.fromError(400, err));
+            });
+    });
 
     return router;
 

@@ -99,6 +99,7 @@ as well as for converting to and from flattened packets.
 
 
 
+
  
 
 ## Get packets
@@ -128,14 +129,22 @@ GET /api/v1/measurements/:measurement/packets
 | 200      | Success               |
 | 400      | Malformed query       |
 
-**Example**
+**Examples**
 
 Ask for all the packets in the measurement `examples`. This is the entire example database.
 
 ```shell
 $ curl -i --silent -X GET 'http://localhost:3000/api/v1/measurements/examples/packets'
 
-HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 993ETag: W/"3e1-jwaqdm8V1DWmEkSqaU2pW8b7QkI"Date: Sat, 30 Sep 2017 18:31:52 GMTConnection: keep-alive[
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Content-Length: 993
+ETag: W/"3e1-jwaqdm8V1DWmEkSqaU2pW8b7QkI"
+Date: Sat, 30 Sep 2017 18:44:48 GMT
+Connection: keep-alive
+
+[
     {
         "fields": {
             "pressure": 27.9,
@@ -234,7 +243,15 @@ to 2 packets:
 ```shell
 $ curl -i --silent -X GET 'http://localhost:3000/api/v1/measurements/examples/packets?platform=truck&limit=2'
 
-HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 249ETag: W/"f9-f2fSFZh9IkaIFnn6m/ZtH32aznQ"Date: Sat, 30 Sep 2017 18:31:52 GMTConnection: keep-alive[
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Content-Length: 249
+ETag: W/"f9-f2fSFZh9IkaIFnn6m/ZtH32aznQ"
+Date: Sat, 30 Sep 2017 18:44:48 GMT
+Connection: keep-alive
+
+[
     {
         "fields": {
             "pressure": 30.9,
@@ -267,7 +284,15 @@ Query, constraining by time and platform name, returning results in reverse orde
 ```shell
 $ curl -i -X GET 'http://localhost:3000/api/v1/measurements/examples/packets?start=1506713140000000000&stop=1506713260000000000&platform=chevy&direction=desc'
 
-HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 249ETag: W/"f9-24gaPxQBiCT4du1TnHz0Z12Z9ME"Date: Sat, 30 Sep 2017 18:31:52 GMTConnection: keep-alive[
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Content-Length: 249
+ETag: W/"f9-24gaPxQBiCT4du1TnHz0Z12Z9ME"
+Date: Sat, 30 Sep 2017 18:44:48 GMT
+Connection: keep-alive
+
+[
     {
         "fields": {
             "pressure": 27.6,
@@ -318,12 +343,20 @@ GET /api/v1/measurements/:measurement/packets/:timestamp
 | 400      | Malformed query            |
 | 404      | Measurement does not exist |
 
-**Example**
+**Examples**
 
 ```shell
 $ curl -i -X GET 'http://localhost:3000/api/v1/measurements/examples/packets/1506713200000000000?platform=truck'
 
-HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 123ETag: W/"7b-hB0MTLw6Mo2NOw1g6UNRhDfnu1o"Date: Sat, 30 Sep 2017 18:31:52 GMTConnection: keep-alive{
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Content-Length: 123
+ETag: W/"7b-hB0MTLw6Mo2NOw1g6UNRhDfnu1o"
+Date: Sat, 30 Sep 2017 18:44:48 GMT
+Connection: keep-alive
+
+{
     "fields": {
         "pressure": 31.2,
         "temperature": 204
@@ -369,7 +402,7 @@ database.
 If successful, the server will return a response code of 201, with the
 response `Location` field set to the URL of the newly created resource (packet).
 
-**Example**
+**Examples**
 
 ```shell
 $ curl -i --silent -X POST -H Content-type:application/json -d  \
@@ -378,7 +411,16 @@ $ curl -i --silent -X POST -H Content-type:application/json -d  \
 >   "fields" : {"temperature":209, "pressure": 31.4}} ' \
 >   http://localhost:3000/api/v1/measurements/examples/packets
 
-HTTP/1.1 201 CreatedX-Powered-By: ExpressLocation: http://localhost:3000/api/v1/measurements/examples/packets/1506713320000000000Content-Type: text/plain; charset=utf-8Content-Length: 7ETag: W/"7-rM9AyJuqT6iOan/xHh+AW+7K/T8"Date: Sat, 30 Sep 2017 18:31:52 GMTConnection: keep-aliveCreated
+HTTP/1.1 201 Created
+X-Powered-By: Express
+Location: http://localhost:3000/api/v1/measurements/examples/packets/1506713320000000000
+Content-Type: text/plain; charset=utf-8
+Content-Length: 7
+ETag: W/"7-rM9AyJuqT6iOan/xHh+AW+7K/T8"
+Date: Sat, 30 Sep 2017 18:44:48 GMT
+Connection: keep-alive
+
+Created
 ```
 
 Note how the URL of the new resource is returned in the header `Location`.
@@ -409,12 +451,17 @@ DELETE /api/v1/measurements/:measurement/packets/:timestamp
 The same response code (204) is returned irregardless of whether or not any packet fitting the criteria
 actually existed in the database.
 
-**Example**
+**Examples**
 
 ```shell
 $ curl -i --silent -X DELETE http://localhost:3000/api/v1/measurements/examples/packets/1506713320000000000
 
-HTTP/1.1 204 No ContentX-Powered-By: ExpressETag: W/"a-bAsFyilMr4Ra1hIU5PyoyFRunpI"Date: Sat, 30 Sep 2017 18:31:52 GMTConnection: keep-alive
+HTTP/1.1 204 No Content
+X-Powered-By: Express
+ETag: W/"a-bAsFyilMr4Ra1hIU5PyoyFRunpI"
+Date: Sat, 30 Sep 2017 18:44:48 GMT
+Connection: keep-alive
+
 ```
 
 
@@ -437,12 +484,20 @@ GET /api/v1/measurements/:measurement
 If successful, the server will return an array whose elements are the series
 in measurement `measurement`.
 
-**Example**
+**Examples**
 
 ```Shell
 $ curl -i --silent -X GET 'http://localhost:3000/api/v1/measurements/examples'
 
-HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 91ETag: W/"5b-vPUmWz8f/FSc+swPafrd2Z2eiKk"Date: Sat, 30 Sep 2017 18:31:52 GMTConnection: keep-alive[
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Content-Length: 91
+ETag: W/"5b-vPUmWz8f/FSc+swPafrd2Z2eiKk"
+Date: Sat, 30 Sep 2017 18:44:48 GMT
+Connection: keep-alive
+
+[
     {
         "key": "examples,platform=chevy,stream=oil"
     },
@@ -453,12 +508,21 @@ HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=ut
 
 ```
 
-**Do the example again, but using a bogus measurement name**
+Do the example again, but using a bogus measurement name. It should
+return the same status code, 204.
 
 ```shell
 $ curl -i --silent -X GET http://localhost:3000/api/v1/measurements/foo
 
-HTTP/1.1 404 Not FoundX-Powered-By: ExpressContent-Type: text/plain; charset=utf-8Content-Length: 9ETag: W/"9-0gXL1ngzMqISxa6S1zx3F4wtLyg"Date: Sat, 30 Sep 2017 18:31:53 GMTConnection: keep-aliveNot Found
+HTTP/1.1 404 Not Found
+X-Powered-By: Express
+Content-Type: text/plain; charset=utf-8
+Content-Length: 9
+ETag: W/"9-0gXL1ngzMqISxa6S1zx3F4wtLyg"
+Date: Sat, 30 Sep 2017 18:44:48 GMT
+Connection: keep-alive
+
+Not Found
 ```
 
 ## Delete a measurement
@@ -476,33 +540,32 @@ DELETE ap/v1/measurements/:measurement
 | 204      | Success / NO CONTENT  |
 | 404      | Measurement not found |
 
+**Examples**
+
+```shell
+$ curl -i --silent -X DELETE 'http://localhost:3000/api/v1/measurements/examples'
+
+HTTP/1.1 204 No Content
+X-Powered-By: Express
+ETag: W/"a-bAsFyilMr4Ra1hIU5PyoyFRunpI"
+Date: Sat, 30 Sep 2017 18:44:48 GMT
+Connection: keep-alive
 
 ```
-#$curl -i --silent -X DELETE 'http://localhost:3000/api/v1/measurements/examples'
-HTTP/1.0 204 NO CONTENT
-Content-Type: application/json
-Content-Length: 0
-Server: Werkzeug/0.12.1 Python/2.7.12
-Date: Wed, 26 Apr 2017 22:10:24 GMT
-```
 
 
-**Do it again, but using a bogus measurement name***
+Do the example again, but using a bogus measurement name. It should
+return the same status code, 204.
 
+```shell
+$ curl -i --silent -X DELETE 'http://localhost:3000/api/v1/measurements/foo'
 
-```
-#$ curl -i --silent -X DELETE 'http://localhost:3000/api/v1/measurements/foo'
-HTTP/1.0 404 NOT FOUND
-Content-Type: application/json
-Content-Length: 112
-Server: Werkzeug/0.12.1 Python/2.7.12
-Date: Wed, 26 Apr 2017 22:08:12 GMT
+HTTP/1.1 204 No Content
+X-Powered-By: Express
+ETag: W/"a-bAsFyilMr4Ra1hIU5PyoyFRunpI"
+Date: Sat, 30 Sep 2017 18:44:48 GMT
+Connection: keep-alive
 
-{
-  "code": 404,
-  "description": "measurement not found: foo",
-  "message": "Non-existent measurement foo"
-}
 ```
 
 
@@ -510,7 +573,7 @@ Date: Wed, 26 Apr 2017 22:08:12 GMT
 
 # License & Copyright
 
-Copyright (c) 2015-2016 Tom Keffer <tkeffer@gmail.com>
+Copyright (c) 2015-2017 Tom Keffer <tkeffer@gmail.com>
 
   See the file LICENSE for your full rights.
 
