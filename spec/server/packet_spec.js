@@ -194,7 +194,8 @@ describe("Launch and test " + N + " POSTs of packets", function () {
                 request({
                     url   : packets_url,
                     method: 'POST',
-                    json  : packets[i]
+                    body  : packets[i],
+                    json  : true
                 }, function (error) {
                     return callback(error);
                 });
@@ -264,21 +265,46 @@ describe("Launch and test " + N + " POSTs of packets", function () {
               .done(doneFn);
     });
 
-    it("should return a single timestamp", function(doneFn){
+    it("should return a single timestamp", function (doneFn) {
         frisby.get(packets_url + '/' + timestamp(3))
-            .expect('status', 200)
-            .then(function(res){
-                expect(res.body).toEqual(packets[3]);
-            })
-            .done(doneFn);
-    });
-
-    it("should return a single timestamp on a specific platform", function(doneFn){
-        frisby.get(packets_url + '/' + timestamp(3) + '?platform=test_platform')
               .expect('status', 200)
-              .then(function(res){
+              .then(function (res) {
                   expect(res.body).toEqual(packets[3]);
               })
               .done(doneFn);
-    })
+    });
+
+    it("should return a single timestamp on a specific platform", function (doneFn) {
+        frisby.get(packets_url + '/' + timestamp(3) + '?platform=test_platform')
+              .expect('status', 200)
+              .then(function (res) {
+                  expect(res.body).toEqual(packets[3]);
+              })
+              .done(doneFn);
+    });
+});
+
+describe("Testing measurement", function () {
+    let packet_url = packets_url + '/' + timestamp(0);
+    // Before each test, delete the packet (which may or may not exist).
+    beforeEach(function (doneFn) {
+        request({
+            url   : packets_url,
+            method: 'POST',
+            json  : true,
+            body  : form_deep_packet(0)
+        }, function (error) {
+            return doneFn();
+        });
+    });
+
+
+    it("should return metadata about a measurement", function (doneFn) {
+        frisby.get(measurements_url + '/test_measurement')
+              .expect('status', 200)
+              .then(function (res) {
+                  expect(res.body).toEqual([{key: 'test_measurement,platform=test_platform'}]);
+              })
+              .done(doneFn);
+    });
 });

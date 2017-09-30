@@ -20,21 +20,30 @@ const MeasurementRouterFactory = function (measurement_manager) {
 
     const router = express.Router();
 
-    // DELETE a measurement
-    router.delete('/measurements/:measurement', function (req, res) {
+    // GET all packets which satisfies a search query.
+    router.get('/measurements/:measurement/packets', function (req, res) {
         const measurement = req.params.measurement;
+        const start_time = req.query.start;
+        const stop_time = req.query.stop;
+        // Make sure start and stop times are numbers:
+
         measurement_manager
-            .delete_measurement(measurement)
-            .then(function () {
-                // No way to tell success or failure with Influx. Just assume Success.
-                res.sendStatus(204);
+            .find_packets(measurement, req.query.platform, req.query.stream,
+                start_time, stop_time, req.query.limit, req.query.direction)
+            .then((result) => {
+                let deep_result = [];
+                for (let i in result) {
+                    deep_result[i] = auxtools.flat_to_deep(result[i]);
+                }
+                res.status(200)
+                   .json(deep_result);
             })
-            .catch(function (err) {
-                debug('DELETE /measurements/:measurement error:', err);
-                console.log('err=', err);
+            .catch(err => {
+                debug('GET /measurements/:measurement/packets/ error:', err);
                 res.status(400)
                    .json(auxtools.fromError(400, err));
             });
+
     });
 
     // POST a single packet to a measurement
@@ -112,52 +121,43 @@ const MeasurementRouterFactory = function (measurement_manager) {
             });
     });
 
-    // GET all packets which satisfies a search query.
-    router.get('/measurements/:measurement/packets', function (req, res) {
+    // DELETE a measurement
+    router.delete('/measurements/:measurement', function (req, res) {
         const measurement = req.params.measurement;
-        const start_time = req.query.start;
-        const stop_time = req.query.stop;
-        // Make sure start and stop times are numbers:
-
         measurement_manager
-            .find_packets(measurement, req.query.platform, req.query.stream,
-                start_time, stop_time, req.query.limit, req.query.direction)
-            .then((result) => {
-                let deep_result = [];
-                for (let i in result) {
-                    deep_result[i] = auxtools.flat_to_deep(result[i]);
-                }
-                res.status(200)
-                   .json(deep_result);
+            .delete_measurement(measurement)
+            .then(function () {
+                // No way to tell success or failure with Influx. Just assume Success.
+                res.sendStatus(204);
             })
-            .catch(err => {
-                debug('GET /measurements/:measurement/packets/ error:', err);
+            .catch(function (err) {
+                debug('DELETE /measurements/:measurement error:', err);
+                console.log('err=', err);
                 res.status(400)
                    .json(auxtools.fromError(400, err));
             });
-
     });
 
-    // // GET metadata about a single measurement
-    // router.get('/measurements/:measurement', function (req, res) {
-    //   // Get the measurement out of the route path
-    //   const measurement = req.params.measurement
-    //
-    //   measurement_manager
-    //     .findMeasurement(measurement)
-    //     .then(function (measurement_metadata) {
-    //       if (measurement_metadata) {
-    //         res.json(measurement_metadata)
-    //       } else {
-    //         res.sendStatus(404)    // Status 404 Resource Not Found
-    //       }
-    //     })
-    //     .catch(function (err) {
-    //       debug('GET /measurements/:measurement error:', err)
-    //       res.status(400)
-    //          .json(auxtools.fromError(400, err))
-    //     })
-    // })
+    // GET metadata about a single measurement
+    router.get('/measurements/:measurement', function (req, res) {
+        // Get the measurement out of the route path
+        const measurement = req.params.measurement;
+
+        measurement_manager
+            .get_measurement_info(measurement)
+            .then(function (measurement_metadata) {
+                if (measurement_metadata[0]) {
+                    res.json(measurement_metadata);
+                } else {
+                    res.sendStatus(404);    // Status 404 Resource Not Found
+                }
+            })
+            .catch(function (err) {
+                debug('GET /measurements/:measurement error:', err);
+                res.status(400)
+                   .json(auxtools.fromError(400, err));
+            });
+    });
     //
     // // DELETE a measurement
     // router.delete('/measurements/:measurement', function (req, res) {

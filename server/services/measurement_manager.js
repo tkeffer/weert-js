@@ -104,6 +104,11 @@ class MeasurementManager {
             delete_stmt += ` AND stream='${stream}'`;
         return this.influx.query(delete_stmt);
     }
+
+    get_measurement_info(measurement){
+        let query = `SHOW SERIES FROM ${measurement};`
+        return this.influx.query(query);
+    }
 }
 
 module.exports = MeasurementManager;
