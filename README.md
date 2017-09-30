@@ -98,6 +98,7 @@ as well as for converting to and from flattened packets.
 
 
 
+
  
 
 ## Get packets
@@ -134,7 +135,7 @@ Ask for all the packets in the measurement `examples`. This is the entire exampl
 ```shell
 $ curl -i --silent -X GET 'http://localhost:3000/api/v1/measurements/examples/packets'
 
-HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 993ETag: W/"3e1-jwaqdm8V1DWmEkSqaU2pW8b7QkI"Date: Sat, 30 Sep 2017 17:40:21 GMTConnection: keep-alive[
+HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 993ETag: W/"3e1-jwaqdm8V1DWmEkSqaU2pW8b7QkI"Date: Sat, 30 Sep 2017 18:31:52 GMTConnection: keep-alive[
     {
         "fields": {
             "pressure": 27.9,
@@ -233,7 +234,7 @@ to 2 packets:
 ```shell
 $ curl -i --silent -X GET 'http://localhost:3000/api/v1/measurements/examples/packets?platform=truck&limit=2'
 
-HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 249ETag: W/"f9-f2fSFZh9IkaIFnn6m/ZtH32aznQ"Date: Sat, 30 Sep 2017 17:40:21 GMTConnection: keep-alive[
+HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 249ETag: W/"f9-f2fSFZh9IkaIFnn6m/ZtH32aznQ"Date: Sat, 30 Sep 2017 18:31:52 GMTConnection: keep-alive[
     {
         "fields": {
             "pressure": 30.9,
@@ -266,7 +267,7 @@ Query, constraining by time and platform name, returning results in reverse orde
 ```shell
 $ curl -i -X GET 'http://localhost:3000/api/v1/measurements/examples/packets?start=1506713140000000000&stop=1506713260000000000&platform=chevy&direction=desc'
 
-HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 249ETag: W/"f9-24gaPxQBiCT4du1TnHz0Z12Z9ME"Date: Sat, 30 Sep 2017 17:40:21 GMTConnection: keep-alive[
+HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 249ETag: W/"f9-24gaPxQBiCT4du1TnHz0Z12Z9ME"Date: Sat, 30 Sep 2017 18:31:52 GMTConnection: keep-alive[
     {
         "fields": {
             "pressure": 27.6,
@@ -322,7 +323,7 @@ GET /api/v1/measurements/:measurement/packets/:timestamp
 ```shell
 $ curl -i -X GET 'http://localhost:3000/api/v1/measurements/examples/packets/1506713200000000000?platform=truck'
 
-HTTP/1.1 200 OKX-Powered-By: ExpressLocation: http://localhost:3000/api/v1/measurements/examples/packets/undefinedContent-Type: application/json; charset=utf-8Content-Length: 123ETag: W/"7b-hB0MTLw6Mo2NOw1g6UNRhDfnu1o"Date: Sat, 30 Sep 2017 17:40:21 GMTConnection: keep-alive{
+HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 123ETag: W/"7b-hB0MTLw6Mo2NOw1g6UNRhDfnu1o"Date: Sat, 30 Sep 2017 18:31:52 GMTConnection: keep-alive{
     "fields": {
         "pressure": 31.2,
         "temperature": 204
@@ -377,7 +378,7 @@ $ curl -i --silent -X POST -H Content-type:application/json -d  \
 >   "fields" : {"temperature":209, "pressure": 31.4}} ' \
 >   http://localhost:3000/api/v1/measurements/examples/packets
 
-HTTP/1.1 201 CreatedX-Powered-By: ExpressLocation: http://localhost:3000/api/v1/measurements/examples/packets/1506713320000000000Content-Type: text/plain; charset=utf-8Content-Length: 7ETag: W/"7-rM9AyJuqT6iOan/xHh+AW+7K/T8"Date: Sat, 30 Sep 2017 17:40:21 GMTConnection: keep-aliveCreated
+HTTP/1.1 201 CreatedX-Powered-By: ExpressLocation: http://localhost:3000/api/v1/measurements/examples/packets/1506713320000000000Content-Type: text/plain; charset=utf-8Content-Length: 7ETag: W/"7-rM9AyJuqT6iOan/xHh+AW+7K/T8"Date: Sat, 30 Sep 2017 18:31:52 GMTConnection: keep-aliveCreated
 ```
 
 Note how the URL of the new resource is returned in the header `Location`.
@@ -413,7 +414,7 @@ actually existed in the database.
 ```shell
 $ curl -i --silent -X DELETE http://localhost:3000/api/v1/measurements/examples/packets/1506713320000000000
 
-HTTP/1.1 204 No ContentX-Powered-By: ExpressETag: W/"a-bAsFyilMr4Ra1hIU5PyoyFRunpI"Date: Sat, 30 Sep 2017 17:40:21 GMTConnection: keep-alive
+HTTP/1.1 204 No ContentX-Powered-By: ExpressETag: W/"a-bAsFyilMr4Ra1hIU5PyoyFRunpI"Date: Sat, 30 Sep 2017 18:31:52 GMTConnection: keep-alive
 ```
 
 
@@ -441,7 +442,7 @@ in measurement `measurement`.
 ```Shell
 $ curl -i --silent -X GET 'http://localhost:3000/api/v1/measurements/examples'
 
-HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 91ETag: W/"5b-vPUmWz8f/FSc+swPafrd2Z2eiKk"Date: Sat, 30 Sep 2017 17:40:21 GMTConnection: keep-alive[
+HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 91ETag: W/"5b-vPUmWz8f/FSc+swPafrd2Z2eiKk"Date: Sat, 30 Sep 2017 18:31:52 GMTConnection: keep-alive[
     {
         "key": "examples,platform=chevy,stream=oil"
     },
@@ -457,7 +458,7 @@ HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=ut
 ```shell
 $ curl -i --silent -X GET http://localhost:3000/api/v1/measurements/foo
 
-HTTP/1.1 404 Not FoundX-Powered-By: ExpressContent-Type: text/plain; charset=utf-8Content-Length: 9ETag: W/"9-0gXL1ngzMqISxa6S1zx3F4wtLyg"Date: Sat, 30 Sep 2017 17:40:21 GMTConnection: keep-aliveNot Found
+HTTP/1.1 404 Not FoundX-Powered-By: ExpressContent-Type: text/plain; charset=utf-8Content-Length: 9ETag: W/"9-0gXL1ngzMqISxa6S1zx3F4wtLyg"Date: Sat, 30 Sep 2017 18:31:53 GMTConnection: keep-aliveNot Found
 ```
 
 ## Delete a measurement

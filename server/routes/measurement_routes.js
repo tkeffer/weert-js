@@ -87,12 +87,7 @@ const MeasurementRouterFactory = function (measurement_manager) {
                 else {
                     // Convert to a deep packet
                     let deep_packet = auxtools.flat_to_deep(packet);
-                    // Calculate the actual URL of the returned packet
-                    // and include it in the Location response header.
-                    const replaceUrl = req.originalUrl.replace(req.params.timestamp, packet.timestamp);
-                    const resource_url = auxtools.locationPath(replaceUrl, req.protocol, req.get('host'), '');
                     res.status(200)
-                       .location(resource_url)
                        .json(deep_packet);
                 }
             })
