@@ -38,13 +38,13 @@ Later versions should work fine.
 7. To run the test suites, in another shell download and install `jasmine` globally
 
   ```shell
-  npm install -g jasmine
+  $ npm install -g jasmine
   ```
 
 8. Run the suites
 
   ```shell
-  jasmine spec/server/packet_spec.js
+  $ jasmine spec/server/packet_spec.js
   ```
 
 ## General architecture
