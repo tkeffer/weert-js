@@ -32,9 +32,10 @@ Later versions should work fine.
 6. Start the WeeRT server
 
   ```shell
-  $ node server/server.js
+  $ npm start
   Listening on port 3000
   ```
+
 7. To run the test suites, in another shell download and install `jasmine` globally
 
   ```shell
@@ -44,7 +45,7 @@ Later versions should work fine.
 8. Run the suites
 
   ```shell
-  $ jasmine spec/server/packet_spec.js
+  $ npm test
   ```
 
 ## General architecture
