@@ -64,7 +64,7 @@ Tested on InfluxDB V1.3.5.
 # Data model
 
 ## Background
-It is strongly recommended that you read the ["key concepts" section](https://docs.influxdata.com/influxdb/v1.2/concepts/key_concepts/)
+It is strongly recommended that you read the ["key concepts" section](https://docs.influxdata.com/influxdb/v1.3/concepts/key_concepts/)
 of the InfluxDB documentation. In particular, be sure to understand the concepts of measurements,
 tags, and fields. These terms are used throughout WeeRT.
 

@@ -1,6 +1,13 @@
 # IDE detritus
 .idea
 
+# Eclipse & pydev
+.project
+.pydevproject
+
+# GFM viewers
+.*.md.html
+
 # Logs
 logs
 *.log
