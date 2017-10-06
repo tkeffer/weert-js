@@ -24,5 +24,10 @@ module.exports = {
         username: 'root',
         password: 'root',
         database: 'weert'
+    },
+
+    // Configuration for the Faye pub-sub facility
+    faye:{
+        endpoint: '/faye'
     }
 };

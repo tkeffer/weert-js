@@ -36,9 +36,18 @@ app.use(express.static(path.join(__dirname, '../client')));
 
 // Set up the sub-pub facility
 const faye = require('faye');
-const bayeux = new faye.NodeAdapter({mount: '/faye', timeout: 45});
-// TODO: Should get this out of the config file
-const faye_client = new faye.Client('http://localhost:3000/faye');
+const bayeux = new faye.NodeAdapter({mount: config.faye.endpoint, timeout: 45});
+// Monitor pub-sub clients
+bayeux.on('subscribe', function (clientId, channel) {
+    debug(`Client ${clientId} subscribed on channel ${channel}`);
+});
+bayeux.on('unsubscribe', function (clientId, channel) {
+    debug(`Client ${clientId} unsubscribed on channel ${channel}`);
+});
+bayeux.on('disconnect', function (clientId) {
+    debug(`Client ${clientId} disconnected`);
+});
+const faye_client = new faye.Client(`http://localhost:${config.server.port}${config.faye.endpoint}`);
 
 // Set up the database and its managers
 const Influx = require('influx');
@@ -124,17 +133,6 @@ influx.getDatabaseNames()
                       console.log(err);
               }
               process.exit(1);
-          });
-
-          // Monitor pub-sub clients
-          bayeux.on('subscribe', function (clientId, channel) {
-              debug(`Client ${clientId} subscribed on channel ${channel}`)
-          });
-          bayeux.on('unsubscribe', function (clientId, channel) {
-              debug(`Client ${clientId} unsubscribed on channel ${channel}`);
-          });
-          bayeux.on('disconnect', function (clientId) {
-              debug(`Client ${clientId} disconnected`)
           });
 
           // Attach the Faye pub-sub engine
