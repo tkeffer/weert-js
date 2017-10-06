@@ -25,32 +25,36 @@
             <table>
                 <tbody>
                 <tr>
+                    <td class="stats_label">Time</td>
+                    <td class="stats_data">{{formatTimeStamp timestamp}}</td>
+                </tr>
+                <tr>
                     <td class="stats_label">Outside Temperature</td>
-                    <td class="stats_data">{{fields.outside_temperature}}</td>
-                </tr>
-                <tr>
-                    <td class="stats_label">Humidity</td>
-                    <td class="stats_data">{{fields.outside_humidity}}</td>
-                </tr>
-                <tr>
-                    <td class="stats_label">Barometer</td>
-                    <td class="stats_data">{{fields.sealevel_pressure}}</td>
-                </tr>
-                <tr>
-                    <td class="stats_label">Wind</td>
-                    <td class="stats_data">{{fields.wind_speed}} from {{fields.wind_dir}}</td>
+                    <td class="stats_data">{{formatNumber fields.outside_temperature 1}}</td>
                 </tr>
                 <tr>
                     <td class="stats_label">Inside Temperature</td>
-                    <td class="stats_data">{{fields.inside_temperature}}</td>
+                    <td class="stats_data">{{formatNumber fields.inside_temperature 1}}</td>
+                </tr>
+                <tr>
+                    <td class="stats_label">Humidity</td>
+                    <td class="stats_data">{{formatNumber fields.outside_humidity 0}}</td>
+                </tr>
+                <tr>
+                    <td class="stats_label">Barometer</td>
+                    <td class="stats_data">{{formatNumber fields.sealevel_pressure 2}}</td>
+                </tr>
+                <tr>
+                    <td class="stats_label">Wind</td>
+                    <td class="stats_data">{{formatNumber fields.wind_speed 0}} from {{formatNumber fields.wind_dir 0}}</td>
                 </tr>
                 <tr>
                     <td class="stats_label">UV</td>
-                    <td class="stats_data">{{fields.uv_uv}}</td>
+                    <td class="stats_data">{{formatNumber fields.uv_uv 0}}</td>
                 </tr>
                 <tr>
                     <td class="stats_label">Solar Radiation</td>
-                    <td class="stats_data">{{fields.radiation_radiation}}</td>
+                    <td class="stats_data">{{formatNumber fields.radiation_radiation 0}}</td>
                 </tr>
                 </tbody>
             </table>
