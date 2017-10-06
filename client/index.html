@@ -63,7 +63,6 @@
 
     <h1>Welcome to WeeRT</h1>
 
-    <!--    <div id="wx-console-area" style="width:25%; display:inline-block; vertical-align:top"></div> -->
     <div id="wx-console-area"></div>
 
     <div style="display:inline-block">
@@ -72,6 +71,8 @@
             <li>Uses a Node server with the Express framework;</li>
             <li>The server receives packet updates from weewx via a RESTful interface;</li>
             <li>The packets are stored in a InfluxDB server;</li>
+            <li>The browser requests the data via a RESTful interface from the Node server;</li>
+            <li>New updates are broadcast from the server via a pub-sub interface using Faye.</li>
         </ul>
     </div>
 </div>
