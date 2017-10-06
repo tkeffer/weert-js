@@ -83,6 +83,16 @@ class WeeRT(weewx.restx.StdRESTful):
         weert_dict = weewx.restx.get_site_dict(config_dict, 'WeeRT', 'host', 'port')
         if weert_dict is None:
             return
+
+        # Check to make sure this version of weewx supports JSON posts.
+        # To do this, look for function weewx.restx.RESTThread.get_post_body
+        try:
+            getattr(weewx.restx.RESTThread, 'get_post_body')
+        except AttributeError:
+            syslog.syslog(syslog.LOG_NOTICE, 'weert: WeeWX needs to be upgraded to V3.8 in order to run WeeRT')
+            syslog.syslog(syslog.LOG_NOTICE, '****   WeeRT upload skipped')
+            return
+
         # Start with the defaults. Make a copy --- we will be modifying it
         weert_config = configobj.ConfigObj(weert_defaults)['WeeRT']
         # Merge in the overrides from the config file
@@ -154,7 +164,7 @@ class WeeRTThread(weewx.restx.RESTThread):
         self.measurement = measurement
         self.platform = platform
         self.stream = stream
-
+        
         # Compile the filter functions for the loop packets:
         self.filter_funcs = _compile_filters(loop_filters)
 

@@ -5,6 +5,7 @@
   "description": "Logging for real-time data streams",
   "scripts": {
     "prestart": "npm install",
+    "postinstall": "cp node_modules/handlebars/dist/handlebars.js node_modules/faye/client/faye-browser.js client/dist; ",
     "start": "node ./server/server",
     "test": "jasmine"
   },
@@ -22,6 +23,7 @@
     "debug": "^2.2.0",
     "express": "^4.13.3",
     "faye": "^1.2.4",
+    "handlebars": "^4.0.10",
     "hbs": "^4.0.0",
     "influx": "^5.0.7",
     "morgan": "^1.6.1",

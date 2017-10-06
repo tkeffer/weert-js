@@ -14,12 +14,11 @@ const logger = require('morgan');
 const path = require('path');
 const express = require('express');
 const app = express();
-const Influx = require('influx');
 
 const config = require('./config/config');
 const MeasurementManager = require('./services/measurement_manager');
-const subsampling = require('./services/subsampling');
 const measurement_router_factory = require('./routes/measurement_routes');
+const subsampling = require('./services/subsampling');
 
 // Set up the view engine
 app.set('views', path.join(__dirname, './views'));
@@ -32,7 +31,15 @@ app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 
+// Serve all static files from the "client" subdirectory:
+app.use(express.static(path.join(__dirname, '../client')));
+
+// Set up the sub-pub facility
+const faye = require('faye');
+const bayeux = new faye.NodeAdapter({mount: '/faye', timeout: 45});
+
 // Set up the database and its managers
+const Influx = require('influx');
 const influx = new Influx.InfluxDB(config.influxdb);
 
 influx.getDatabaseNames()
@@ -116,6 +123,8 @@ influx.getDatabaseNames()
               }
               process.exit(1);
           });
+
+          bayeux.attach(server);
 
           server.listen(config.server.port);
           console.log('Listening on port', config.server.port);
