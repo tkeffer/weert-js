@@ -37,6 +37,8 @@ app.use(express.static(path.join(__dirname, '../client')));
 // Set up the sub-pub facility
 const faye = require('faye');
 const bayeux = new faye.NodeAdapter({mount: '/faye', timeout: 45});
+// TODO: Should get this out of the config file
+const faye_client = new faye.Client('http://localhost:3000/faye');
 
 // Set up the database and its managers
 const Influx = require('influx');
@@ -71,7 +73,7 @@ influx.getDatabaseNames()
           const measurement_manager = new MeasurementManager(influx);
 
           // Set up the routes
-          app.use(config.server.api, measurement_router_factory(measurement_manager));
+          app.use(config.server.api, measurement_router_factory(measurement_manager, faye_client));
 
           // error handlers
 

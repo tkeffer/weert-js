@@ -63,56 +63,14 @@ Promise.all([getRecentData(), compileTemplate()])
            // Render the Handlebars template showing the current conditions
            let html = console_template(recent_data[recent_data.length - 1]);
            $("#wx-console-area").html(html);
+
+           // Now subscribe to any new data points and update the console with them
+           var client = new Faye.Client("http://" + window.location.host + "/faye");
+           client.subscribe('/' + measurement, function (packet) {
+               html = console_template(packet);
+               $("#wx-console-area").html(html);
+           });
        });
 
-// We can get the initial data while we get the plot ready, but both have to be done
-// before we can actually update the plot:
-// async.parallel([getRecentData, compileTemplate], updatePlot);
-// getRecentData(function () {
-// });
-// compileTemplate(function () {
-// });
-//
-// // Now render it as a place holder until the first update:
-// var html = console_template({});
-// $("#wx-console-area").html(html);
 
-// var updatePlot = function (err) {
-//     if (err) throw err;
-//
-//     charts.data(dataset);
-//     charts.render();
-//
-//     // web socket event channel for new posts for this streamName:
-//     var subscription_name = 'NEW_LOOP_PACKET';
-//
-//     socket.on(subscription_name, function (msg) {
-//         // Check to see if it's our stream
-//         if (msg.stream === streamName){
-//             var packet = msg.packet;
-//             console.log("Client got packet", new Date(packet.timestamp));
-//             dataset.push(packet);
-//             // Trim any too-old packets
-//             var now = Date.now();
-//             while (dataset[0].timestamp < (now - max_age_secs * 1000)) {
-//                 dataset.shift();
-//             }
-//
-//             // Because Handlebars will overwrite the wind compass, we need to
-//             // first detach it, save it, then reattach later
-//             var hold = $("#windCompass").detach();
-//             // Render the Handlebars template showing the current conditions
-//             var html = console_template(packet);
-//             $("#wx-console-area").html(html);
-//             // Now reattach the wind compass
-//             $("#windCompass").html(hold);
-//
-//             // Update the wind compass
-//             windcompass.updateWind([packet.timestamp, packet.wind_direction, packet.wind_speed]);
-//
-//             // Update the line charts
-//             charts.render();
-//         }
-//     });
-// };
 

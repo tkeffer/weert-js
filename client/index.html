@@ -17,7 +17,6 @@
 <script id="wx-console-template" type="text/x-handlebars-template">
 
     <div id="stats_group">
-
         <div class="stats">
             <div class="stats_header">
                 Current Conditions
@@ -57,7 +56,6 @@
             </table>
         </div>
     </div>
-
 </script>
 
 
@@ -65,16 +63,17 @@
 
     <h1>Welcome to WeeRT</h1>
 
-    <div id="wx-console-area" style="width:25%; display:inline-block; vertical-align:top"></div>
+    <!--    <div id="wx-console-area" style="width:25%; display:inline-block; vertical-align:top"></div> -->
+    <div id="wx-console-area"></div>
 
     <div style="display:inline-block">
+        <h2>Architecture</h2>
+        <ul>
+            <li>Uses a Node server with the Express framework;</li>
+            <li>The server receives packet updates from weewx via a RESTful interface;</li>
+            <li>The packets are stored in a InfluxDB server;</li>
+        </ul>
     </div>
-    <h2>Architecture</h2>
-    <ul>
-        <li>Uses a Node server with the Express framework;</li>
-        <li>The server receives packet updates from weewx via a RESTful interface;</li>
-        <li>The packets are stored in a InfluxDB server;</li>
-    </ul>
 </div>
 </body>
 </html>

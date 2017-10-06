@@ -16,7 +16,7 @@ const express = require('express');
 
 const auxtools = require('../auxtools');
 
-const MeasurementRouterFactory = function (measurement_manager) {
+const MeasurementRouterFactory = function (measurement_manager, pub_sub) {
 
     const router = express.Router();
 
@@ -62,6 +62,11 @@ const MeasurementRouterFactory = function (measurement_manager) {
                     const resource_url = auxtools.resourcePath(req, packet.timestamp);
                     res.location(resource_url)
                        .sendStatus(201);
+                    pub_sub.publish(`/${measurement}`, packet)
+                           .then(result=>{})
+                           .catch(err => {
+                               debug("PUB-SUB error:", err)
+                           });
                 })
                 .catch(function (err) {
                     debug('POST /measurements/:measurement/packets error:', err);
