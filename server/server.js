@@ -126,6 +126,18 @@ influx.getDatabaseNames()
               process.exit(1);
           });
 
+          // Monitor pub-sub clients
+          bayeux.on('subscribe', function (clientId, channel) {
+              debug(`Client ${clientId} subscribed on channel ${channel}`)
+          });
+          bayeux.on('unsubscribe', function (clientId, channel) {
+              debug(`Client ${clientId} unsubscribed on channel ${channel}`);
+          });
+          bayeux.on('disconnect', function (clientId) {
+              debug(`Client ${clientId} disconnected`)
+          });
+
+          // Attach the Faye pub-sub engine
           bayeux.attach(server);
 
           server.listen(config.server.port);
