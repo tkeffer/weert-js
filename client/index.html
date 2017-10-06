@@ -1,7 +1,8 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <title>Welcome to WeeRT</title>
+    <link rel="stylesheet" type="text/css" href="../css/weewx.css"/>
     <meta content="en-us" http-equiv="Content-Language"/>
     <meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
 
@@ -14,27 +15,49 @@
 
 
 <script id="wx-console-template" type="text/x-handlebars-template">
-    <h2>Current conditions</h2>
 
-    <div id="wx-console" class="wx-console console-vertical">
-        <div class="outTemp-group reading-group">
-            <span class="outTemp-value reading-value">{{formatNumber fields.outside_temperature 1}}</span><span
-                class="outTemp-unit unit-label">°C</span>
-            <span class="desc">temperature</span>
-        </div>
+    <div id="stats_group">
 
-        <div class="out-hum-group reading-group">
-            <span class="outHumidity-value reading-value">{{formatNumber fields.outside_humidity 1}}</span><span
-                class="outHumidity-unit unit-label">%</span>
-            <span class="desc">humidity</span>
+        <div class="stats">
+            <div class="stats_header">
+                Current Conditions
+            </div>
+
+            <table>
+                <tbody>
+                <tr>
+                    <td class="stats_label">Outside Temperature</td>
+                    <td class="stats_data">{{fields.outside_temperature}}</td>
+                </tr>
+                <tr>
+                    <td class="stats_label">Humidity</td>
+                    <td class="stats_data">{{fields.outside_humidity}}</td>
+                </tr>
+                <tr>
+                    <td class="stats_label">Barometer</td>
+                    <td class="stats_data">{{fields.sealevel_pressure}}</td>
+                </tr>
+                <tr>
+                    <td class="stats_label">Wind</td>
+                    <td class="stats_data">{{fields.wind_speed}} from {{fields.wind_dir}}</td>
+                </tr>
+                <tr>
+                    <td class="stats_label">Inside Temperature</td>
+                    <td class="stats_data">{{fields.inside_temperature}}</td>
+                </tr>
+                <tr>
+                    <td class="stats_label">UV</td>
+                    <td class="stats_data">{{fields.uv_uv}}</td>
+                </tr>
+                <tr>
+                    <td class="stats_label">Solar Radiation</td>
+                    <td class="stats_data">{{fields.radiation_radiation}}</td>
+                </tr>
+                </tbody>
+            </table>
         </div>
-        <div class="bar-group reading-group">
-            <span class="barometer-value reading-value">{{formatNumber fields.barometer_pressure 1}}</span><span
-                class="barometer-unit unit-label"> mbar</span>
-            <span class="desc">pressure</span>
-        </div>
-        <div class="last-update"><span class="dateTime-value">{{formatTimeStamp timestamp}}</span></div>
     </div>
+
 </script>
 
 

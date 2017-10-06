@@ -39,6 +39,7 @@ module.exports = {
             "soil4_temperature"                 : "avg",
             "unit_system"                       : "last",
             "uv_uv"                             : "avg",
+            "wind_speed"                        : "avg",
             "x_wind_speed"                      : "avg",
             "y_wind_speed"                      : "avg",
         }

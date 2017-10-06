@@ -17,7 +17,7 @@ var max_initial_age_secs = 1200;
 var max_age_secs = 3600;
 
 Handlebars.registerHelper('formatTimeStamp', function (ts) {
-    return new Date(ts);
+    return new Date(ts / 1000000);
 });
 
 Handlebars.registerHelper("formatNumber", function (val, digits) {
@@ -43,7 +43,7 @@ function getRecentData() {
 
 function compileTemplate() {
 
-    return new Promise(function(resolve, reject){
+    return new Promise(function (resolve, reject) {
         // The DOM has to be ready before we can select the SVG area.
         document.addEventListener("DOMContentLoaded", function (event) {
 
@@ -53,18 +53,17 @@ function compileTemplate() {
 
             resolve(console_template);
         });
-    })
+    });
 };
 
 Promise.all([getRecentData(), compileTemplate()])
-    .then(results =>{
-        let recent_data = results[0];
-        console.log("recent data=", results[0])
-        let console_template = results[1];
-        // Render the Handlebars template showing the current conditions
-        let html = console_template(recent_data[0])
-        $("#wx-console-area").html(html);
-    })
+       .then(results => {
+           let recent_data = results[0];
+           let console_template = results[1];
+           // Render the Handlebars template showing the current conditions
+           let html = console_template(recent_data[recent_data.length - 1]);
+           $("#wx-console-area").html(html);
+       });
 
 // We can get the initial data while we get the plot ready, but both have to be done
 // before we can actually update the plot:
