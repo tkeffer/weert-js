@@ -20,8 +20,9 @@ var measurements_url = 'http://localhost:3000' + config.server.api + '/measureme
 var packets_url = measurements_url + '/test_measurement/packets';
 
 var timestamp = function (i) {
-    // Base time is 1-Jan-2015 0000 UTC:
-    return 1420070400000 + i * 300000;
+    // Base time is 1-Jan-2015 0000 UTC.
+    // Convert to nanoseconds
+    return (1420070400 + i * 300) * 1000000000;
 };
 
 var temperature = function (i) {
