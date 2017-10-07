@@ -1,7 +1,7 @@
 # WeeRT
 A real-time logging and display server, using Node, Express, and InfluxDB
 
-## Installation
+## Installing the server
 
 1. Download and install [InfluxDB](https://www.influxdata.com/). WeeRT was tested with
 version 1.3.5. Later versions should work fine.
@@ -48,18 +48,47 @@ Later versions should work fine.
   $ npm test
   ```
 
+## Installing the WeeRT uploader on WeeWX
+
+1. Make sure you are running WeeWX V3.8 or later. Earlier versions do not support the POST method used
+by the uploader.
+
+2. Add the following to `weewx.conf`:
+
+    ```ini
+    [StdRestful]
+        ...
+        [[WeeRT]]
+            host = localhost
+            port = 3000
+
+    ...
+
+    [Engine]
+        [[Services]]
+            ...
+            restful_services = ..., weert.WeeRT
+
+    ```
+
+3. Make sure the `weert.py` module is in your `PYTHONPATH`.
+
+4. Run `weewxd`
+
+5. Open up a client at [http://localhost:3000/index.html](http://localhost:3000/index.html).
+
+
 ## General architecture
-- Uses a [Node](https://nodejs.org/) server with the [Express framework](http://expressjs.com/)
-- The server offers a RESTful API for storing, retrieving, deleting, and editing streams and data.
-- Data are stored in a [InfluxDB](https://www.influxdata.com/) server
+- Uses a [Node](https://nodejs.org/) server with the [Express framework](http://expressjs.com/).
+- The server offers a RESTful API ([described below](#API)) for storing, retrieving,
+  and deleting data measurements.
+- Data are stored in a [InfluxDB](https://www.influxdata.com/) server.
+- Realtime updates are done through a publish - subscribe interface
+  using [Faye](faye.jcoglan.com).
+- Realtime plots are done using [plotly.js](https://plot.ly/javascript/)
 
 For experimental purposes.
 
-The WeeRT uploader requires WeeWX version 3.8 or later. Earlier versions will not work.
-
-Tested on Node V6.9.5, although later versions should work fine.
-
-Tested on InfluxDB V1.3.5.
 
 
 # Data model
@@ -129,7 +158,7 @@ WeeRT tries to consistently traffic in "deep packets." Data going in and out of 
 are in this format. There are utility functions in module `weert.database` for building a deep packet,
 as well as for converting to and from flattened packets.
  
-# API
+# <a name="API"></api>API
 
 [//]: # (# The following commands will set up the database)
 [//]: # (curl -XPOST 'http://localhost:8086/query?db=weert' --data-urlencode 'q=DROP MEASUREMENT "examples"')
@@ -377,10 +406,10 @@ GET /api/v1/measurements/:measurement/packets/:timestamp
 
 **Parameters**
 
-| *Name*          | *Type*  | *Description*                                                                                                            |
-|:----------------|:--------|:-------------------------------------------------------------------------------------------------------------------------|
-| `platform` | string  | Include only packets on the platform `platform`.                                                                              |
-| `stream`   | string  | Include only packets on the stream `stream`.                                                                                  |
+| *Name*          | *Type*  | *Description*                                   |
+|:----------------|:--------|:------------------------------------------------|
+| `platform` | string  | Include only packets on the platform `platform`.     |
+| `stream`   | string  | Include only packets on the stream `stream`.         |
 
 **Response code**
 
@@ -390,7 +419,9 @@ GET /api/v1/measurements/:measurement/packets/:timestamp
 | 400      | Malformed query            |
 | 404      | Measurement does not exist |
 
-**Examples**
+**Example**
+
+Get all packets at timestamp `1506713200000000000` on the platform `truck`.
 
 ```shell
 $ curl -i -X GET 'http://localhost:3000/api/v1/measurements/examples/packets/1506713200000000000?platform=truck'
@@ -449,7 +480,9 @@ database.
 If successful, the server will return a response code of 201, with the
 response `Location` field set to the URL of the newly created resource (packet).
 
-**Examples**
+**Example**
+
+Add a new packet for the platform `truck` and stream `oil`.
 
 ```shell
 $ curl -i --silent -X POST -H Content-type:application/json -d  \
@@ -498,7 +531,9 @@ DELETE /api/v1/measurements/:measurement/packets/:timestamp
 The same response code (204) is returned irregardless of whether or not any packet fitting the criteria
 actually existed in the database.
 
-**Examples**
+**Example**
+
+Delete all packets with timestamp `1506713320000000000`.
 
 ```shell
 $ curl -i --silent -X DELETE http://localhost:3000/api/v1/measurements/examples/packets/1506713320000000000
@@ -533,6 +568,8 @@ in measurement `measurement`.
 
 **Examples**
 
+Get information about the measurement `examples`.
+
 ```Shell
 $ curl -i --silent -X GET 'http://localhost:3000/api/v1/measurements/examples'
 
@@ -555,8 +592,8 @@ Connection: keep-alive
 
 ```
 
-Do the example again, but using a bogus measurement name. It should
-return the same status code, 204.
+Do the example again, but using a bogus measurement name. It returns
+a 404 "Not Found" status code.
 
 ```shell
 $ curl -i --silent -X GET http://localhost:3000/api/v1/measurements/foo
@@ -588,6 +625,8 @@ DELETE ap/v1/measurements/:measurement
 | 404      | Measurement not found |
 
 **Examples**
+
+Delete the measurement `examples`. All packets within the measurement will be deleted.
 
 ```shell
 $ curl -i --silent -X DELETE 'http://localhost:3000/api/v1/measurements/examples'
@@ -623,5 +662,3 @@ Connection: keep-alive
 Copyright (c) 2015-2017 Tom Keffer <tkeffer@gmail.com>
 
   See the file LICENSE for your full rights.
-
-
