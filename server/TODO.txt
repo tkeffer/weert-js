@@ -1,6 +1,14 @@
-For GET packets, returned packets should be deep packets.
+SERVER
 
-When returning the results of a CQ, they should be returned
-as deep packets.
+Retention policy for InfluxDB
 
-Time precision should be settable.
+
+
+
+CLIENT
+
+Retention policy for client
+
+Add other observation types in a modular fashion.
+
+Deal with unit systems

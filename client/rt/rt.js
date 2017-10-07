@@ -39,7 +39,7 @@ function getRecentData() {
         method  : 'GET',
         dataType: 'JSON'
     });
-};
+}
 
 function compileTemplate() {
 
@@ -54,7 +54,33 @@ function compileTemplate() {
             resolve(console_template);
         });
     });
-};
+}
+
+
+function obsPlot(packet_array, obs_type) {
+
+
+    var x = [];
+    var y = [];
+
+    for (var i = 0; i < packet_array.length; i++) {
+        x.push(packet_array[i].timestamp / 1000000);
+        y.push(packet_array[i].fields[obs_type]);
+    }
+    var data = {
+        x   : x,
+        y   : y,
+        mode: 'lines',
+        type: 'scatter'
+    };
+    var layout = {
+        xaxis: {type: 'date'},
+        title: obs_type
+    };
+    Plotly.newPlot('plot-area', [data], layout);
+
+}
+
 
 Promise.all([getRecentData(), compileTemplate()])
        .then(results => {
@@ -63,12 +89,18 @@ Promise.all([getRecentData(), compileTemplate()])
            // Render the Handlebars template showing the current conditions
            let html = console_template(recent_data[recent_data.length - 1]);
            $("#wx-console-area").html(html);
-
+           obsPlot(recent_data, 'wind_speed');
            // Now subscribe to any new data points and update the console with them
            var client = new Faye.Client("http://" + window.location.host + "/faye");
            client.subscribe('/' + measurement, function (packet) {
                html = console_template(packet);
                $("#wx-console-area").html(html);
+
+               var update = {
+                   x: [[packet.timestamp / 1000000]],
+                   y: [[packet.fields.wind_speed]]
+               };
+               Plotly.extendTraces('plot-area', update, [0]);
            });
        });
 
