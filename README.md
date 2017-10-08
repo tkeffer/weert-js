@@ -102,15 +102,13 @@ tags, and fields. These terms are used throughout WeeRT.
 There are several different ways of representing packet data in the WeeRT / Influx ecosystem. It's useful
 to be aware of the differences.
 
-- A __weewx-style packet__. This is a simple data structure, similar to the packets that weewx uses, except that
-  it contains observation type `time` instead of `dateTime`, and the time is in nanoseconds,
-  not seconds.   It holds time and field data, but no information about platforms or streams.
-  It is used when broadcasting from WeeWX to the MQTT broker. 
-  It looks like:
+- A __weewx-style packet__. This is the simple, flat data structure that weewx uses. 
+  It holds time (in seconds), field data, and the unit system used by the data, 
+  but no information about platforms or streams. It looks like:
   
    ```json
    {
-     "time" : 1492891404989186223,
+     "dateTime" : 1507432417,
      "temperature" : 108.3, 
      "rpm" : 1850, 
      "unit_system" : 16
@@ -119,12 +117,13 @@ to be aware of the differences.
 
 - What we are calling a __deep packet__. This is a structured packet that the Node
   client library [node-influx](https://node-influx.github.io/) expects 
-  (as do the client libraries for most other languages). It is useful
-  because the InfluxDB "measurement" and "tags" are explicitly represented. It looks something like this:
+  (as do the InfluxDB client libraries for most other languages). It is useful
+  because the InfluxDB "measurement" and "tags" are explicitly represented. Time is 
+  in field `time` and it is in *nanoseconds*. It looks something like this:
  
    ```json
    {
-     "time" : 1492891404989186223,
+     "time" : 1507432417000000000,
      "measurement" : "highway_data"
      "tags" : {"platform" : "Red chevy", "stream" : "engine_parameters"}
      "fields" : {"temperature" : 108.3, "rpm" : 1850, "unit_system" : 16}
@@ -138,7 +137,7 @@ to be aware of the differences.
   
    ```json
    {
-     "time" : 1492891404989186223,
+     "time" : 1507432417000000000,
      "platform" : "Red chevy",
      "stream" : "engine_parameters",
      "temperature" : 108.3, 
@@ -151,12 +150,11 @@ to be aware of the differences.
   This protocol is designed for on-the-wire efficiency. It is not explicitly used within WeeRT. It looks something like this:
  
    ~~~
-   highway_data, platform="Red chevy",stream="engine_parameters" temperature=108.3,rpm=1850 1492891404989186223
+   highway_data, platform="Red chevy",stream="engine_parameters" temperature=108.3,rpm=1850 1507432417000000000
    ~~~
 
 WeeRT tries to consistently traffic in "deep packets." Data going in and out of the WeeRT server
-are in this format. There are utility functions in module `weert.database` for building a deep packet,
-as well as for converting to and from flattened packets.
+are in this format. 
  
 # <a name="API"></api>API
 
@@ -189,13 +187,13 @@ GET /api/v1/measurements/:measurement/packets
 **Parameters**
 
 | *Name*          | *Type*  | *Description*                                                                                                                    |
-|:----------------|:--------|:---------------------------------------------------------------------------------------------------------------------------------|
-| `platform`      | string  | Include only packets from platform `platform`.                                                                                   |
-| `stream`        | string  | Include only packets from stream `stream`.                                                                                       |
-| `start`         | integer | All packets greater than this timestamp will be included in the results. Default: first available packet.                        |
-| `stop`          | integer | All packets less than or equal to this timestamp will be included in the results. Default: last available packet.                |
-| `limit`         | integer | Limit the number of returned packets to this value. Default: no limit.                                                           |
-| `direction`     | string  | The direction of the sort. Can be either `asc` or `desc`. Default: `asc`.                                                        |
+|:----------------|:--------|:--------------------------------------------------------------------------------------------------------------------|
+| `platform`      | string  | Include only packets from platform `platform`.                                                                      |
+| `stream`        | string  | Include only packets from stream `stream`.                                                                          |
+| `start`         | integer | All packets greater than this timestamp will be included in the results. Default: first available packet.           |
+| `stop`          | integer | All packets less than or equal to this timestamp will be included in the results. Default: last available packet.   |
+| `limit`         | integer | Limit the number of returned packets to this value. Default: no limit.                                              |
+| `direction`     | string  | The direction of the sort. Can be either `asc` or `desc`. Default: `asc`.                                           |
 
 
 **Response code**
