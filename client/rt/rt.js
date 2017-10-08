@@ -4,24 +4,24 @@
  *  See the file LICENSE for your full rights.
  */
 
-//              CLIENT CODE
 "use strict";
 
-var measurement = 'wxpackets';
-var platform = 'default_platform';
-var stream = 'default_stream';
+var measurement = "wxpackets";
+var platform = "default_platform";
+var stream = "default_stream";
+var faye_endpoint = "/api/v1/faye";
 
-// Initial request of data from the WeeRT server in seconds
+//Initial request of data from the WeeRT server in seconds
 var max_initial_age_secs = 1200;
-// Max retained age in seconds:
+//Max retained age in seconds:
 var max_age_secs = 3600;
 
-Handlebars.registerHelper('formatTimeStamp', function (ts) {
+Handlebars.registerHelper("formatTimeStamp", function (ts) {
     return new Date(ts / 1000000);
 });
 
 Handlebars.registerHelper("formatNumber", function (val, digits) {
-    if (val == null) {
+    if (val === null) {
         return "N/A";
     } else {
         return val.toFixed(digits);
@@ -36,16 +36,16 @@ function getRecentData() {
     return $.ajax({
         url     : "http://" + window.location.host + "/api/v1/measurements/" + measurement + "/packets",
         data    : {start: start, stop: stop},
-        method  : 'GET',
-        dataType: 'JSON'
+        method  : "GET",
+        dataType: "JSON"
     });
 }
 
 function compileTemplate() {
 
-    return new Promise(function (resolve, reject) {
+    return new Promise(function (resolve) {
         // The DOM has to be ready before we can select the SVG area.
-        document.addEventListener("DOMContentLoaded", function (event) {
+        document.addEventListener("DOMContentLoaded", function () {
 
             // Compile the console template
             var source = $("#wx-console-template").html();
@@ -57,52 +57,53 @@ function compileTemplate() {
 }
 
 
-function obsPlot(packet_array, obs_type) {
+function obsPlot(plot_div, packet_array, obs_type) {
 
-
-    var x = [];
-    var y = [];
-
-    for (var i = 0; i < packet_array.length; i++) {
-        x.push(packet_array[i].timestamp / 1000000);
-        y.push(packet_array[i].fields[obs_type]);
-    }
     var data = {
-        x   : x,
-        y   : y,
-        mode: 'lines',
-        type: 'scatter'
+        x   : packet_array.map(function (packet) {
+            return packet.timestamp / 1000000;
+        }),
+        y   : packet_array.map(function (packet) {
+            return packet.fields[obs_type];
+        }),
+        mode: "lines",
+        type: "scatter"
     };
     var layout = {
-        xaxis: {type: 'date'},
+        xaxis: {type: "date"},
         title: obs_type
     };
-    Plotly.newPlot('plot-area', [data], layout);
-
+    Plotly.newPlot(plot_div, [data], layout);
 }
 
+function extendPlot(plot_div, packet, obs_type) {
+    var update = {
+        x: [[packet.timestamp / 1000000]],
+        y: [[packet.fields[obs_type]]]
+    };
+    Plotly.extendTraces(plot_div, update, [0]);
+}
 
+// Wait until the template and new data are ready, then proceed
 Promise.all([getRecentData(), compileTemplate()])
-       .then(results => {
-           let recent_data = results[0];
-           let console_template = results[1];
+       .then(function (results) {
+           var recent_data = results[0];
+           var console_template = results[1];
            // Render the Handlebars template showing the current conditions
-           let html = console_template(recent_data[recent_data.length - 1]);
+           var html = console_template(recent_data[recent_data.length - 1]);
            $("#wx-console-area").html(html);
-           obsPlot(recent_data, 'wind_speed');
-           // Now subscribe to any new data points and update the console with them
-           var client = new Faye.Client("http://" + window.location.host + "/faye");
-           client.subscribe('/' + measurement, function (packet) {
+
+           // Run the plots
+           obsPlot("plot-area", recent_data, "wind_speed");
+
+           // Now subscribe to any new data points and update the console and
+           // plots with them
+           var client = new Faye.Client("http://" + window.location.host + faye_endpoint);
+           client.subscribe("/" + measurement, function (packet) {
                html = console_template(packet);
                $("#wx-console-area").html(html);
 
-               var update = {
-                   x: [[packet.timestamp / 1000000]],
-                   y: [[packet.fields.wind_speed]]
-               };
-               Plotly.extendTraces('plot-area', update, [0]);
+               extendPlot("plot-area", packet, "wind_speed");
            });
        });
-
-
 

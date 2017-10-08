@@ -28,6 +28,6 @@ module.exports = {
 
     // Configuration for the Faye pub-sub facility
     faye:{
-        endpoint: '/faye'
+        endpoint: '/api/v1/faye'
     }
 };
