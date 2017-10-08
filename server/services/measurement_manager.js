@@ -90,10 +90,7 @@ class MeasurementManager {
         }
 
         return this.influx
-                   .query(query_string)
-                   .then(results => {
-                       return Promise.resolve(results);
-                   });
+                   .query(query_string);
     }
 
     delete_packet(measurement, timestamp, platform = undefined, stream = undefined) {
