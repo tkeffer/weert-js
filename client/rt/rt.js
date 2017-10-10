@@ -11,6 +11,33 @@ var platform = "default_platform";
 var stream = "default_stream";
 var faye_endpoint = "/api/v1/faye";
 
+var plots = [
+    {
+        plot_div: 'windspeed-div',
+        title   : "Wind Speed (mph)",
+        traces  : [
+            {obs_type: 'wind_speed'}
+        ]
+    },
+    {
+        plot_div: 'outtemp-div',
+        title   : "Outside Temperature (°F)",
+        traces  : [
+            {obs_type: 'outside_temperature', label: 'Temperature'},
+            {obs_type: 'dewpoint_temperature', label: 'Dewpoint'}
+        ]
+    },
+    {
+        plot_div: 'heatchill-div',
+        title   : "Wind Chill / Heat Index (°F)",
+        traces  : [
+            {obs_type: 'windchill_temperature', label: 'Wind Chill'},
+            {obs_type: 'heatindex_temperature', label: 'Heat Index'}
+        ]
+    }
+
+];
+
 //Initial request of data from the WeeRT server in seconds
 var max_initial_age_secs = 1200;
 //Max retained age in seconds:
@@ -21,7 +48,7 @@ Handlebars.registerHelper("formatTimeStamp", function (ts) {
 });
 
 Handlebars.registerHelper("formatNumber", function (val, digits) {
-    if (val === null) {
+    if (val === null | val === undefined) {
         return "N/A";
     } else {
         return val.toFixed(digits);
@@ -57,32 +84,55 @@ function compileTemplate() {
 }
 
 
-function obsPlot(plot_div, packet_array, obs_type) {
+function createPlot(plot_info, packet_array) {
 
-    var data = {
-        x   : packet_array.map(function (packet) {
-            return packet.timestamp / 1000000;
-        }),
-        y   : packet_array.map(function (packet) {
-            return packet.fields[obs_type];
-        }),
-        mode: "lines",
-        type: "scatter"
-    };
+    var data = [];
+    for (var trace of plot_info.traces) {
+        data.push(
+            {
+                x   : packet_array.map(function (packet) {
+                    return packet.timestamp / 1000000;
+                }),
+                y   : packet_array.map(function (packet) {
+                    return packet.fields[trace.obs_type];
+                }),
+                mode: "lines",
+                type: "scatter",
+                name: trace.label
+            })
+        ;
+    }
     var layout = {
         xaxis: {type: "date"},
-        title: obs_type
+        title: plot_info.title
     };
-    Plotly.newPlot(plot_div, [data], layout);
+    return Plotly.newPlot(plot_info.plot_div, data, layout);
 }
 
-function extendPlot(plot_div, packet, obs_type) {
+// function extendPlot(plot_div, packet, obs_type) {
+//     var update = {
+//         x: [[packet.timestamp / 1000000]],
+//         y: [[packet.fields[obs_type]]]
+//     };
+//     Plotly.extendTraces(plot_div, update, [0]);
+// }
+
+function extendPlot(plot_info, packet) {
     var update = {
-        x: [[packet.timestamp / 1000000]],
-        y: [[packet.fields[obs_type]]]
+        x: plot_info.traces.map(function (trace) {
+            return [packet.timestamp / 1000000];
+        }),
+        y: plot_info.traces.map(function (trace) {
+            return [packet.fields[trace.obs_type]];
+        })
     };
-    Plotly.extendTraces(plot_div, update, [0]);
+    var trace_list = [];
+    for (var i = 0; i < plot_info.traces.length; i++) {
+        trace_list.push(i);
+    }
+    return Plotly.extendTraces(plot_info.plot_div, update, trace_list);
 }
+
 
 // Wait until the template and new data are ready, then proceed
 Promise.all([getRecentData(), compileTemplate()])
@@ -93,8 +143,12 @@ Promise.all([getRecentData(), compileTemplate()])
            var html = console_template(recent_data[recent_data.length - 1]);
            $("#wx-console-area").html(html);
 
-           // Run the plots
-           obsPlot("plot-area", recent_data, "wind_speed");
+           var ps = [];
+           // Create the plots
+           for (var plot of plots) {
+               ps.push(createPlot(plot, recent_data));
+           }
+           Promise.all(ps);
 
            // Now subscribe to any new data points and update the console and
            // plots with them
@@ -103,7 +157,10 @@ Promise.all([getRecentData(), compileTemplate()])
                html = console_template(packet);
                $("#wx-console-area").html(html);
 
-               extendPlot("plot-area", packet, "wind_speed");
+               for (var plot of plots) {
+                   extendPlot(plot, packet);
+               }
+
            });
        });
 

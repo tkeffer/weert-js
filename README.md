@@ -1,5 +1,9 @@
 # WeeRT
-A real-time logging and display server, using Node, Express, and InfluxDB
+A real-time logging and display server, using Node, Express, and InfluxDB.
+
+EXPERIMENTAL!
+
+In particular, none of the installation has been automated. 
 
 ## Installing the server
 
