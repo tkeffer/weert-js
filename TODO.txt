@@ -10,3 +10,5 @@ CLIENT
 Deal with unit systems
 
 Allow longer-termed plots using wxrecords
+
+Wind plot

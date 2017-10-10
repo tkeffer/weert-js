@@ -127,7 +127,8 @@ function extendPlot(plot_info, packet) {
     for (var i = 0; i < plot_info.traces.length; i++) {
         trace_list.push(i);
     }
-    return Plotly.extendTraces(plot_info.plot_div, update, trace_list, weert_config.max_retained_points);
+    return Plotly.extendTraces(plot_info.plot_div, update, trace_list,
+        weert_config.max_retained_points);
 }
 
 
@@ -145,7 +146,13 @@ Promise.all([getRecentData(), compileTemplate()])
            for (var plot of plots) {
                ps.push(createPlot(plot, recent_data));
            }
-           Promise.all(ps);
+           Promise.all(ps)
+                  .then(function () {
+                      console.log(ps.length, "plots created");
+                  })
+                  .catch(function (err) {
+                      console.log("Error creating plots:", err);
+                  });
 
            // Now subscribe to any new data points and update the console and
            // plots with them
@@ -154,10 +161,17 @@ Promise.all([getRecentData(), compileTemplate()])
                html = console_template(packet);
                $("#wx-console-area").html(html);
 
+               var ps = [];
                for (var plot of plots) {
-                   extendPlot(plot, packet);
+                   ps.push(extendPlot(plot, packet));
                }
+               Promise.all(ps)
+                      .then(function () {
+                          console.log(ps.length, "plots updated");
+                      })
+                      .catch(function (err) {
+                          console.log("Error updating plots:", err);
+                      });
 
            });
        });
-
