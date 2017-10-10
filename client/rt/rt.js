@@ -48,7 +48,7 @@ Handlebars.registerHelper("formatTimeStamp", function (ts) {
 });
 
 Handlebars.registerHelper("formatNumber", function (val, digits) {
-    if (val === null | val === undefined) {
+    if (val === null || val === undefined) {
         return "N/A";
     } else {
         return val.toFixed(digits);
