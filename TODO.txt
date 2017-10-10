@@ -9,6 +9,4 @@ CLIENT
 
 Retention policy for client
 
-Add other observation types in a modular fashion.
-
 Deal with unit systems

@@ -11,6 +11,12 @@ var platform = "default_platform";
 var stream = "default_stream";
 var faye_endpoint = "/api/v1/faye";
 
+var plot_config =
+    {
+        width : 500,
+        height: 300
+    };
+
 var plots = [
     {
         plot_div: 'windspeed-div',
@@ -103,19 +109,13 @@ function createPlot(plot_info, packet_array) {
         ;
     }
     var layout = {
-        xaxis: {type: "date"},
-        title: plot_info.title
+        xaxis : {type: "date"},
+        title : plot_info.title,
+        width : plot_config.width,
+        height: plot_config.height
     };
     return Plotly.newPlot(plot_info.plot_div, data, layout);
 }
-
-// function extendPlot(plot_div, packet, obs_type) {
-//     var update = {
-//         x: [[packet.timestamp / 1000000]],
-//         y: [[packet.fields[obs_type]]]
-//     };
-//     Plotly.extendTraces(plot_div, update, [0]);
-// }
 
 function extendPlot(plot_info, packet) {
     var update = {
