@@ -78,9 +78,9 @@ class MeasurementManager {
 
         if (stream) {
             if (query_string.includes('WHERE'))
-                query_string += ` AND platform = '${stream}'`;
+                query_string += ` AND stream = '${stream}'`;
             else
-                query_string += ` WHERE platform = '${stream}'`;
+                query_string += ` WHERE stream = '${stream}'`;
         }
 
         query_string += ` ORDER BY time ${sort_direction}`;
