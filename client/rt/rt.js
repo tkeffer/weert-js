@@ -18,14 +18,14 @@ var weert_config = {
 
 var plots = [
     {
-        plot_div: 'windspeed-div',
+        plot_div: 'windspeed-recent-div',
         title   : "Wind Speed (mph)",
         traces  : [
             {obs_type: 'wind_speed'}
         ]
     },
     {
-        plot_div: 'outtemp-div',
+        plot_div: 'outtemp-recent-div',
         title   : "Outside Temperature (°F)",
         traces  : [
             {obs_type: 'outside_temperature', label: 'Temperature'},
@@ -33,7 +33,7 @@ var plots = [
         ]
     },
     {
-        plot_div: 'heatchill-div',
+        plot_div: 'heatchill-recent-div',
         title   : "Wind Chill / Heat Index (°F)",
         traces  : [
             {obs_type: 'windchill_temperature', label: 'Wind Chill'},

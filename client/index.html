@@ -18,50 +18,50 @@
 
 <script id="wx-console-template" type="text/x-handlebars-template">
 
-    <div id="stats_group">
-        <div class="stats">
-            <div class="stats_header">
-                Current Conditions
-            </div>
-
-            <table>
-                <tbody>
-                <tr>
-                    <td class="stats_label">Time</td>
-                    <td class="stats_data">{{formatTimeStamp timestamp}}</td>
-                </tr>
-                <tr>
-                    <td class="stats_label">Outside Temperature</td>
-                    <td class="stats_data">{{formatNumber fields.outside_temperature 1}}</td>
-                </tr>
-                <tr>
-                    <td class="stats_label">Inside Temperature</td>
-                    <td class="stats_data">{{formatNumber fields.inside_temperature 1}}</td>
-                </tr>
-                <tr>
-                    <td class="stats_label">Humidity</td>
-                    <td class="stats_data">{{formatNumber fields.outside_humidity 0}}</td>
-                </tr>
-                <tr>
-                    <td class="stats_label">Barometer</td>
-                    <td class="stats_data">{{formatNumber fields.sealevel_pressure 3}}</td>
-                </tr>
-                <tr>
-                    <td class="stats_label">Wind</td>
-                    <td class="stats_data">{{formatNumber fields.wind_speed 0}} from {{formatNumber fields.wind_dir 0}}</td>
-                </tr>
-                <tr>
-                    <td class="stats_label">UV</td>
-                    <td class="stats_data">{{formatNumber fields.uv_uv 0}}</td>
-                </tr>
-                <tr>
-                    <td class="stats_label">Solar Radiation</td>
-                    <td class="stats_data">{{formatNumber fields.radiation_radiation 0}}</td>
-                </tr>
-                </tbody>
-            </table>
+    <div class="stats">
+        <div class="stats_header">
+            Current Conditions
         </div>
-    </div>
+
+        <table>
+            <tbody>
+            <tr>
+                <td class="stats_label">Time</td>
+                <td class="stats_data">{{formatTimeStamp timestamp}}</td>
+            </tr>
+            <tr>
+                <td class="stats_label">Outside Temperature</td>
+                <td class="stats_data">{{formatNumber fields.outside_temperature 1}}</td>
+            </tr>
+            <tr>
+                <td class="stats_label">Inside Temperature</td>
+                <td class="stats_data">{{formatNumber fields.inside_temperature 1}}</td>
+            </tr>
+            <tr>
+                <td class="stats_label">Humidity</td>
+                <td class="stats_data">{{formatNumber fields.outside_humidity 0}}</td>
+            </tr>
+            <tr>
+                <td class="stats_label">Barometer</td>
+                <td class="stats_data">{{formatNumber fields.sealevel_pressure 3}}</td>
+            </tr>
+            <tr>
+                <td class="stats_label">Wind</td>
+                <td class="stats_data">{{formatNumber fields.wind_speed 0}} from {{formatNumber fields.wind_dir
+                    0}}
+                </td>
+            </tr>
+            <tr>
+                <td class="stats_label">UV</td>
+                <td class="stats_data">{{formatNumber fields.uv_uv 0}}</td>
+            </tr>
+            <tr>
+                <td class="stats_label">Solar Radiation</td>
+                <td class="stats_data">{{formatNumber fields.radiation_radiation 0}}</td>
+            </tr>
+            </tbody>
+        </table>
+    </div> <!-- End class "stats" -->
 </script>
 
 
@@ -69,12 +69,23 @@
 
     <h1>Welcome to WeeRT</h1>
 
-    <div id="wx-console-area"></div>
+    <!-- Left hand side div -->
+    <div id="stats_group">
+        <div id="wx-console-area"><!-- Handlebars instantiation will go here --></div>
+    </div>
 
-    <div style="display:inline-block">
-        <div id="windspeed-div" class="plot-area"></div>
-        <div id="outtemp-div" class="plot-area"></div>
-        <div id="heatchill-div" class="plot-area"></div>
+    <!-- Right-hand side div -->
+    <div id="content">
+        <div id="recent" class="plot-group">
+            <div id="windspeed-recent-div" class="plot-area"></div>
+            <div id="outtemp-recent-div" class="plot-area"></div>
+            <div id="heatchill-recent-div" class="plot-area"></div>
+        </div>    <!-- End id "recent" -->
+        <div id="day" class="plot-group">
+            <div id="windspeed-day-div" class="plot-area"></div>
+            <div id="outtemp-day-div" class="plot-area"></div>
+            <div id="heatchill-day-div" class="plot-area"></div>
+        </div>
 
         <h2>Architecture</h2>
         <ul>
@@ -84,7 +95,7 @@
             <li>The browser requests the data via a RESTful interface from the Node server;</li>
             <li>New updates are broadcast from the server via a pub-sub interface using Faye.</li>
         </ul>
-    </div>
-</div>
+    </div>     <!-- End id "content" -->
+</div>         <!-- End id "container" -->
 </body>
 </html>
