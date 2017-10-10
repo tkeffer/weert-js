@@ -7,6 +7,6 @@ Retention policy for InfluxDB
 
 CLIENT
 
-Retention policy for client
-
 Deal with unit systems
+
+Allow longer-termed plots using wxrecords

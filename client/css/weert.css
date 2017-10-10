@@ -1,0 +1,11 @@
+/* CSS for the WeeRT specific styling
+ *
+ *  Copyright (c) 2015-2017 Tom Keffer <tkeffer@gmail.com>
+ *
+ *  See the file LICENSE.txt for your rights.
+ */
+
+.plot-area {
+    width: 500px;
+    height: 300px;
+}

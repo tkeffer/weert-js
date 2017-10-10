@@ -6,16 +6,15 @@
 
 "use strict";
 
-var measurement = "wxpackets";
-var platform = "default_platform";
-var stream = "default_stream";
-var faye_endpoint = "/api/v1/faye";
+var weert_config = {
+    measurement        : "wxpackets",
+    platform           : "default_platform",
+    stream             : "default_stream",
+    max_initial_age    : 1200,
+    max_retained_points: 512,
+    faye_endpoint      : "/api/v1/faye"
+};
 
-var plot_config =
-    {
-        width : 500,
-        height: 300
-    };
 
 var plots = [
     {
@@ -44,11 +43,6 @@ var plots = [
 
 ];
 
-//Initial request of data from the WeeRT server in seconds
-var max_initial_age_secs = 1200;
-//Max retained age in seconds:
-var max_age_secs = 3600;
-
 Handlebars.registerHelper("formatTimeStamp", function (ts) {
     return new Date(ts / 1000000);
 });
@@ -64,11 +58,16 @@ Handlebars.registerHelper("formatNumber", function (val, digits) {
 function getRecentData() {
     // Tell the server to send up to max_initial_age_secs worth of data.
     var stop = Date.now() * 1000000;
-    var start = stop - max_initial_age_secs * 1000000000;
+    var start = stop - weert_config.max_initial_age * 1000000000;
     // Use a simple GET request, returning the promise
     return $.ajax({
-        url     : "http://" + window.location.host + "/api/v1/measurements/" + measurement + "/packets",
-        data    : {start: start, stop: stop},
+        url     : "http://" + window.location.host + "/api/v1/measurements/" + weert_config.measurement + "/packets",
+        data    : {
+            start   : start,
+            stop    : stop,
+            platform: weert_config.platform,
+            stream  : weert_config.stream
+        },
         method  : "GET",
         dataType: "JSON"
     });
@@ -109,10 +108,8 @@ function createPlot(plot_info, packet_array) {
         ;
     }
     var layout = {
-        xaxis : {type: "date"},
-        title : plot_info.title,
-        width : plot_config.width,
-        height: plot_config.height
+        xaxis: {type: "date"},
+        title: plot_info.title
     };
     return Plotly.newPlot(plot_info.plot_div, data, layout);
 }
@@ -130,7 +127,7 @@ function extendPlot(plot_info, packet) {
     for (var i = 0; i < plot_info.traces.length; i++) {
         trace_list.push(i);
     }
-    return Plotly.extendTraces(plot_info.plot_div, update, trace_list);
+    return Plotly.extendTraces(plot_info.plot_div, update, trace_list, weert_config.max_retained_points);
 }
 
 
@@ -152,8 +149,8 @@ Promise.all([getRecentData(), compileTemplate()])
 
            // Now subscribe to any new data points and update the console and
            // plots with them
-           var client = new Faye.Client("http://" + window.location.host + faye_endpoint);
-           client.subscribe("/" + measurement, function (packet) {
+           var client = new Faye.Client("http://" + window.location.host + weert_config.faye_endpoint);
+           client.subscribe("/" + weert_config.measurement, function (packet) {
                html = console_template(packet);
                $("#wx-console-area").html(html);
 
