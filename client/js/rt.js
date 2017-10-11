@@ -54,7 +54,7 @@ var day_group = {
 };
 
 
-function compileTemplate() {
+function readyDoc() {
 
     return new Promise(function (resolve) {
         // The DOM has to be ready before we can select the SVG area.
@@ -64,11 +64,13 @@ function compileTemplate() {
             var source = $("#wx-console-template").html();
             var console_template = new Handlebars.compile(source);
 
-            resolve(console_template);
+            // Include the initial wind compass
+            var windcompass = new WindCompass();
+
+            resolve([console_template, windcompass]);
         });
     });
 }
-
 
 function getRecentData(measurement, max_initial_age) {
     // Tell the server to send up to max_initial_age_secs worth of data.
@@ -169,32 +171,48 @@ function extendPlotGroup(plot_group, packet) {
 // Wait until the recent data has been received and the template compiled,
 // then proceed with rendering the template and plots.
 Promise.all([getRecentData(recent_group.measurement,
-                           recent_group.max_initial_age), compileTemplate()])
+                           recent_group.max_initial_age), readyDoc()])
        .then(function (results) {
            return new Promise(function (resolve, reject) {
                var recent_data = results[0];
-               var console_template = results[1];
+               var console_template = results[1][0];
+               var wind_compass = results[1][1];
+
+               var last_packet = recent_data[recent_data.length - 1];
                // Render the Handlebars template showing the current conditions
-               var html = console_template(recent_data[recent_data.length - 1]);
+               var html = console_template(last_packet);
                $("#wx-console-area").html(html);
+
+               // Initialize the wind compass
+               wind_compass.updateWind([last_packet.timestamp / 1000000,
+                                           last_packet.fields.wind_dir,
+                                           last_packet.fields.wind_speed]);
 
                // Create the "recent" plots:
                createPlotGroup(recent_group, recent_data)
                    .then(function () {
-                       resolve(console_template);
+                       resolve([console_template, wind_compass]);
                    })
                    .catch(function (err) {
                        reject(err);
                    });
            });
        })
-       .then(function (console_template) {
+       .then(function (results) {
+           var console_template = results[0];
+           var wind_compass = results[1];
            // The recent data and plots have been rendered. Time
            // to subscribe to updates
            var client = new Faye.Client("http://" + window.location.host + weert_config.faye_endpoint);
            return client.subscribe("/" + recent_group.measurement, function (packet) {
                var html = console_template(packet);
                $("#wx-console-area").html(html);
+
+               // Update the wind compass
+               wind_compass.updateWind([packet.timestamp / 1000000,
+                                           packet.fields.wind_dir,
+                                           packet.fields.wind_speed]);
+
 
                return extendPlotGroup(recent_group, packet);
            });
@@ -220,8 +238,8 @@ getRecentData(day_group.measurement, day_group.max_initial_age)
     .then(() => {
         console.log(`Subscribed to CQ updates to measurement ${day_group.measurement}`);
     })
-    .catch(err =>{
-        console.log(`Error creating or updating measurement ${day_group.measurement}: ${err}`)
+    .catch(err => {
+        console.log(`Error creating or updating measurement ${day_group.measurement}: ${err}`);
     });
 
 

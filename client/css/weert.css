@@ -48,3 +48,56 @@ div.tabContent.hide {
 .plot-area {
     height: 300px;
 }
+
+
+/*
+  compass
+ */
+.compass {
+}
+.compass svg {
+    font-family: Verdana, Geneva, sans-serif;
+    color: #616161;
+    fill: #616161;
+}
+.compass .edge {
+    /*fill: none;
+    stroke: #d9d9d9;
+    stroke-width: 1;*/
+    display: none;
+}
+.compass .tick {
+    stroke: #bdbdbd;
+    stroke-width: 1;
+}
+.compass .tick45 {
+    stroke-width: 2;
+}
+.compass .tick90 {
+    stroke-width: 4;
+}
+.compass .currDir {
+    stroke-width: 1;
+}
+.compass .prevDir {
+    stroke-width: 1;
+    color: #bfbfbf;
+    fill: #bfbfbf;
+}
+.compass .speedDisplay {
+    font-weight: bold;
+    font-size: 3em;
+    kerning: .03em;
+    alignment-baseline: central;
+    text-anchor: middle;
+}
+.compass .speedSuffix {
+    font-size: .3em;
+}
+.compass .ordinalDisplay {
+    font-size: 1.5em;
+    font-weight: bold;
+    text-anchor: middle;
+    baseline-shift: 10%;
+}
+

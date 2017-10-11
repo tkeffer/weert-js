@@ -1,64 +1,65 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang='en'>
 <head>
     <title>Welcome to WeeRT</title>
-    <link rel="stylesheet" type="text/css" href="../css/weewx.css"/>
-    <link rel="stylesheet" type="text/css" href="../css/weert.css"/>
-    <meta content="en-us" http-equiv="Content-Language"/>
-    <meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
+    <link rel='stylesheet' type='text/css' href='../css/weewx.css'/>
+    <link rel='stylesheet' type='text/css' href='../css/weert.css'/>
+    <meta content='en-us' http-equiv='Content-Language'/>
+    <meta content='text/html; charset=utf-8' http-equiv='Content-Type'/>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.10/handlebars.min.js"></script>
-    <script src="dist/faye-browser.js" type="text/javascript"></script>
-    <script src="dist/plotly-basic.min.js" type="text/javascript"></script>
-    <script src="js/weert.js" type="text/javascript"></script>
-    <script src='js/rt.js' type="text/javascript"></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.10/handlebars.min.js'></script>
+    <script src='dist/faye-browser.js' type='text/javascript'></script>
+    <script src='dist/plotly-basic.min.js' type='text/javascript'></script>
+    <script src='js/weert.js' type='text/javascript'></script>
+    <script src='js/rt.js' type='text/javascript'></script>
+    <script src='js/WindCompass.js' type='text/javascript'></script>
 </head>
-<body onload="initTabs()">
+<body onload='initTabs();'>
 
 
-<script id="wx-console-template" type="text/x-handlebars-template">
+<script id='wx-console-template' type='text/x-handlebars-template'>
 
-    <div class="stats">
-        <div class="stats_header">
+    <div class='stats'>
+        <div class='stats_header'>
             Current Conditions
         </div>
 
         <table>
             <tbody>
             <tr>
-                <td class="stats_label">Time</td>
-                <td class="stats_data">{{formatTimeStamp timestamp}}</td>
+                <td class='stats_label'>Time</td>
+                <td class='stats_data'>{{formatTimeStamp timestamp}}</td>
             </tr>
             <tr>
-                <td class="stats_label">Outside Temperature</td>
-                <td class="stats_data">{{formatNumber fields.outside_temperature 1}}</td>
+                <td class='stats_label'>Outside Temperature</td>
+                <td class='stats_data'>{{formatNumber fields.outside_temperature 1}}</td>
             </tr>
             <tr>
-                <td class="stats_label">Inside Temperature</td>
-                <td class="stats_data">{{formatNumber fields.inside_temperature 1}}</td>
+                <td class='stats_label'>Inside Temperature</td>
+                <td class='stats_data'>{{formatNumber fields.inside_temperature 1}}</td>
             </tr>
             <tr>
-                <td class="stats_label">Humidity</td>
-                <td class="stats_data">{{formatNumber fields.outside_humidity 0}}</td>
+                <td class='stats_label'>Humidity</td>
+                <td class='stats_data'>{{formatNumber fields.outside_humidity 0}}</td>
             </tr>
             <tr>
-                <td class="stats_label">Barometer</td>
-                <td class="stats_data">{{formatNumber fields.sealevel_pressure 3}}</td>
+                <td class='stats_label'>Barometer</td>
+                <td class='stats_data'>{{formatNumber fields.sealevel_pressure 3}}</td>
             </tr>
             <tr>
-                <td class="stats_label">Wind</td>
-                <td class="stats_data">{{formatNumber fields.wind_speed 0}} from {{formatNumber fields.wind_dir
-                    0}}
+                <td class='stats_label'>Wind</td>
+                <td class='stats_data'>{{formatNumber fields.wind_speed 0}} from {{formatNumber fields.wind_dir
+                                       0}}
                 </td>
             </tr>
             <tr>
-                <td class="stats_label">UV</td>
-                <td class="stats_data">{{formatNumber fields.uv_uv 0}}</td>
+                <td class='stats_label'>UV</td>
+                <td class='stats_data'>{{formatNumber fields.uv_uv 0}}</td>
             </tr>
             <tr>
-                <td class="stats_label">Solar Radiation</td>
-                <td class="stats_data">{{formatNumber fields.radiation_radiation 0}}</td>
+                <td class='stats_label'>Solar Radiation</td>
+                <td class='stats_data'>{{formatNumber fields.radiation_radiation 0}}</td>
             </tr>
             </tbody>
         </table>
@@ -66,44 +67,47 @@
 </script>
 
 
-<div id="container">
+<div id='container'>
 
     <h1>Welcome to WeeRT</h1>
 
     <!-- Left hand side div -->
-    <div id="stats_group">
-        <div id="wx-console-area"><!-- Handlebars instantiation will go here --></div>
+    <div id='stats_group'>
+        <div id='wx-console-area'><!-- Handlebars instantiation will go here --></div>
+        <div id='windCompass' class='compass'><!-- Animated wind compass will go here --></div>
     </div>
 
     <!-- Right-hand side div -->
-    <div id="content">
-        <ul id="tabs">
-            <li><a href="#recent">Recent</a></li>
-            <li><a href="#day">Today</a></li>
+    <div id='content'>
+        <ul id='tabs'>
+            <li><a href='#recent'>Recent</a></li>
+            <li><a href='#day'>Today</a></li>
         </ul>
-        <div id="recent" class="plot-group">
-            <div id="recent-windspeed-div" class="plot-area"></div>
-            <div id="recent-outtemp-div" class="plot-area"></div>
-            <div id="recent-radiation-div" class="plot-area"></div>
+        <div id='recent' class='plot-group'>
+            <div id='recent-windspeed-div' class='plot-area'></div>
+            <div id='recent-outtemp-div' class='plot-area'></div>
+            <div id='recent-radiation-div' class='plot-area'></div>
         </div>    <!-- End id "recent" -->
-        <div id="day" class="plot-group">
-            <div id="day-windspeed-div" class="plot-area"></div>
-            <div id="day-outtemp-div" class="plot-area"></div>
-            <div id="day-radiation-div" class="plot-area"></div>
+        <div id='day' class='plot-group'>
+            <div id='day-windspeed-div' class='plot-area'></div>
+            <div id='day-outtemp-div' class='plot-area'></div>
+            <div id='day-radiation-div' class='plot-area'></div>
         </div>    <!-- End id "day" -->
 
     </div>     <!-- End id "content" -->
     <h2>Architecture</h2>
     <ul>
-        <li>Uses a <a href="https://nodejs.org">Node</a> server with the
-            <a href="http://expressjs.com">Express framework</a>;</li>
+        <li>Uses a <a href='https://nodejs.org'>Node</a> server with the
+            <a href='http://expressjs.com'>Express framework</a>;
+        </li>
         <li>The server receives packet updates from WeeWX via a RESTful interface;</li>
-        <li>The packets are stored in an <a href="https://www.influxdata.com">InfluxDB</a> server;</li>
+        <li>The packets are stored in an <a href='https://www.influxdata.com'>InfluxDB</a> server;</li>
         <li>The browser requests the data via a RESTful interface from the Node server;</li>
         <li>Real time updates are done through a publish - subscribe interface
-            using <a href="http://faye.jcoglan.com">Faye;</a></li>
+            using <a href='http://faye.jcoglan.com'>Faye;</a></li>
         <li>Real time plots are done using the plotting library
-            <a href="https://plot.ly/javascript">Plotly.js</a>.</li>
+            <a href='https://plot.ly/javascript'>Plotly.js</a>.
+        </li>
     </ul>
 
 </div>         <!-- End id "container" -->
