@@ -79,23 +79,23 @@
         <div id="recent" class="plot-group">
             <div id="recent-windspeed-div" class="plot-area"></div>
             <div id="recent-outtemp-div" class="plot-area"></div>
-            <div id="recent-heatchill-div" class="plot-area"></div>
+            <div id="recent-radiation-div" class="plot-area"></div>
         </div>    <!-- End id "recent" -->
         <div id="day" class="plot-group">
             <div id="day-windspeed-div" class="plot-area"></div>
             <div id="day-outtemp-div" class="plot-area"></div>
-            <div id="day-heatchill-div" class="plot-area"></div>
+            <div id="day-radiation-div" class="plot-area"></div>
         </div>
 
-        <h2>Architecture</h2>
-        <ul>
-            <li>Uses a Node server with the Express framework;</li>
-            <li>The server receives packet updates from WeeWX via a RESTful interface;</li>
-            <li>The packets are stored in a InfluxDB server;</li>
-            <li>The browser requests the data via a RESTful interface from the Node server;</li>
-            <li>New updates are broadcast from the server via a pub-sub interface using Faye.</li>
-        </ul>
     </div>     <!-- End id "content" -->
+    <h2>Architecture</h2>
+    <ul>
+        <li>Uses a Node server with the Express framework;</li>
+        <li>The server receives packet updates from WeeWX via a RESTful interface;</li>
+        <li>The packets are stored in a InfluxDB server;</li>
+        <li>The browser requests the data via a RESTful interface from the Node server;</li>
+        <li>New updates are broadcast from the server via a pub-sub interface using Faye.</li>
+    </ul>
 </div>         <!-- End id "container" -->
 </body>
 </html>

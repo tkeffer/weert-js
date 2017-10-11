@@ -29,11 +29,10 @@ var plot_list = [
         ]
     },
     {
-        plot_div: 'heatchill-div',
-        title   : "Wind Chill / Heat Index (°F)",
+        plot_div: 'radiation-div',
+        title   : "Solar Radiation (W/m²)",
         traces  : [
-            {obs_type: 'windchill_temperature', label: 'Wind Chill'},
-            {obs_type: 'heatindex_temperature', label: 'Heat Index'}
+            {obs_type: 'radiation_radiation', label: 'Radiation'}
         ]
     }
 ];
@@ -124,6 +123,8 @@ function createPlot(plot, plot_div, packet_array) {
 
 function extendPlotGroup(plot_group, packet) {
     var promises = [];
+    var N;
+    // Go through all the plots for this plot group, updating each one
     for (var plot of plot_group.plot_list) {
         var update = {
             x: plot.traces.map(function (trace) {
@@ -133,21 +134,35 @@ function extendPlotGroup(plot_group, packet) {
                 return [packet.fields[trace.obs_type]];
             })
         };
+        // This will be a simple array [0, 1, ... J] of the same length
+        // as the number of traces in this plot.
         var trace_list = [];
         for (var i = 0; i < plot.traces.length; i++) {
             trace_list.push(i);
         }
+
+        // To get the document division name, concatenate the time group
+        // with the div name for this plot
         var div_name = plot_group.time_group + '-' + plot.plot_div;
 
-        // find the dataset, then look for the last point to be retained.
-        var plotData = document.getElementById(div_name).data;
-        var trim_time = Date.now() - plot_group.max_retained_age;
-        var i = plotData[0].x.findIndex(function (xval) {
-            return xval > trim_time;
-        });
-        var N = plotData[0].x.length - i;
+        // Find the dataset, then look for the last point to be retained.
+        // If an exception occurs, then retain everything.
+        try {
+            var plotData = document.getElementById(div_name).data;
+            var trim_time = Date.now() - plot_group.max_retained_age;
+            var i = plotData[0].x.findIndex(function (xval) {
+                return xval > trim_time;
+            });
+            N = plotData[0].x.length - i;
+        } catch(err){
+            N = Number.MAX_SAFE_INTEGER;
+        }
+
+        // Now extend the traces in this plot, retaining N points.
         promises.push(Plotly.extendTraces(div_name, update, trace_list, N));
     }
+
+    // This is a promise to update all the plots in this plot group
     return Promise.all(promises);
 }
 
