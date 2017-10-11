@@ -90,12 +90,17 @@
     </div>     <!-- End id "content" -->
     <h2>Architecture</h2>
     <ul>
-        <li>Uses a Node server with the Express framework;</li>
+        <li>Uses a <a href="https://nodejs.org">Node</a> server with the
+            <a href="http://expressjs.com">Express framework</a>;</li>
         <li>The server receives packet updates from WeeWX via a RESTful interface;</li>
-        <li>The packets are stored in a InfluxDB server;</li>
+        <li>The packets are stored in an <a href="https://www.influxdata.com">InfluxDB</a> server;</li>
         <li>The browser requests the data via a RESTful interface from the Node server;</li>
-        <li>New updates are broadcast from the server via a pub-sub interface using Faye.</li>
+        <li>Realtime updates are done through a publish - subscribe interface
+            using <a href="http://faye.jcoglan.com">Faye;</a></li>
+        <li>Real time plots are done using the plotting library
+            <a href="https://plot.ly/javascript">Plotly.js</a>.</li>
     </ul>
+
 </div>         <!-- End id "container" -->
 </body>
 </html>
