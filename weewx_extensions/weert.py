@@ -187,7 +187,8 @@ class WeeRTThread(weewx.restx.RESTThread):
         for k in self.filter_funcs:
             # This will include only types included in the filter functions.
             # If there is not enough information in the packet to support the filter
-            # function (exception NameError), then it will be skipped.
+            # function, then an exception of type NameError will be raised, 
+            # and the type will be skipped.
             try:
                 out_packet[k] = eval(self.filter_funcs[k], {"math": math}, packet)
             except NameError:
