@@ -15,10 +15,10 @@ const normalizeUrl = require('normalize-url');
 var locationPath = function (originalUrl, protocol, host, name) {
     var base_pathname = url.parse(originalUrl).pathname;
     var fullpath = url.format({
-        protocol: protocol,
-        host: host,
-        pathname: base_pathname + '/' + name
-    });
+                                  protocol: protocol,
+                                  host    : host,
+                                  pathname: base_pathname + '/' + name
+                              });
     return normalizeUrl(fullpath);
 };
 
@@ -40,10 +40,10 @@ var fromError = function (code, err) {
 // Create a deep packet from a set of parameters.
 var create_deep_packet = function (measurement, platform, stream, timestamp, fields) {
     let packet = {
-        'timestamp': timestamp,
+        'timestamp'  : timestamp,
         'measurement': measurement,
-        'tags': {'platform': platform, 'stream': stream},
-        'fields': fields
+        'tags'       : {'platform': platform, 'stream': stream},
+        'fields'     : fields
     };
     return packet;
 };
@@ -51,7 +51,7 @@ var create_deep_packet = function (measurement, platform, stream, timestamp, fie
 // Convert a flat_packet into a deep packet
 var flat_to_deep = function (flat_packet) {
     let deep_packet = {
-        'tags': {},
+        'tags'  : {},
         'fields': {}
     };
 
@@ -61,7 +61,7 @@ var flat_to_deep = function (flat_packet) {
         else if (key === 'stream')
             deep_packet['tags']['stream'] = flat_packet.stream;
         else if (key === 'time')
-            // timestamp will be a string. Maybe we want a number?
+        // timestamp will be a string. Maybe we want a number?
             deep_packet['timestamp'] = flat_packet['time'].getNanoTime();
         else
             deep_packet['fields'][key] = flat_packet[key];
@@ -69,11 +69,28 @@ var flat_to_deep = function (flat_packet) {
     return deep_packet;
 };
 
+// Convert from InfluxDB "epoch" notation to milliseconds
+var epoch_to_ms = function (epoch) {
+    if (epoch.endsWith('ms')) {
+        return +epoch.slice(0, -2);
+    } else if (epoch.endsWith('s')) {
+        return +epoch.slice(0, -1) * 1000;
+    } else if (epoch.endsWith('m')) {
+        return +epoch.slice(0, -1) * 60000;
+    } else if (epoch.endsWith('h')) {
+        return +epoch.slice(0, -1) * 3600000;
+    } else if (epoch.endsWith('d')) {
+        return +epoch.slice(0, -1) * 24 * 3600000;
+    } else {
+        throw new Error(`Unrecognized epoch ${epoch}`);
+    }
+};
 
 module.exports = {
-    locationPath: locationPath,
-    resourcePath: resourcePath,
-    fromError: fromError,
-    create_deep_packet : create_deep_packet,
-    flat_to_deep : flat_to_deep
+    locationPath      : locationPath,
+    resourcePath      : resourcePath,
+    fromError         : fromError,
+    create_deep_packet: create_deep_packet,
+    flat_to_deep      : flat_to_deep,
+    epoch_to_ms       : epoch_to_ms
 };

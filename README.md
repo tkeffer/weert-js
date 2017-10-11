@@ -1,9 +1,7 @@
 # WeeRT
 A real-time logging and display server, using Node, Express, and InfluxDB.
 
-EXPERIMENTAL!
-
-In particular, none of the installation has been automated. 
+This utility is still EXPERIMENTAL, and will require some skill to install and administer.
 
 ## Installing the server
 
@@ -93,7 +91,23 @@ by the uploader.
 
 For experimental purposes.
 
+## Notes
 
+When new LOOP packets come into WeeRT through the POST interface, they are published using Faye. Interested
+clients can subscribe to these publications.
+
+The WeeRT server arranges to have a continuous query run on each LOOP measurement, which will subsample the data,
+typically every 5 minutes. See file `config/cqpolicies.js` for the subsampling policies.
+File `meta_data/sub_sampling.json` sets which policy each LOOP measurement uses.
+
+The resulting aggregated record is put in a new measurement whose name is set
+in `meta_data/sub_sampling.json`. Unfortunately, InfluxDB does not have a trigger mechanism for
+when new records appear. Instead, we have to set up a timer, which goes off slightly after a new
+aggregation is due. This is then used to send out a notice to any subscriber
+through Faye.
+
+WeeRT can make voluminous entries into your system log. The WeeWX uploader will make an entry every LOOP packet,
+as does the InfluxDB database. This can mean thousands of entries per hour.
 
 # Data model
 

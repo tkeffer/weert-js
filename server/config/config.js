@@ -23,7 +23,8 @@ module.exports = {
         port    : 8086,
         username: 'root',
         password: 'root',
-        database: 'weert'
+        database: 'weert',
+        cq_delay: 5000
     },
 
     // Configuration for the Faye pub-sub facility

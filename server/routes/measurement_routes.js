@@ -65,7 +65,7 @@ const MeasurementRouterFactory = function (measurement_manager, pub_sub) {
                     pub_sub.publish(`/${measurement}`, packet)
                            .then(result=>{})
                            .catch(err => {
-                               debug("PUB-SUB error:", err)
+                               debug("POST /measurements/:measurement/packets PUB-SUB error:", err)
                            });
                 })
                 .catch(function (err) {

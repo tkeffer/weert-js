@@ -19,6 +19,9 @@ const config = require('./config/config');
 const MeasurementManager = require('./services/measurement_manager');
 const measurement_router_factory = require('./routes/measurement_routes');
 const subsampling = require('./services/subsampling');
+// This type of metadata should probably be in a database,
+// but for now, retrieve it from a JSON file
+const all_ss_configs = require('./meta_data/sub_sampling');
 
 // Set up the view engine
 app.set('views', path.join(__dirname, './views'));
@@ -62,9 +65,7 @@ influx.getDatabaseNames()
                            .then(() => {
                                debug(`Created database '${config.influxdb.database}'`);
                                // Having created the database, create the continuous queries
-                               // for any measurements. This type of metadata should probably be in a database,
-                               // but for now, retrieve it from a JSON file
-                               const all_ss_configs = require('./meta_data/sub_sampling');
+                               // for any measurements.
                                return subsampling.run_all_cqs(influx, all_ss_configs);
                            })
                            .then(result => {
@@ -77,6 +78,9 @@ influx.getDatabaseNames()
           }
       })
       .then(() => {
+
+          // Arrange to be notified after each continuous query has been run
+          subsampling.setup_all_notices(influx, faye_client, all_ss_configs);
 
           // Create a manager for the measurements, using the influx driver
           const measurement_manager = new MeasurementManager(influx);
