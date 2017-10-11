@@ -154,7 +154,7 @@ function extendPlotGroup(plot_group, packet) {
                 return xval > trim_time;
             });
             N = plotData[0].x.length - i;
-        } catch(err){
+        } catch (err) {
             N = Number.MAX_SAFE_INTEGER;
         }
 
@@ -192,27 +192,36 @@ Promise.all([getRecentData(recent_group.measurement,
            // The recent data and plots have been rendered. Time
            // to subscribe to updates
            var client = new Faye.Client("http://" + window.location.host + weert_config.faye_endpoint);
-           client.subscribe("/" + recent_group.measurement, function (packet) {
+           return client.subscribe("/" + recent_group.measurement, function (packet) {
                var html = console_template(packet);
                $("#wx-console-area").html(html);
 
                return extendPlotGroup(recent_group, packet);
            });
        })
+       .then(() => {
+           console.log(`Subscribed to POSTS to measurement ${recent_group.measurement}`);
+       })
        .catch(function (err) {
-           console.log("Error creating or updating recent values", err);
+           console.log(`Error creating or updating measurement ${recent_group.measurement}: ${err}`);
        });
 
-// Now do the "day" plots
+// Now do the "day" plots. Because the template is not involved, it's much simpler.
 getRecentData(day_group.measurement, day_group.max_initial_age)
     .then(function (day_data) {
         return createPlotGroup(day_group, day_data);
     })
-    .then(function(){
+    .then(function () {
         var client = new Faye.Client("http://" + window.location.host + weert_config.faye_endpoint);
-        client.subscribe("/" + day_group.measurement, function (packet) {
+        return client.subscribe("/" + day_group.measurement, function (packet) {
             return extendPlotGroup(day_group, packet);
         });
+    })
+    .then(() => {
+        console.log(`Subscribed to CQ updates to measurement ${day_group.measurement}`);
+    })
+    .catch(err =>{
+        console.log(`Error creating or updating measurement ${day_group.measurement}: ${err}`)
     });
 
 
