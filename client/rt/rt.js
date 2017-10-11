@@ -122,6 +122,28 @@ function createPlot(plot_info, plot_div, packet_array) {
     return Plotly.newPlot(plot_div, data, layout);
 }
 
+function extendPlotGroup(plot_group, packet) {
+    var promises = [];
+    for (var plot_info of plot_group.plot_infos) {
+        var update = {
+            x: plot_info.traces.map(function (trace) {
+                return [packet.timestamp / 1000000];
+            }),
+            y: plot_info.traces.map(function (trace) {
+                return [packet.fields[trace.obs_type]];
+            })
+        };
+        var trace_list = [];
+        for (var i = 0; i < plot_info.traces.length; i++) {
+            trace_list.push(i);
+        }
+        var div_name = plot_group.time_group + '-' + plot_info.plot_div;
+        promises.push(Plotly.extendTraces(div_name, update, trace_list,
+                                          plot_group.max_retained_points));
+    }
+    return Promise.all(promises);
+}
+
 // Wait until the recent data has been received, and the template is compiled,
 // then proceed with rendering the recent data and plots.
 Promise.all([getRecentData(recent_group.measurement,
@@ -172,27 +194,6 @@ getRecentData(day_group.measurement, day_group.max_initial_age)
     });
 
 
-function extendPlotGroup(plot_group, packet) {
-    var promises = [];
-    for (var plot_info of plot_group.plot_infos) {
-        var update = {
-            x: plot_info.traces.map(function (trace) {
-                return [packet.timestamp / 1000000];
-            }),
-            y: plot_info.traces.map(function (trace) {
-                return [packet.fields[trace.obs_type]];
-            })
-        };
-        var trace_list = [];
-        for (var i = 0; i < plot_info.traces.length; i++) {
-            trace_list.push(i);
-        }
-        var div_name = plot_group.time_group + '-' + plot_info.plot_div;
-        promises.push(Plotly.extendTraces(div_name, update, trace_list,
-                                          plot_group.max_retained_points));
-    }
-    return promises;
-}
 
 
 // Wait until the template and new data are ready, then proceed
