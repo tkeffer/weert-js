@@ -207,6 +207,12 @@ Promise.all([getRecentData(recent_group.measurement,
 getRecentData(day_group.measurement, day_group.max_initial_age)
     .then(function (day_data) {
         return createPlotGroup(day_group, day_data);
+    })
+    .then(function(){
+        var client = new Faye.Client("http://" + window.location.host + weert_config.faye_endpoint);
+        client.subscribe("/" + day_group.measurement, function (packet) {
+            return extendPlotGroup(day_group, packet);
+        });
     });
 
 
