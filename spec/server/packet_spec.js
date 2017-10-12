@@ -37,7 +37,7 @@ var form_deep_packet = function (i) {
     let obj = {
         tags     : {platform: 'test_platform'},
         fields   : {temperature: temperature(i)},
-        timestamp: String(timestamp(i))
+        timestamp: timestamp(i)
     };
     return obj;
 };
@@ -191,7 +191,7 @@ describe("Launch and test " + N + " POSTs of packets", function () {
     beforeAll(function (doneFn) {
 
         request({
-            url   : packets_url,
+            url   : measurements_url,
             method: 'DELETE'
         }, function (err) {
             // Now asynchronously repopulate it.
