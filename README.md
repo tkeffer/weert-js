@@ -112,6 +112,9 @@ they are discarded.
 WeeRT can make voluminous entries into your system log. The WeeWX uploader will make an entry every LOOP packet,
 as does the InfluxDB database. This can mean thousands of entries per hour.
 
+Internally, WeeRT makes no assumptions about units. However, the browser client does. Right now, it assumes all
+units are US Customary. For something else, you'd have to change the HTML.
+
 # Data model
 
 ## Background

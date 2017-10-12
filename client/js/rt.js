@@ -162,11 +162,11 @@ function extendPlotGroup(plot_group, packet) {
                 return xval >= trim_time;
             });
 
+            // If all data points are up to date, keep them all.
             N = i ? plotData[0].x.length - i : undefined;
 
-            console.log("started with", plotData[0].x.length, "keeping", N);
         } catch (err) {
-            N = Number.MAX_SAFE_INTEGER;
+            N = undefined;
         }
         // Now extend the traces in this plot, retaining N points.
         promises.push(Plotly.extendTraces(div_name, update, trace_list, N));
@@ -185,6 +185,7 @@ Promise.all([getRecentData(recent_group.measurement,
                var recent_data = results[0];
                var console_template = results[1][0];
                var wind_compass = results[1][1];
+               console.log("Got", recent_data.length, "records for recent group");
 
                var last_packet = recent_data[recent_data.length - 1];
                // Render the Handlebars template showing the current conditions
