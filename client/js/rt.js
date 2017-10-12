@@ -15,14 +15,21 @@ var weert_config = {
 var plot_list = [
     {
         plot_div: 'windspeed-div',
-        title   : "Wind Speed (mph)",
+        layout  : {
+            xaxis: {type: "date"},
+            yaxis: {rangemode: "nonnegative"},
+            title: "Wind Speed (mph)"
+        },
         traces  : [
             {obs_type: 'wind_speed'}
         ]
     },
     {
         plot_div: 'outtemp-div',
-        title   : "Outside Temperature (°F)",
+        layout  : {
+            xaxis: {type: "date"},
+            title: "Outside Temperature (°F)"
+        },
         traces  : [
             {obs_type: 'outside_temperature', label: 'Temperature'},
             {obs_type: 'dewpoint_temperature', label: 'Dewpoint'}
@@ -30,7 +37,10 @@ var plot_list = [
     },
     {
         plot_div: 'radiation-div',
-        title   : "Solar Radiation (W/m²)",
+        layout  : {
+            xaxis: {type: "date"},
+            title: "Solar Radiation (W/m²)"
+        },
         traces  : [
             {obs_type: 'radiation_radiation', label: 'Radiation'}
         ]
@@ -116,11 +126,7 @@ function createPlot(plot, plot_div, packet_array) {
                 name: trace.label
             });
     }
-    var layout = {
-        xaxis: {type: "date"},
-        title: plot.title
-    };
-    return Plotly.newPlot(plot_div, data, layout);
+    return Plotly.newPlot(plot_div, data, plot.layout);
 }
 
 function extendPlotGroup(plot_group, packet) {
@@ -155,7 +161,8 @@ function extendPlotGroup(plot_group, packet) {
             var i = plotData[0].x.findIndex(function (xval) {
                 return xval >= trim_time;
             });
-            N = plotData[0].x.length - i;
+
+            N = i ? plotData[0].x.length - i : undefined;
 
             console.log("started with", plotData[0].x.length, "keeping", N);
         } catch (err) {
@@ -228,6 +235,7 @@ Promise.all([getRecentData(recent_group.measurement,
 // Now do the "day" plots. Because the template is not involved, it's much simpler.
 getRecentData(day_group.measurement, day_group.max_initial_age)
     .then(function (day_data) {
+        console.log("Got", day_data.length, "records for day group");
         return createPlotGroup(day_group, day_data);
     })
     .then(function () {
