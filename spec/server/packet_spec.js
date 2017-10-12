@@ -19,10 +19,14 @@ var config = require('../../server/config/config');
 var measurements_url = 'http://localhost:3000' + config.server.api + '/measurements';
 var packets_url = measurements_url + '/test_measurement/packets';
 
+// We have to make sure all inserted times are within the retention policy
+// of the database. So, use current time stamps.
+var now = Date.now();
+
 var timestamp = function (i) {
-    // Base time is 1-Jan-2015 0000 UTC.
+    // Base time is an hour ago. Data points every 10 seconds.
     // Convert to nanoseconds
-    return (1420070400 + i * 300) * 1000000000;
+    return (now - 3600000 + i * 10000) * 1000000;
 };
 
 var temperature = function (i) {

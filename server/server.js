@@ -19,9 +19,11 @@ const config = require('./config/config');
 const MeasurementManager = require('./services/measurement_manager');
 const measurement_router_factory = require('./routes/measurement_routes');
 const subsampling = require('./services/subsampling');
+const retention_policies = require('./config/retention_policies');
+
 // This type of metadata should probably be in a database,
 // but for now, retrieve it from a JSON file
-const all_ss_configs = require('./meta_data/sub_sampling');
+const measurement_config = require('./meta_data/measurement_config');
 
 // Set up the view engine
 app.set('views', path.join(__dirname, './views'));
@@ -61,29 +63,37 @@ influx.getDatabaseNames()
           // Check to see if the chosen database has been created
           if (!names.includes(config.influxdb.database)) {
               // The database does not exist. Create it.
-              return influx.createDatabase(config.influxdb.database)
-                           .then(() => {
-                               debug(`Created database '${config.influxdb.database}'`);
-                               // Having created the database, create the continuous queries
-                               // for any measurements.
-                               return subsampling.run_all_cqs(influx, all_ss_configs);
-                           })
-                           .then(result => {
-                               debug(`Set up ${result.length} continuous queries`);
-                               return Promise.resolve();
-                           });
+              let p = influx.createDatabase(config.influxdb.database);
+              debug(`Created database '${config.influxdb.database}'`);
+              return p;
           } else {
               debug(`Database '${config.influxdb.database}' already exists.`);
               return Promise.resolve();
           }
       })
       .then(() => {
+          // Having created or made sure the database exists, set up the retention policies
+          var ps = [];
+          for (let rp in retention_policies) {
+              ps.push(influx.createRetentionPolicy(rp, retention_policies[rp]));
+          }
+          return Promise.all(ps);
+      })
+      .then(() => {
+          // Create the continuous queries for any measurements.
+          return subsampling.create_all_cqs(influx, measurement_config);
+      })
+      .then(result => {
+          debug(`Set up ${result.length} continuous queries`);
+          return Promise.resolve();
+      })
+      .then(() => {
 
           // Arrange to be notified after each continuous query has been run
-          subsampling.setup_all_notices(influx, faye_client, all_ss_configs);
+          subsampling.setup_all_notices(influx, faye_client, measurement_config);
 
           // Create a manager for the measurements, using the influx driver
-          const measurement_manager = new MeasurementManager(influx);
+          const measurement_manager = new MeasurementManager(influx, measurement_config);
 
           // Set up the routes
           app.use(config.server.api, measurement_router_factory(measurement_manager, faye_client));

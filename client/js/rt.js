@@ -40,16 +40,16 @@ var plot_list = [
 var recent_group = {
     time_group      : "recent",
     measurement     : "wxpackets",
-    max_initial_age : 600000,
-    max_retained_age: 600000,
+    max_initial_age : 600000,       // In milliseconds
+    max_retained_age: 600000,       // In milliseconds
     plot_list       : plot_list
 };
 
 var day_group = {
     time_group      : "day",
     measurement     : "wxrecords",
-    max_initial_age : 24 * 3600000,
-    max_retained_age: 27 * 3600000,
+    max_initial_age : 24 * 3600000, // In milliseconds
+    max_retained_age: 27 * 3600000, // In milliseconds
     plot_list       : plot_list
 };
 
@@ -153,13 +153,14 @@ function extendPlotGroup(plot_group, packet) {
             var plotData = document.getElementById(div_name).data;
             var trim_time = Date.now() - plot_group.max_retained_age;
             var i = plotData[0].x.findIndex(function (xval) {
-                return xval > trim_time;
+                return xval >= trim_time;
             });
             N = plotData[0].x.length - i;
+
+            console.log("started with", plotData[0].x.length, "keeping", N);
         } catch (err) {
             N = Number.MAX_SAFE_INTEGER;
         }
-
         // Now extend the traces in this plot, retaining N points.
         promises.push(Plotly.extendTraces(div_name, update, trace_list, N));
     }

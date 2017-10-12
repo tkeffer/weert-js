@@ -12,8 +12,9 @@
 
 class MeasurementManager {
 
-    constructor(influx, options) {
+    constructor(influx, config) {
         this.influx = influx;
+        this.config = config;
     }
 
     delete_measurement(measurement) {
@@ -35,12 +36,15 @@ class MeasurementManager {
                 delete deep_packet.fields[k];
         }
         return this.influx
-                   .writeMeasurement(measurement, [deep_packet]);
+                   .writeMeasurement(measurement, [deep_packet],
+                                     this._get_write_options(measurement));
     }
 
     find_packet(measurement, timestamp, platform = undefined, stream = undefined) {
 
-        let query_string = `SELECT * FROM ${measurement} WHERE time=${timestamp}`;
+        let from_clause = this._get_query_from(measurement);
+
+        let query_string = `SELECT * FROM ${from_clause} WHERE time=${timestamp}`;
         if (platform)
             query_string += ` AND platform='${platform}'`;
         if (stream)
@@ -56,17 +60,20 @@ class MeasurementManager {
                  platform = undefined, stream = undefined,
                  start_time = undefined, stop_time = undefined,
                  limit = undefined, sort_direction = 'asc') {
+
+        let from_clause = this._get_query_from(measurement);
+
         var query_string;
         if (start_time) {
             if (stop_time)
-                query_string = `SELECT * FROM ${measurement} WHERE time > ${start_time} AND time <= ${stop_time}`;
+                query_string = `SELECT * FROM ${from_clause} WHERE time > ${start_time} AND time <= ${stop_time}`;
             else
-                query_string = `SELECT * FROM ${measurement} WHERE time > ${start_time}`;
+                query_string = `SELECT * FROM ${from_clause} WHERE time > ${start_time}`;
         } else {
             if (stop_time)
-                query_string = `SELECT * FROM ${measurement} WHERE time <= ${stop_time}`;
+                query_string = `SELECT * FROM ${from_clause} WHERE time <= ${stop_time}`;
             else
-                query_string = `SELECT * FROM ${measurement}`;
+                query_string = `SELECT * FROM ${from_clause}`;
         }
 
         if (platform) {
@@ -94,7 +101,10 @@ class MeasurementManager {
     }
 
     delete_packet(measurement, timestamp, platform = undefined, stream = undefined) {
-        let delete_stmt = `DELETE FROM ${measurement} WHERE time=${timestamp}`;
+
+        let from_clause = this._get_query_from(measurement);
+
+        let delete_stmt = `DELETE FROM ${from_clause} WHERE time=${timestamp}`;
         if (platform)
             delete_stmt += ` AND platform='${platform}'`;
         if (stream)
@@ -103,13 +113,46 @@ class MeasurementManager {
     }
 
     get_measurement_info(measurement) {
-        let query = `SHOW SERIES FROM ${measurement};`;
+        let from_clause = this._get_query_from(measurement);
+
+        let query = `SHOW SERIES FROM ${from_clause};`;
         return this.influx.query(query);
     }
 
     delete_measurement(measurement) {
-        let delete_stmt = `DROP MEASUREMENT ${measurement};`;
+        let from_clause = this._get_query_from(measurement);
+
+        let delete_stmt = `DROP MEASUREMENT ${from_clause};`;
         return this.influx.query(delete_stmt);
+    }
+
+    _get_write_options(measurement) {
+        let rp = undefined;
+        let db = undefined;
+        if (measurement in this.config) {
+            rp = this.config[measurement].rp;
+            db = this.config[measurement].database;
+        }
+        return {
+            retentionPolicy: rp,
+            database       : db
+        };
+    }
+
+    _get_query_from(measurement) {
+        let rp = '';
+        let db = '';
+        if (measurement in this.config) {
+            if ('rp' in this.config[measurement]) {
+                rp = `"${this.config[measurement].rp}".`;
+            }
+            if ('database' in this.config[measurement]) {
+                db = `"${this.config[measurement].database}".`;
+                if (!rp) rp = '.';
+            }
+        }
+        let from_clause = db + rp + measurement;
+        return from_clause;
     }
 }
 

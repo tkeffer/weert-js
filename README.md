@@ -106,6 +106,9 @@ when new records appear. Instead, we have to set up a timer, which goes off slig
 aggregation is due. This is then used to send out a notice to any subscriber
 through Faye.
 
+The retention time of the LOOP packets is set by a configuration file, but the default is 24 hours. After that,
+they are discarded.
+
 WeeRT can make voluminous entries into your system log. The WeeWX uploader will make an entry every LOOP packet,
 as does the InfluxDB database. This can mean thousands of entries per hour.
 
