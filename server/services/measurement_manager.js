@@ -16,7 +16,7 @@ class MeasurementManager {
 
     constructor(influx, config) {
         this.influx = influx;
-        this.config = config;
+        this.measurement_config = config;
     }
 
     delete_measurement(measurement) {
@@ -42,9 +42,9 @@ class MeasurementManager {
                                      this._get_write_options(measurement));
     }
 
-    find_packet(measurement, timestamp, platform = undefined, stream = undefined) {
+    find_packet(measurement, timestamp, {platform = undefined, stream = undefined} = {}) {
 
-        let from_clause = auxtools.get_query_from(measurement, this.config[measurement]) ;
+        let from_clause = auxtools.get_query_from(measurement, this.measurement_config[measurement]);
 
         let query_string = `SELECT * FROM ${from_clause} WHERE time=${timestamp}`;
         if (platform)
@@ -54,16 +54,18 @@ class MeasurementManager {
         return this.influx
                    .query(query_string)
                    .then(results => {
+                       // Return only the first result
                        return Promise.resolve(results[0]);
                    });
     }
 
-    find_packets(measurement,
-                 platform = undefined, stream = undefined,
-                 start_time = undefined, stop_time = undefined,
-                 limit = undefined, sort_direction = 'asc') {
+    find_packets(measurement, {
+        platform = undefined, stream = undefined,
+        start_time = undefined, stop_time = undefined,
+        limit = undefined, direction = 'asc'
+    } = {}) {
 
-        let from_clause = auxtools.get_query_from(measurement, this.config[measurement]) ;
+        let from_clause = auxtools.get_query_from(measurement, this.measurement_config[measurement]);
 
         var query_string;
         if (start_time) {
@@ -92,7 +94,7 @@ class MeasurementManager {
                 query_string += ` WHERE stream = '${stream}'`;
         }
 
-        query_string += ` ORDER BY time ${sort_direction}`;
+        query_string += ` ORDER BY time ${direction}`;
 
         if (limit) {
             query_string += ` LIMIT ${limit}`;
@@ -102,9 +104,9 @@ class MeasurementManager {
                    .query(query_string);
     }
 
-    delete_packet(measurement, timestamp, platform = undefined, stream = undefined) {
+    delete_packet(measurement, timestamp, {platform = undefined, stream = undefined} = {}) {
 
-        let from_clause = auxtools.get_query_from(measurement, this.config[measurement]) ;
+        let from_clause = auxtools.get_query_from(measurement, this.measurement_config[measurement]);
 
         let delete_stmt = `DELETE FROM ${from_clause} WHERE time=${timestamp}`;
         if (platform)
@@ -115,14 +117,14 @@ class MeasurementManager {
     }
 
     get_measurement_info(measurement) {
-        let from_clause = auxtools.get_query_from(measurement, this.config[measurement]) ;
+        let from_clause = auxtools.get_query_from(measurement, this.measurement_config[measurement]);
 
         let query = `SHOW SERIES FROM ${from_clause};`;
         return this.influx.query(query);
     }
 
     delete_measurement(measurement) {
-        let from_clause = auxtools.get_query_from(measurement, this.config[measurement]) ;
+        let from_clause = auxtools.get_query_from(measurement, this.measurement_config[measurement]);
 
         let delete_stmt = `DROP MEASUREMENT ${from_clause};`;
         return this.influx.query(delete_stmt);
@@ -131,9 +133,9 @@ class MeasurementManager {
     _get_write_options(measurement) {
         let rp = undefined;
         let db = undefined;
-        if (measurement in this.config) {
-            rp = this.config[measurement].rp;
-            db = this.config[measurement].database;
+        if (measurement in this.measurement_config) {
+            rp = this.measurement_config[measurement].rp;
+            db = this.measurement_config[measurement].database;
         }
         return {
             retentionPolicy: rp,

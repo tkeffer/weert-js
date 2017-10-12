@@ -9,5 +9,8 @@
                 "cq_name"       : "archive_5m"
             }
         ]
+    },
+    "wxrecords":{
+        "timeshift": 300000
     }
 }

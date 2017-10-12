@@ -88,15 +88,16 @@ influx.getDatabaseNames()
                             })
                             .catch(err => {
                                 debug("Error creating CQs:", err);
+                                return Promise.reject(err);
                             });
       })
       .then(() => {
 
-          // Arrange to be notified after each continuous query has been run
-          subsampling.setup_all_notices(influx, faye_client, measurement_config);
-
           // Create a manager for the measurements, using the influx driver
           const measurement_manager = new MeasurementManager(influx, measurement_config);
+
+          // Arrange to be notified after each continuous query has been run
+          subsampling.setup_all_notices(measurement_manager, faye_client, measurement_config);
 
           // Set up the routes
           app.use(config.server.api, measurement_router_factory(measurement_manager, faye_client));

@@ -28,8 +28,14 @@ const MeasurementRouterFactory = function (measurement_manager, pub_sub) {
         // Make sure start and stop times are numbers:
 
         measurement_manager
-            .find_packets(measurement, req.query.platform, req.query.stream,
-                start_time, stop_time, req.query.limit, req.query.direction)
+            .find_packets(measurement, {
+                platform  : req.query.platform,
+                stream    : req.query.stream,
+                start_time: start_time,
+                stop_time : stop_time,
+                limit     : req.query.limit,
+                direction : req.query.direction
+            })
             .then((result) => {
                 let deep_result = [];
                 for (let i in result) {
@@ -63,9 +69,10 @@ const MeasurementRouterFactory = function (measurement_manager, pub_sub) {
                     res.location(resource_url)
                        .sendStatus(201);
                     pub_sub.publish(`/${measurement}`, packet)
-                           .then(result=>{})
+                           .then(result => {
+                           })
                            .catch(err => {
-                               debug("POST /measurements/:measurement/packets PUB-SUB error:", err)
+                               debug("POST /measurements/:measurement/packets PUB-SUB error:", err);
                            });
                 })
                 .catch(function (err) {
@@ -85,7 +92,7 @@ const MeasurementRouterFactory = function (measurement_manager, pub_sub) {
         const measurement = req.params.measurement;
         const timestamp = req.params.timestamp;
         measurement_manager
-            .find_packet(measurement, timestamp, req.query.platform, req.query.stream)
+            .find_packet(measurement, timestamp, {platform: req.query.platform, stream: req.query.stream})
             .then(function (packet) {
                 if (packet === undefined)
                     res.sendStatus(404);
@@ -109,7 +116,7 @@ const MeasurementRouterFactory = function (measurement_manager, pub_sub) {
         const measurement = req.params.measurement;
         const timestamp = req.params.timestamp;
         measurement_manager
-            .delete_packet(measurement, timestamp, req.query.platform, req.query.stream)
+            .delete_packet(measurement, timestamp, {platform: req.query.platform, stream: req.query.stream})
             .then(() => {
                 // No way to tell success or failure with Influx. Just assume Success.
                 res.sendStatus(204);

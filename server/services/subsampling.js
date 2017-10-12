@@ -19,13 +19,16 @@ function create_all_cqs(influx, measurement_configs) {
     // Iterate over all measurements
     for (let measurement in measurement_configs) {
         let measurement_config = measurement_configs[measurement];
-        // Then over all the Continuous Query configurations for that measurement
-        for (let cq_config of measurement_config.cqs) {
-            // For each CQ configuration, create and run the query
-            all_promises.push(_create_cq(influx,
-                                         measurement_config,
-                                         measurement,
-                                         cq_config));
+        // Check to see if any CQs have been specified.
+        if (measurement_config.cqs) {
+            // Iterate over all the Continuous Query configurations for this measurement
+            for (let cq_config of measurement_config.cqs) {
+                // For each CQ configuration, create and run the query
+                all_promises.push(_create_cq(influx,
+                                             measurement_config,
+                                             measurement,
+                                             cq_config));
+            }
         }
     }
 
@@ -83,38 +86,40 @@ function notice(ms, callback) {
     }, diff);
 }
 
-function setup_all_notices(influx, pub_sub, measurement_configs) {
+function setup_all_notices(measurement_manager, pub_sub, measurement_configs) {
     // Iterate over all measurement names in the config file
     for (let measurement in measurement_configs) {
 
         let measurement_config = measurement_configs[measurement];
 
-        for (let cq_config of measurement_config.cqs) {
-            let cq_policy = cq_policies[cq_config.cq_policy];
-            let interval_ms = auxtools.epoch_to_ms(cq_policy.interval);
-            let cq_destination = cq_config.cq_destination;
-            let query_string = `SELECT * FROM ${cq_destination} ORDER BY time desc LIMIT 1`;
+        if (measurement_config.cqs) {
+            for (let cq_config of measurement_config.cqs) {
+                let cq_policy = cq_policies[cq_config.cq_policy];
+                let interval_ms = auxtools.epoch_to_ms(cq_policy.interval);
+                let cq_destination = cq_config.cq_destination;
 
-            debug(`Set up notice for CQ destination ${cq_destination} every ${interval_ms}ms`);
+                debug(`Set up notice for CQ destination ${cq_destination} every ${interval_ms}ms`);
 
-            // Arrange to publish every ms milliseconds
-            notice(interval_ms, function () {
-                console.log("CQ notice timer is up. Time is", Date.now());
-                influx.query(query_string)
-                      .then(result => {
-                          if (result.length) {
-                              let packet = auxtools.flat_to_deep(result[0]);
-                              debug(`Publishing packet from ${cq_destination} with timestamp ${packet.timestamp}`);
-                              return pub_sub.publish(`/${cq_destination}`, packet);
-                          }
-                          return new Promise.resolve();
-                      })
-                      .then(result => {
-                      })
-                      .catch(err => {
-                          debug(`Error updating CQ destination ${cq_destination}: ${err}`);
-                      });
-            });
+                // Arrange to publish every interval_ms milliseconds
+                notice(interval_ms, function () {
+                    console.log("CQ notice timer activated. Time is", Date.now());
+                    measurement_manager.find_packets(measurement, {limit: 1, direction: 'desc'})
+                                       .then(result => {
+                                           if (result.length) {
+                                               let packet = auxtools.flat_to_deep(result[0]);
+                                               debug(
+                                                   `Publishing packet from ${cq_destination} with timestamp ${packet.timestamp}`);
+                                               return pub_sub.publish(`/${cq_destination}`, packet);
+                                           }
+                                           return new Promise.resolve();
+                                       })
+                                       .then(result => {
+                                       })
+                                       .catch(err => {
+                                           debug(`Error updating CQ destination ${cq_destination}: ${err}`);
+                                       });
+                });
+            }
         }
     }
 }
