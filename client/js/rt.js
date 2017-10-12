@@ -39,6 +39,7 @@ var plot_list = [
         plot_div: 'radiation-div',
         layout  : {
             xaxis: {type: "date"},
+            yaxis: {rangemode: "nonnegative"},
             title: "Solar Radiation (W/m²)"
         },
         traces  : [
