@@ -86,11 +86,31 @@ var epoch_to_ms = function (epoch) {
     }
 };
 
+// Given a measurement configuration and measurement name, form
+// the "from" part of an InfluxDB query
+var get_query_from = function (measurement, measurement_config) {
+    let rp = '';
+    let db = '';
+    if (measurement_config) {
+        if ('rp' in measurement_config) {
+            rp = `"${measurement_config.rp}".`;
+        }
+        if ('database' in measurement_config) {
+            db = `"${measurement_config.database}".`;
+            if (!rp) rp = '.';
+        }
+    }
+    let from_clause = db + rp + measurement;
+    return from_clause;
+};
+
+
 module.exports = {
     locationPath      : locationPath,
     resourcePath      : resourcePath,
     fromError         : fromError,
     create_deep_packet: create_deep_packet,
     flat_to_deep      : flat_to_deep,
-    epoch_to_ms       : epoch_to_ms
+    epoch_to_ms       : epoch_to_ms,
+    get_query_from    : get_query_from
 };

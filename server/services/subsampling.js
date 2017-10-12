@@ -23,9 +23,9 @@ function create_all_cqs(influx, measurement_configs) {
         for (let cq_config of measurement_config.cqs) {
             // For each CQ configuration, create and run the query
             all_promises.push(_create_cq(influx,
-                                        measurement_config.database,
-                                        measurement,
-                                        cq_config));
+                                         measurement_config,
+                                         measurement,
+                                         cq_config));
         }
     }
 
@@ -34,19 +34,21 @@ function create_all_cqs(influx, measurement_configs) {
 }
 
 // Returns a promise to set up a continuous query for a measurement.
-function _create_cq(influx, database, measurement, cq_config) {
+function _create_cq(influx, measurement_config, measurement, cq_config) {
 
     // Get the needed query
-    const influx_sql = _form_cq_stmt(database, measurement, cq_config, cq_policies);
+    const influx_sql = _form_cq_stmt(measurement_config, measurement, cq_config);
     // Now get and return a promise to run it
     return influx.query(influx_sql);
 }
 
 // Form a continuous query statement from the subsampling dictionary
-function _form_cq_stmt(database, measurement, cq_config) {
+function _form_cq_stmt(measurement_config, measurement, cq_config) {
     // From the collection of cq policies, select the one specified
     // in the cq_config object
     let cq_policy = cq_policies[cq_config.cq_policy];
+    let database = measurement_config.database;
+
     let aggs = [];
     for (let k in cq_policy.aggregation) {
         let agg = cq_policy.aggregation[k].toLowerCase();
@@ -57,11 +59,12 @@ function _form_cq_stmt(database, measurement, cq_config) {
     }
 
     let agg_array = aggs.join(', ');
+    let from_clause = auxtools.get_query_from(measurement, measurement_config);
 
     let influx_sql =
         `CREATE CONTINUOUS QUERY ${cq_config.cq_name} ON ${database} ` +
         `BEGIN SELECT ${agg_array} INTO ${cq_config.cq_destination} ` +
-        `FROM ${measurement} GROUP BY time(${cq_policy.interval}), * END`;
+        `FROM ${from_clause} GROUP BY time(${cq_policy.interval}), * END`;
 
     return influx_sql;
 }
@@ -86,7 +89,7 @@ function setup_all_notices(influx, pub_sub, measurement_configs) {
 
         let measurement_config = measurement_configs[measurement];
 
-        for (let cq_config of measurement_config.cqs){
+        for (let cq_config of measurement_config.cqs) {
             let cq_policy = cq_policies[cq_config.cq_policy];
             let interval_ms = auxtools.epoch_to_ms(cq_policy.interval);
             let cq_destination = cq_config.cq_destination;

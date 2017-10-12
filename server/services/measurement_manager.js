@@ -6,6 +6,8 @@
 
 'use strict';
 
+const auxtools = require('../auxtools');
+
 /*
  * Class to manage the InfluxDB database
  */
@@ -42,7 +44,7 @@ class MeasurementManager {
 
     find_packet(measurement, timestamp, platform = undefined, stream = undefined) {
 
-        let from_clause = this._get_query_from(measurement);
+        let from_clause = auxtools.get_query_from(measurement, this.config[measurement]) ;
 
         let query_string = `SELECT * FROM ${from_clause} WHERE time=${timestamp}`;
         if (platform)
@@ -61,7 +63,7 @@ class MeasurementManager {
                  start_time = undefined, stop_time = undefined,
                  limit = undefined, sort_direction = 'asc') {
 
-        let from_clause = this._get_query_from(measurement);
+        let from_clause = auxtools.get_query_from(measurement, this.config[measurement]) ;
 
         var query_string;
         if (start_time) {
@@ -102,7 +104,7 @@ class MeasurementManager {
 
     delete_packet(measurement, timestamp, platform = undefined, stream = undefined) {
 
-        let from_clause = this._get_query_from(measurement);
+        let from_clause = auxtools.get_query_from(measurement, this.config[measurement]) ;
 
         let delete_stmt = `DELETE FROM ${from_clause} WHERE time=${timestamp}`;
         if (platform)
@@ -113,14 +115,14 @@ class MeasurementManager {
     }
 
     get_measurement_info(measurement) {
-        let from_clause = this._get_query_from(measurement);
+        let from_clause = auxtools.get_query_from(measurement, this.config[measurement]) ;
 
         let query = `SHOW SERIES FROM ${from_clause};`;
         return this.influx.query(query);
     }
 
     delete_measurement(measurement) {
-        let from_clause = this._get_query_from(measurement);
+        let from_clause = auxtools.get_query_from(measurement, this.config[measurement]) ;
 
         let delete_stmt = `DROP MEASUREMENT ${from_clause};`;
         return this.influx.query(delete_stmt);
@@ -137,22 +139,6 @@ class MeasurementManager {
             retentionPolicy: rp,
             database       : db
         };
-    }
-
-    _get_query_from(measurement) {
-        let rp = '';
-        let db = '';
-        if (measurement in this.config) {
-            if ('rp' in this.config[measurement]) {
-                rp = `"${this.config[measurement].rp}".`;
-            }
-            if ('database' in this.config[measurement]) {
-                db = `"${this.config[measurement].database}".`;
-                if (!rp) rp = '.';
-            }
-        }
-        let from_clause = db + rp + measurement;
-        return from_clause;
     }
 }
 

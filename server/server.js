@@ -81,11 +81,14 @@ influx.getDatabaseNames()
       })
       .then(() => {
           // Create the continuous queries for any measurements.
-          return subsampling.create_all_cqs(influx, measurement_config);
-      })
-      .then(result => {
-          debug(`Set up ${result.length} continuous queries`);
-          return Promise.resolve();
+          return subsampling.create_all_cqs(influx, measurement_config)
+                            .then(result => {
+                                debug(`Set up ${result.length} continuous queries`);
+                                return Promise.resolve();
+                            })
+                            .catch(err => {
+                                debug("Error creating CQs:", err);
+                            });
       })
       .then(() => {
 
