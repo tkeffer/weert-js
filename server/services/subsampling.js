@@ -102,13 +102,14 @@ function setup_all_notices(measurement_manager, pub_sub, measurement_configs) {
 
                 // Arrange to publish every interval_ms milliseconds
                 notice(interval_ms, function () {
-                    console.log("CQ notice timer activated. Time is", Date.now());
-                    measurement_manager.find_packets(measurement, {limit: 1, direction: 'desc'})
+                    // Find the latest record in the CQ destination0
+                    measurement_manager.find_packets(cq_destination, {limit: 1, direction: 'desc'})
                                        .then(result => {
                                            if (result.length) {
-                                               let packet = auxtools.flat_to_deep(result[0]);
-                                               debug(
-                                                   `Publishing packet from ${cq_destination} with timestamp ${packet.timestamp}`);
+                                               let packet = result[0];
+                                               let d = new Date(packet.timestamp / 1000000);
+                                               debug(`Publishing packet from ${cq_destination} for ` +
+                                                   `time ${d} (${packet.timestamp})`);
                                                return pub_sub.publish(`/${cq_destination}`, packet);
                                            }
                                            return Promise.resolve();
