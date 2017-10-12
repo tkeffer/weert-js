@@ -111,7 +111,7 @@ function setup_all_notices(measurement_manager, pub_sub, measurement_configs) {
                                                    `Publishing packet from ${cq_destination} with timestamp ${packet.timestamp}`);
                                                return pub_sub.publish(`/${cq_destination}`, packet);
                                            }
-                                           return new Promise.resolve();
+                                           return Promise.resolve();
                                        })
                                        .then(result => {
                                        })

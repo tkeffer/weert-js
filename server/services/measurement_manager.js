@@ -54,13 +54,17 @@ class MeasurementManager {
         return this.influx
                    .query(query_string)
                    .then(results => {
+                       let packet;
                        // Return only the first result
-                       return Promise.resolve(results[0]);
+                       if (results[0] !== undefined) {
+                           packet = auxtools.flat_to_deep(results[0]);
+                       }
+                       return Promise.resolve(packet);
                    });
     }
 
     find_packets(measurement, {
-        platform = undefined, stream = undefined,
+        platform = undefined, stream: stream = undefined,
         start_time = undefined, stop_time = undefined,
         limit = undefined, direction = 'asc'
     } = {}) {
@@ -101,7 +105,14 @@ class MeasurementManager {
         }
 
         return this.influx
-                   .query(query_string);
+                   .query(query_string)
+                   .then(result => {
+                       let deep_result = [];
+                       for (let i in result) {
+                           deep_result[i] = auxtools.flat_to_deep(result[i]);
+                       }
+                       return Promise.resolve(deep_result);
+                   });
     }
 
     delete_packet(measurement, timestamp, {platform = undefined, stream = undefined} = {}) {

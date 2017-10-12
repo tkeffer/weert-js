@@ -23,26 +23,19 @@ const MeasurementRouterFactory = function (measurement_manager, pub_sub) {
     // GET all packets which satisfies a search query.
     router.get('/measurements/:measurement/packets', function (req, res) {
         const measurement = req.params.measurement;
-        const start_time = req.query.start;
-        const stop_time = req.query.stop;
-        // Make sure start and stop times are numbers:
 
         measurement_manager
             .find_packets(measurement, {
                 platform  : req.query.platform,
                 stream    : req.query.stream,
-                start_time: start_time,
-                stop_time : stop_time,
+                start_time: req.query.start,
+                stop_time : req.query.stop,
                 limit     : req.query.limit,
                 direction : req.query.direction
             })
-            .then((result) => {
-                let deep_result = [];
-                for (let i in result) {
-                    deep_result[i] = auxtools.flat_to_deep(result[i]);
-                }
+            .then(packet => {
                 res.status(200)
-                   .json(deep_result);
+                   .json(packet);
             })
             .catch(err => {
                 debug('GET /measurements/:measurement/packets/ error:', err);
@@ -97,10 +90,8 @@ const MeasurementRouterFactory = function (measurement_manager, pub_sub) {
                 if (packet === undefined)
                     res.sendStatus(404);
                 else {
-                    // Convert to a deep packet
-                    let deep_packet = auxtools.flat_to_deep(packet);
                     res.status(200)
-                       .json(deep_packet);
+                       .json(packet);
                 }
             })
             .catch(function (err) {
@@ -160,7 +151,6 @@ const MeasurementRouterFactory = function (measurement_manager, pub_sub) {
             })
             .catch(function (err) {
                 debug('DELETE /measurements/:measurement error:', err);
-                console.log('err=', err);
                 res.status(400)
                    .json(auxtools.fromError(400, err));
             });
