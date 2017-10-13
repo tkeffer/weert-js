@@ -13,3 +13,5 @@ comes up before the server.
 
 Deal with unit systems
 
+The time span of the "recent" display should be adjustable by the user.
+

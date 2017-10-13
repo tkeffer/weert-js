@@ -51,8 +51,8 @@ var plot_list = [
 var recent_group = {
     time_group      : "recent",
     measurement     : "wxpackets",
-    max_initial_age : 600000,       // In milliseconds
-    max_retained_age: 600000,       // In milliseconds
+    max_initial_age : 1200000,       // In milliseconds
+    max_retained_age: 1200000,       // In milliseconds
     plot_list       : plot_list
 };
 
