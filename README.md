@@ -86,7 +86,7 @@ by the uploader.
   and deleting data measurements.
 - Data are stored in a [InfluxDB](https://www.influxdata.com/) server.
 - Realtime updates are done through a publish - subscribe interface
-  using [Faye](faye.jcoglan.com).
+  using [Faye](http://faye.jcoglan.com).
 - Realtime plots are done using [plotly.js](https://plot.ly/javascript/)
 
 For experimental purposes.
