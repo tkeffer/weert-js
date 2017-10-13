@@ -1,3 +1,8 @@
+ALL (Packaging)
+Need a more robust way of installing Faye and Plotly.js
+
+
+
 SERVER
 
 CQ timer slowly advances forward in time. It needs to calculate the exact time to the

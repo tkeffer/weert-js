@@ -5,7 +5,7 @@
   "description": "Logging for real-time data streams",
   "scripts": {
     "prestart": "npm install",
-    "postinstall": "cp node_modules/faye/client/faye-browser.js client/dist; ",
+    "postinstall": "mkdir dist; cp node_modules/faye/client/faye-browser.js client/dist/faye-browser.js; ",
     "start": "node ./server/server",
     "test": "jasmine"
   },
