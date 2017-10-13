@@ -12,5 +12,8 @@ next publishing event.
 
 CLIENT
 
+Should be able to handle scenario with "no recent packet." This typically happens if the browser
+comes up before the server.
+
 Deal with unit systems
 
