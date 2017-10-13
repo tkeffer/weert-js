@@ -1,7 +1,3 @@
-ALL (Packaging)
-Need a more robust way of installing Faye and Plotly.js
-
-
 
 SERVER
 

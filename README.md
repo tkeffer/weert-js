@@ -133,12 +133,27 @@ WeeRT can make voluminous entries into your system log. The WeeWX
 uploader will make an entry every LOOP packet, as does the InfluxDB
 database. This can mean thousands of entries per hour.
 
+### Observation names
+
+WeeRT uses a different system to name observation types than WeeWx.
+For example, for outside temperature, WeeWX uses `outTemp`, while
+WeeRT uses `outside_temperature`. The general pattern is that the last
+part of the observation name, `temperature` in this example, denotes
+the unit group. In WeeWX the unit group must be looked up in a table;
+in WeeRT it can be inferred from the name.
+
+Which brings us to the next topic...
+
 ### Units
 
 Internally, WeeRT makes no assumptions about units. However, the
 browser client does. Right now, it assumes all units are US
 Customary. If they are in something else, you'll have to change the
 HTML.
+
+Eventually, WeeRT will be able to determine the proper unit label to use from an
+observation's inferred unit group and from the type `unit_system`
+(similar to WeeWX's `usUnits`).
 
 # Data model
 
