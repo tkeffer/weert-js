@@ -58,6 +58,7 @@ class MeasurementManager {
                        // Return only the first result
                        if (results[0] !== undefined) {
                            packet = auxtools.flat_to_deep(results[0]);
+                           this._shift_timestamp(measurement, packet);
                        }
                        return Promise.resolve(packet);
                    });
@@ -110,6 +111,7 @@ class MeasurementManager {
                        let deep_result = [];
                        for (let i in result) {
                            deep_result[i] = auxtools.flat_to_deep(result[i]);
+                           this._shift_timestamp(measurement, deep_result[i]);
                        }
                        return Promise.resolve(deep_result);
                    });
@@ -152,6 +154,13 @@ class MeasurementManager {
             retentionPolicy: rp,
             database       : db
         };
+    }
+
+    _shift_timestamp(measurement, packet) {
+        // This is to correct a flaw in continuous queries. They timestamp their result with the
+        // beginning of the aggregation period, while we want the end. So shift the time.
+        if (this.measurement_config[measurement] && this.measurement_config[measurement].timeshift)
+            packet.timestamp += this.measurement_config[measurement].timeshift;
     }
 }
 

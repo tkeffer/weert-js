@@ -93,38 +93,67 @@ For experimental purposes.
 
 ## Notes
 
-When new LOOP packets come into WeeRT through the POST interface, they are published using Faye. Interested
-clients can subscribe to these publications.
+### Pub-sub
 
-The WeeRT server arranges to have a continuous query run on each LOOP measurement, which will subsample the data,
-typically every 5 minutes. See file `config/cqpolicies.js` for the subsampling policies.
-File `meta_data/sub_sampling.json` sets which policy each LOOP measurement uses.
+When new LOOP packets come into WeeRT through the POST interface, they
+are published using Faye. Interested clients can subscribe to these
+publications.
 
-The resulting aggregated record is put in a new measurement whose name is set
-in `meta_data/sub_sampling.json`. Unfortunately, InfluxDB does not have a trigger mechanism for
-when new records appear. Instead, we have to set up a timer, which goes off slightly after a new
-aggregation is due. This is then used to send out a notice to any subscriber
-through Faye.
+### Continuous queries
 
-The retention time of the LOOP packets is set by a configuration file, but the default is 24 hours. After that,
-they are discarded.
+The WeeRT server arranges to have a continuous query run on each LOOP
+measurement, which will subsample the data, typically every 5
+minutes. See file `config/cq_policies.js` for the subsampling
+policies.  File `meta_data/measurement_config.json` sets which policy
+each LOOP measurement uses.
 
-WeeRT can make voluminous entries into your system log. The WeeWX uploader will make an entry every LOOP packet,
-as does the InfluxDB database. This can mean thousands of entries per hour.
+The resulting aggregated record is put in a new measurement whose name
+is set in `meta_data/measurement_config.json`. Unfortunately, InfluxDB
+does not have a trigger mechanism for when new records
+appear. Instead, we have to set up a timer, which goes off a few seconds
+after a new aggregation is due. This is then used to send out a notice
+to any subscriber through Faye.
 
-Internally, WeeRT makes no assumptions about units. However, the browser client does. Right now, it assumes all
-units are US Customary. For something else, you'd have to change the HTML.
+Another limitation is that when continuous queries run and aggregate
+data, they use a timestamp at the *beginning* of the aggregation. For
+example, if aggregating all LOOP packets between 0930 and 0935, they
+will be timestamped 0930. When it comes time to plot the resulting
+data, they will be displayed five minutes too early. The WeeRT server
+includes a hack to shift the timestamp of series resulting from CQs
+(option `timeshift` in `meta_data/measurement_config.json`.
+
+### Retention policy
+
+The retention time of the LOOP packets is set by a configuration file,
+but the default is 24 hours. After that, they are discarded.
+
+### Log entries
+
+WeeRT can make voluminous entries into your system log. The WeeWX
+uploader will make an entry every LOOP packet, as does the InfluxDB
+database. This can mean thousands of entries per hour.
+
+### Units
+
+Internally, WeeRT makes no assumptions about units. However, the
+browser client does. Right now, it assumes all units are US
+Customary. If they are in something else, you'll have to change the
+HTML.
 
 # Data model
 
 ## Background
-It is strongly recommended that you read the ["key concepts" section](https://docs.influxdata.com/influxdb/v1.3/concepts/key_concepts/)
-of the InfluxDB documentation. In particular, be sure to understand the concepts of measurements,
-tags, and fields. These terms are used throughout WeeRT.
+
+It is strongly recommended that you read the ["key concepts"
+section](https://docs.influxdata.com/influxdb/v1.3/concepts/key_concepts/)
+of the InfluxDB documentation. In particular, be sure to understand
+the concepts of measurements, tags, and fields. These terms are used
+throughout WeeRT.
 
 ## Packets
-There are several different ways of representing packet data in the WeeRT / Influx ecosystem. It's useful
-to be aware of the differences.
+
+There are several different ways of representing packet data in the WeeRT / Influx
+ecosystem. It's useful to be aware of the differences.
 
 - A __weewx-style packet__. This is the simple, flat data structure that weewx uses. 
   It holds time (in seconds), field data, and the unit system used by the data, 
@@ -252,7 +281,7 @@ Connection: keep-alive
             "platform": "chevy",
             "stream": "oil"
         },
-        "timestamp": "1506713140000000000"
+        "timestamp": 1506713140000000000
     },
     {
         "fields": {
@@ -263,7 +292,7 @@ Connection: keep-alive
             "platform": "truck",
             "stream": "oil"
         },
-        "timestamp": "1506713140000000000"
+        "timestamp": 1506713140000000000
     },
     {
         "fields": {
@@ -274,7 +303,7 @@ Connection: keep-alive
             "platform": "chevy",
             "stream": "oil"
         },
-        "timestamp": "1506713200000000000"
+        "timestamp": 1506713200000000000
     },
     {
         "fields": {
@@ -285,7 +314,7 @@ Connection: keep-alive
             "platform": "truck",
             "stream": "oil"
         },
-        "timestamp": "1506713200000000000"
+        "timestamp": 1506713200000000000
     },
     {
         "fields": {
@@ -296,7 +325,7 @@ Connection: keep-alive
             "platform": "chevy",
             "stream": "oil"
         },
-        "timestamp": "1506713260000000000"
+        "timestamp": 1506713260000000000
     },
     {
         "fields": {
@@ -307,7 +336,7 @@ Connection: keep-alive
             "platform": "truck",
             "stream": "oil"
         },
-        "timestamp": "1506713260000000000"
+        "timestamp": 1506713260000000000
     },
     {
         "fields": {
@@ -318,7 +347,7 @@ Connection: keep-alive
             "platform": "chevy",
             "stream": "oil"
         },
-        "timestamp": "1506713320000000000"
+        "timestamp": 1506713320000000000
     },
     {
         "fields": {
@@ -329,7 +358,7 @@ Connection: keep-alive
             "platform": "truck",
             "stream": "oil"
         },
-        "timestamp": "1506713320000000000"
+        "timestamp": 1506713320000000000
     }
 ]
 
@@ -359,7 +388,7 @@ Connection: keep-alive
             "platform": "truck",
             "stream": "oil"
         },
-        "timestamp": "1506713140000000000"
+        "timestamp": 1506713140000000000
     },
     {
         "fields": {
@@ -370,7 +399,7 @@ Connection: keep-alive
             "platform": "truck",
             "stream": "oil"
         },
-        "timestamp": "1506713200000000000"
+        "timestamp": 1506713200000000000
     }
 ]
 
@@ -400,7 +429,7 @@ Connection: keep-alive
             "platform": "chevy",
             "stream": "oil"
         },
-        "timestamp": "1506713260000000000"
+        "timestamp": 1506713260000000000
     },
     {
         "fields": {
@@ -411,7 +440,7 @@ Connection: keep-alive
             "platform": "chevy",
             "stream": "oil"
         },
-        "timestamp": "1506713200000000000"
+        "timestamp": 1506713200000000000
     }
 ]
 
@@ -465,7 +494,7 @@ Connection: keep-alive
         "platform": "truck",
         "stream": "oil"
     },
-    "timestamp": "1506713200000000000"
+    "timestamp": 1506713200000000000
 }
 
 ```
