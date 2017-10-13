@@ -1,11 +1,10 @@
 {
   "name": "weert",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "description": "Logging for real-time data streams",
   "scripts": {
     "prestart": "npm install",
-    "postinstall": "mkdir dist; cp node_modules/faye/client/faye-browser.js client/dist/faye-browser.js; ",
     "start": "node ./server/server",
     "test": "jasmine"
   },
@@ -15,10 +14,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/npm/tkeffer/weert-js"
+    "url": "https://github.com/tkeffer/weert-js"
   },
   "dependencies": {
-    "argv": "0.0.2",
+    "async": "^1.5.2",
     "body-parser": "^1.18.2",
     "debug": "^2.2.0",
     "express": "^4.13.3",
