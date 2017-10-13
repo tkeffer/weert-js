@@ -12,6 +12,9 @@ const cq_policies = require('../config/cq_policies');
 const config = require('../config/config');
 const auxtools = require('../auxtools');
 
+// Create all the Continuous Queries specified
+// in the measurement configuration. Returns an array
+// of promises, one for each CQ to be set up.
 function create_all_cqs(influx, measurement_configs) {
 
     let all_promises = [];
@@ -23,7 +26,7 @@ function create_all_cqs(influx, measurement_configs) {
         if (measurement_config.cqs) {
             // Iterate over all the Continuous Query configurations for this measurement
             for (let cq_config of measurement_config.cqs) {
-                // For each CQ configuration, create and run the query
+                // For each CQ configuration, promise to create the query.
                 all_promises.push(_create_cq(influx,
                                              measurement_config,
                                              measurement,
@@ -45,7 +48,8 @@ function _create_cq(influx, measurement_config, measurement, cq_config) {
     return influx.query(influx_sql);
 }
 
-// Form a continuous query statement from the subsampling dictionary
+// Form a continuous query statement suitable for the specific
+// CQ specified in cq_config
 function _form_cq_stmt(measurement_config, measurement, cq_config) {
     // From the collection of cq policies, select the one specified
     // in the cq_config object

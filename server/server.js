@@ -79,7 +79,9 @@ influx.getDatabaseNames()
           }
           return Promise.all(ps);
       })
-      .then(() => {
+      .then((result) => {
+          debug(`Set up ${result.length} retention policies`);
+
           // Create the continuous queries for any measurements.
           return subsampling.create_all_cqs(influx, measurement_config)
                             .then(result => {
@@ -156,6 +158,7 @@ influx.getDatabaseNames()
           // Attach the Faye pub-sub engine
           bayeux.attach(server);
 
+          // Start listening!
           server.listen(config.server.port);
           console.log('Listening on port', config.server.port);
       })

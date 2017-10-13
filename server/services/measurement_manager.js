@@ -19,10 +19,6 @@ class MeasurementManager {
         this.measurement_config = config;
     }
 
-    delete_measurement(measurement) {
-        return this.influx.dropMeasurement(measurement);
-    }
-
     insert_packet(measurement, deep_packet) {
 
         // Make sure the packet has a timestamp.
@@ -137,10 +133,12 @@ class MeasurementManager {
     }
 
     delete_measurement(measurement) {
-        let from_clause = auxtools.get_query_from(measurement, this.measurement_config[measurement]);
-
-        let delete_stmt = `DROP MEASUREMENT ${from_clause};`;
-        return this.influx.query(delete_stmt);
+        let db;
+        let measurement_config = this.measurement_config[measurement];
+        if (measurement_config && 'database' in measurement_config) {
+            db = measurement_config.database;
+        }
+        return this.influx.dropMeasurement(measurement, db);
     }
 
     _get_write_options(measurement) {
