@@ -3,8 +3,6 @@ SERVER
 CQ timer slowly advances forward in time. It needs to calculate the exact time to the
 next publishing event.
 
-By default, CQs timestamp their results with the *start* of the time interval.
-We need the end.
 
 
 CLIENT
