@@ -255,6 +255,10 @@ var WindCompass = (function () {
         if (b == null) b = 0;
         a = parseFloat(a);
         b = parseFloat(b);
+        /*
+          * TODO: If this 'if' statement is rejected, the function will return undefined
+          * instead of an actual function.
+          */
         if (a >= 0 && a < 360 && b >= 0 && b < 360) {
             if (Math.abs(b - a) > 180) {
                 return function (t) {
