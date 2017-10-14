@@ -55,7 +55,9 @@ Later versions should work fine.
 1. Make sure you are running WeeWX V3.8 or later. Earlier versions do not support the POST method used
 by the uploader.
 
-2. Add the following to `weewx.conf`:
+2. Put the `weert.py` module in the WeeWX `user` subdirectory.
+
+3. Add the following to `weewx.conf`:
 
     ```ini
     [StdRestful]
@@ -69,11 +71,8 @@ by the uploader.
     [Engine]
         [[Services]]
             ...
-            restful_services = ..., weert.WeeRT
-
+            restful_services = ..., user.weert.WeeRT
     ```
-
-3. Make sure the `weert.py` module is in your `PYTHONPATH`.
 
 4. Run `weewxd`
 
