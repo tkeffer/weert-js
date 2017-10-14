@@ -158,13 +158,15 @@ function extendPlotGroup(plot_group, packet) {
         // If an exception occurs, then retain everything.
         try {
             var plotData = document.getElementById(div_name).data;
-            var trim_time = Date.now() - plot_group.max_retained_age;
+            var xLength = plotData[0].x.length;
+            var lastTimestamp = plotData[0].x[xLength - 1];
+            var trim_time = lastTimestamp - plot_group.max_retained_age;
             var i = plotData[0].x.findIndex(function (xval) {
                 return xval >= trim_time;
             });
 
             // If all data points are up to date, keep them all.
-            N = i ? plotData[0].x.length - i : undefined;
+            N = i ? xLength - i : undefined;
 
         } catch (err) {
             N = undefined;
