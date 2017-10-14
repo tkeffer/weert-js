@@ -7,6 +7,10 @@
 
 'use strict';
 
+/*
+ * This first part is pretty much boilerplate for any Express
+ * application.
+ */
 const bodyParser = require('body-parser');
 const debug = require('debug')('weert:server');
 const http = require('http');
@@ -14,16 +18,6 @@ const logger = require('morgan');
 const path = require('path');
 const express = require('express');
 const app = express();
-
-const config = require('./config/config');
-const MeasurementManager = require('./services/measurement_manager');
-const measurement_router_factory = require('./routes/measurement_routes');
-const subsampling = require('./services/subsampling');
-const retention_policies = require('./config/retention_policies');
-
-// This type of metadata should probably be in a database,
-// but for now, retrieve it from a JSON file
-const measurement_config = require('./meta_data/measurement_config');
 
 // Set up the view engine
 app.set('views', path.join(__dirname, './views'));
@@ -38,6 +32,18 @@ app.use(bodyParser.urlencoded({extended: false}));
 
 // Serve all static files from the "client" subdirectory:
 app.use(express.static(path.join(__dirname, '../client')));
+
+/*
+ * Now comes the WeeRT-specific stuff
+ */
+const config = require('./config/config');
+const MeasurementManager = require('./services/measurement_manager');
+const measurement_router_factory = require('./routes/measurement_routes');
+const subsampling = require('./services/subsampling');
+const retention_policies = require('./config/retention_policies');
+// This type of metadata should probably be in a database,
+// but for now, retrieve it from a JSON file
+const measurement_config = require('./meta_data/measurement_config');
 
 // Set up the sub-pub facility
 const faye = require('faye');
@@ -63,9 +69,8 @@ influx.getDatabaseNames()
           // Check to see if the chosen database has been created
           if (!names.includes(config.influxdb.database)) {
               // The database does not exist. Create it.
-              let p = influx.createDatabase(config.influxdb.database);
-              debug(`Created database '${config.influxdb.database}'`);
-              return p;
+              debug(`Creating database '${config.influxdb.database}'`);
+              return influx.createDatabase(config.influxdb.database);
           } else {
               debug(`Database '${config.influxdb.database}' already exists.`);
               return Promise.resolve();
@@ -140,7 +145,6 @@ influx.getDatabaseNames()
           /*
            * Start the server
            */
-
           let server = http.createServer(app);
           // Trap any error events and exit
           server.on('error', (err) => {

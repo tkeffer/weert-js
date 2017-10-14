@@ -11,7 +11,7 @@
 
 'use strict';
 
-const debug = require('debug')('weert:server');
+const debug = require('debug')('weert:routes');
 const express = require('express');
 
 const auxtools = require('../auxtools');
@@ -56,17 +56,19 @@ const MeasurementRouterFactory = function (measurement_manager, pub_sub) {
             // Insert the packet into the database
             measurement_manager
                 .insert_packet(measurement, packet)
-                .then(function () {
+                .then(() => {
                     // Form the URL of the newly created resource and send it back in the 'Location' header
                     const resource_url = auxtools.resourcePath(req, packet.timestamp);
                     res.location(resource_url)
                        .sendStatus(201);
+                    // Notify any subscribers via the pub-sub facility
                     pub_sub.publish(`/${measurement}`, packet)
-                           .then(result => {
-                           })
-                           .catch(err => {
-                               debug("POST /measurements/:measurement/packets PUB-SUB error:", err);
-                           });
+                           .then(function () {
+                                     debug(`PUBlished packet ${new Date(packet.timestamp / 1000000)} to /${measurement}`);
+                                 },
+                                 function (err) {
+                                     debug("POST /measurements/:measurement/packets PUB-SUB error:", err);
+                                 });
                 })
                 .catch(function (err) {
                     debug('POST /measurements/:measurement/packets error:', err);
@@ -85,8 +87,11 @@ const MeasurementRouterFactory = function (measurement_manager, pub_sub) {
         const measurement = req.params.measurement;
         const timestamp = req.params.timestamp;
         measurement_manager
-            .find_packet(measurement, timestamp, {platform: req.query.platform, stream: req.query.stream})
-            .then(function (packet) {
+            .find_packet(measurement, timestamp, {
+                platform: req.query.platform,
+                stream  : req.query.stream
+            })
+            .then((packet) => {
                 if (packet === undefined)
                     res.sendStatus(404);
                 else {
@@ -94,7 +99,7 @@ const MeasurementRouterFactory = function (measurement_manager, pub_sub) {
                        .json(packet);
                 }
             })
-            .catch(function (err) {
+            .catch(err => {
                 debug('GET /measurements/:measurement/packets/:timestamp find error', err);
                 res.status(400)
                    .json(auxtools.fromError(400, err));
@@ -107,12 +112,15 @@ const MeasurementRouterFactory = function (measurement_manager, pub_sub) {
         const measurement = req.params.measurement;
         const timestamp = req.params.timestamp;
         measurement_manager
-            .delete_packet(measurement, timestamp, {platform: req.query.platform, stream: req.query.stream})
+            .delete_packet(measurement, timestamp, {
+                platform: req.query.platform,
+                stream  : req.query.stream
+            })
             .then(() => {
                 // No way to tell success or failure with Influx. Just assume Success.
                 res.sendStatus(204);
             })
-            .catch(function (err) {
+            .catch(err => {
                 debug('DELETE /measurements/:measurement/packets/:timestamp delete error:', err);
                 res.status(400)
                    .json(auxtools.fromError(400, err));
@@ -126,14 +134,14 @@ const MeasurementRouterFactory = function (measurement_manager, pub_sub) {
 
         measurement_manager
             .get_measurement_info(measurement)
-            .then(function (measurement_metadata) {
+            .then(measurement_metadata => {
                 if (measurement_metadata[0]) {
                     res.json(measurement_metadata);
                 } else {
                     res.sendStatus(404);    // Status 404 Resource Not Found
                 }
             })
-            .catch(function (err) {
+            .catch(err => {
                 debug('GET /measurements/:measurement error:', err);
                 res.status(400)
                    .json(auxtools.fromError(400, err));
@@ -145,11 +153,11 @@ const MeasurementRouterFactory = function (measurement_manager, pub_sub) {
         const measurement = req.params.measurement;
         measurement_manager
             .delete_measurement(measurement)
-            .then(function () {
+            .then(() => {
                 // No way to tell success or failure with Influx. Just assume Success.
                 res.sendStatus(204);
             })
-            .catch(function (err) {
+            .catch(err => {
                 debug('DELETE /measurements/:measurement error:', err);
                 res.status(400)
                    .json(auxtools.fromError(400, err));
