@@ -12,9 +12,9 @@
 const url = require('url');
 const normalizeUrl = require('normalize-url');
 
-var locationPath = function (originalUrl, protocol, host, name) {
-    var base_pathname = url.parse(originalUrl).pathname;
-    var fullpath = url.format({
+let locationPath = function (originalUrl, protocol, host, name) {
+    let base_pathname = url.parse(originalUrl).pathname;
+    let fullpath = url.format({
                                   protocol: protocol,
                                   host    : host,
                                   pathname: base_pathname + '/' + name
@@ -23,12 +23,12 @@ var locationPath = function (originalUrl, protocol, host, name) {
 };
 
 // Given a request header and a name, form a new endpoint
-var resourcePath = function (req, name) {
+let resourcePath = function (req, name) {
     return locationPath(req.originalUrl, req.protocol, req.get('host'), name);
 };
 
-var fromError = function (code, err) {
-    var e = {};
+let fromError = function (code, err) {
+    let e = {};
     e.message = err.message;
     e.code = code;
     if (err.description) {
@@ -38,7 +38,7 @@ var fromError = function (code, err) {
 };
 
 // Create a deep packet from a set of parameters.
-var create_deep_packet = function (measurement, platform, stream, timestamp, fields) {
+let create_deep_packet = function (measurement, platform, stream, timestamp, fields) {
     let packet = {
         'timestamp'  : timestamp,
         'measurement': measurement,
@@ -49,7 +49,7 @@ var create_deep_packet = function (measurement, platform, stream, timestamp, fie
 };
 
 // Convert a flat_packet into a deep packet
-var flat_to_deep = function (flat_packet) {
+let flat_to_deep = function (flat_packet) {
     let deep_packet = {
         'tags'  : {},
         'fields': {}
@@ -70,7 +70,7 @@ var flat_to_deep = function (flat_packet) {
 };
 
 // Convert from InfluxDB "epoch" notation to milliseconds
-var epoch_to_ms = function (epoch) {
+let epoch_to_ms = function (epoch) {
     if (epoch.endsWith('ms')) {
         return +epoch.slice(0, -2);
     } else if (epoch.endsWith('s')) {
@@ -88,7 +88,7 @@ var epoch_to_ms = function (epoch) {
 
 // Given a measurement configuration and measurement name, form
 // the "from" part of an InfluxDB query
-var get_query_from = function (measurement, measurement_config) {
+let get_query_from = function (measurement, measurement_config) {
     let rp = '';
     let db = '';
     if (measurement_config) {

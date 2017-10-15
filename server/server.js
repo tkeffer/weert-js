@@ -78,7 +78,7 @@ influx.getDatabaseNames()
       })
       .then(() => {
           // Having created or made sure the database exists, set up the retention policies
-          var ps = [];
+          let ps = [];
           for (let rp in retention_policies) {
               ps.push(influx.createRetentionPolicy(rp, retention_policies[rp]));
           }
@@ -123,7 +123,7 @@ influx.getDatabaseNames()
           // development error handler
           // will print stacktrace
           if (app.get('env') === 'development') {
-              app.use(function (err, req, res, next) {
+              app.use(function (err, req, res) {
                   res.status(err.status || 500);
                   res.render('error', {
                       message: err.message,
@@ -134,7 +134,7 @@ influx.getDatabaseNames()
 
           // production error handler
           // no stacktraces leaked to user
-          app.use(function (err, req, res, next) {
+          app.use(function (err, req, res) {
               res.status(err.status || 500);
               res.render('error', {
                   message: err.message,

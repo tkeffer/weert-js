@@ -68,7 +68,7 @@ class MeasurementManager {
 
         let from_clause = auxtools.get_query_from(measurement, this.measurement_config[measurement]);
 
-        var query_string;
+        let query_string;
         if (start_time) {
             if (stop_time)
                 query_string = `SELECT * FROM ${from_clause} WHERE time > ${start_time} AND time <= ${stop_time}`;
