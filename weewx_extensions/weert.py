@@ -113,7 +113,8 @@ class WeeRT(weewx.restx.StdRESTful):
         self.archive_thread.start()
 
         self.bind(weewx.NEW_LOOP_PACKET, self.new_loop_packet)
-        syslog.syslog(syslog.LOG_INFO, "weert: LOOP packets will be posted")
+        syslog.syslog(syslog.LOG_INFO, "weert: LOOP packets will be posted to %s:%s" % 
+                      (weert_config['host'], weert_config['port']))
 
     def new_loop_packet(self, event):
         self.loop_queue.put(event.packet)
