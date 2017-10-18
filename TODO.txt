@@ -15,3 +15,5 @@ Deal with unit systems
 
 The time span of the "recent" display should be adjustable by the user.
 
+The "Current Conditions" time should pulse, acting as a heart beat.
+

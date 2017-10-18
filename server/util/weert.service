@@ -1,0 +1,13 @@
+[Unit]
+Description=WeeRT - Realtime weather logging
+Documentation=https://github.com/tkeffer/weert-js
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+ExecStart=/home/ubuntu/.nvm/versions/node/v6.9.5/bin/node /home/ubuntu/git/weert-js/server/server.js
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
