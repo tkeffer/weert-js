@@ -132,6 +132,21 @@ WeeRT can make voluminous entries into your system log. The WeeWX
 uploader will make an entry every LOOP packet, as does the InfluxDB
 database. This can mean thousands of entries per hour.
 
+The number of uploader entries can be drastically reduced by
+using option `log_success`:
+
+```ini
+[StdRestful]
+    ...
+    [[WeeRT]]
+        host = localhost
+        port = 3000
+        log_success = false
+```
+
+Consult the [InfluxDB configuration documentation](https://docs.influxdata.com/influxdb/v1.3/administration/config/)
+for how to control its logging policies.
+
 ### Observation names
 
 WeeRT uses a different system to name observation types than WeeWx.
