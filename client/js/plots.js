@@ -15,7 +15,9 @@ class Plot {
     /**
      * Construct a Plot object. This constructor is not intended to be used directly. Instead,
      * the static method {@link Plot.createPlot} should be used instead.
-     * @param {String} plot_div The id of the document <tt>div</tt> where the plot is located.
+     * @param {String} plot_div The id of the document <tt>div</tt> where the plot is located. (This
+     *    is what's returned by the Plotly function
+     *    {@link https://plot.ly/javascript/plotlyjs-function-reference/#plotlynewplot Plotly.newPlot})
      */
     constructor(plot_div) {
         this.plot_div = plot_div;
@@ -24,7 +26,7 @@ class Plot {
     /**
      * Update the plot to reflect a changed model
      */
-    update() {
+    update(event_type, event_data) {
         Plotly.redraw(this.plot_div);
     }
 

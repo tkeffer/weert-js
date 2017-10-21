@@ -6,13 +6,7 @@
 
 "use strict";
 
-var weert_config = {
-    platform     : "default_platform",
-    stream       : "default_stream",
-    faye_endpoint: "/api/v1/faye"
-};
-
-var plot_list = [
+const plot_list = [
     {
         plot_div: 'windspeed-div',
         layout  : {
@@ -48,212 +42,120 @@ var plot_list = [
     }
 ];
 
-var recent_group = {
+const recent_group = {
     time_group      : "recent",
     measurement     : "wxpackets",
-    max_initial_age : 1200000,       // In milliseconds
     max_retained_age: 1200000,       // In milliseconds
     plot_list       : plot_list
 };
 
-var day_group = {
+const day_group = {
     time_group      : "day",
     measurement     : "wxrecords",
-    max_initial_age : 24 * 3600000, // In milliseconds
     max_retained_age: 27 * 3600000, // In milliseconds
     plot_list       : plot_list
 };
 
+// Accumulate a list of observation types:
+const obs_types = [];
+for (let plot of plot_list) {
+    for (let trace of plot.traces) {
+        obs_types.push(trace.obs_type);
+    }
+}
 
-function readyDoc() {
+const weert_config = {
+    obs_types    : obs_types,
+    platform     : "default_platform",
+    stream       : "default_stream",
+    faye_endpoint: "/api/v1/faye"
+};
 
+
+function readyTemplate(data_manager) {
     return new Promise(function (resolve) {
         // The DOM has to be ready before we can select the SVG area.
         document.addEventListener("DOMContentLoaded", function () {
 
             // Compile the console template
-            var source = $("#wx-console-template").html();
-            var console_template = new Handlebars.compile(source);
+            let source           = $("#wx-console-template").html();
+            let console_template = new Handlebars.compile(source);
+            // Set the callback for new packets
+            data_manager.subscribe((event_type, new_packet) => {
+                if (event_type === 'new_packet') {
+                    // Render the Handlebars template showing the current conditions
+                    let html = console_template(new_packet);
+                    $("#wx-console-area").html(html);
+                }
+            });
+            resolve(console_template);
+        });
+    });
+};
 
-            // Include the initial wind compass
-            var windcompass = new WindCompass();
+function readyWindCompass(data_manager) {
+    return new Promise(function (resolve) {
+        // The DOM has to be ready before we can select the SVG area.
+        document.addEventListener("DOMContentLoaded", function () {
 
-            resolve([console_template, windcompass]);
+            let wind_compass = new WindCompass();
+            // set the callback for new packets
+            data_manager.subscribe((event_type, new_packet) => {
+                if (event_type === 'new_packet') {
+                    // Update the wind compass
+                    wind_compass.updateWind([
+                                                new_packet.timestamp / 1000000,
+                                                new_packet.fields.wind_dir,
+                                                new_packet.fields.wind_speed
+                                            ]);
+                }
+            });
+
+            resolve(wind_compass);
         });
     });
 }
 
-function getRecentData(measurement, max_initial_age) {
-    // Tell the server to send up to max_initial_age_secs worth of data.
-    // Convert to nanoseconds.
-    var stop = Date.now() * 1000000;
-    var start = stop - max_initial_age * 1000000;
-    // Use a simple GET request, returning the promise
-    return $.ajax({
-                      url     : "http://" + window.location.host + "/api/v1/measurements/" + measurement + "/packets",
-                      data    : {
-                          start   : start,
-                          stop    : stop,
-                          platform: weert_config.platform,
-                          stream  : weert_config.stream
-                      },
-                      method  : "GET",
-                      dataType: "JSON"
-                  });
-}
-
-function createPlotGroup(plot_group, packet_array) {
-    var promises = [];
-    for (var plot of plot_group.plot_list) {
-        promises.push(createPlot(plot, plot_group.time_group + '-' + plot.plot_div, packet_array));
-    }
-    return Promise.all(promises);
-}
-
-function createPlot(plot, plot_div, packet_array) {
-
-    var data = [];
-    for (var trace of plot.traces) {
-        data.push(
-            {
-                x   : packet_array.map(function (packet) {
-                    return packet.timestamp / 1000000;
-                }),
-                y   : packet_array.map(function (packet) {
-                    return packet.fields[trace.obs_type];
-                }),
-                mode: "lines",
-                type: "scatter",
-                name: trace.label
-            });
-    }
-    return Plotly.newPlot(plot_div, data, plot.layout);
-}
-
-function extendPlotGroup(plot_group, packet) {
-    var promises = [];
-    var N;
-    // Go through all the plots for this plot group, updating each one
-    for (var plot of plot_group.plot_list) {
-        var update = {
-            x: plot.traces.map(function (trace) {
-                return [packet.timestamp / 1000000];
-            }),
-            y: plot.traces.map(function (trace) {
-                return [packet.fields[trace.obs_type]];
-            })
-        };
-        // This will be a simple array [0, 1, ... J] of the same length
-        // as the number of traces in this plot.
-        var trace_list = [];
-        for (var i = 0; i < plot.traces.length; i++) {
-            trace_list.push(i);
-        }
-
-        // To get the document division name, concatenate the time group
-        // with the div name for this plot
-        var div_name = plot_group.time_group + '-' + plot.plot_div;
-
-        // Find the dataset, then look for the last point to be retained.
-        // If an exception occurs, then retain everything.
-        try {
-            var plotData = document.getElementById(div_name).data;
-            var xLength = plotData[0].x.length;
-            var lastTimestamp = plotData[0].x[xLength - 1];
-            var trim_time = lastTimestamp - plot_group.max_retained_age;
-            var i = plotData[0].x.findIndex(function (xval) {
-                return xval >= trim_time;
-            });
-
-            // If all data points are up to date, keep them all.
-            N = i ? xLength - i : undefined;
-
-        } catch (err) {
-            N = undefined;
-        }
-        // Now extend the traces in this plot, retaining N points.
-        promises.push(Plotly.extendTraces(div_name, update, trace_list, N));
-    }
-
-    // This is a promise to update all the plots in this plot group
-    return Promise.all(promises);
-}
-
-// Wait until the recent data has been received and the template compiled,
-// then proceed with rendering the template and plots.
-Promise.all([getRecentData(recent_group.measurement,
-                           recent_group.max_initial_age), readyDoc()])
-       .then(function (results) {
-           return new Promise(function (resolve, reject) {
-               var recent_data = results[0];
-               var console_template = results[1][0];
-               var wind_compass = results[1][1];
-               console.log("Got", recent_data.length, "records for recent group");
-
-               var last_packet = recent_data[recent_data.length - 1];
-               // Render the Handlebars template showing the current conditions
-               var html = console_template(last_packet);
-               $("#wx-console-area").html(html);
-
-               // Initialize the wind compass
-               wind_compass.updateWind([last_packet.timestamp / 1000000,
-                                           last_packet.fields.wind_dir,
-                                           last_packet.fields.wind_speed]);
-
-               // Create the "recent" plots:
-               createPlotGroup(recent_group, recent_data)
-                   .then(function () {
-                       resolve([console_template, wind_compass]);
-                   })
-                   .catch(function (err) {
-                       reject(err);
+function readyPlotGroup(plot_group, data_manager) {
+    return new Promise(function (resolve) {
+        document.addEventListener("DOMContentLoaded", function () {
+            let promises = [];
+            for (let plot_spec of plot_group.plot_list) {
+                promises.push(
+                    Plot.createPlot(
+                        plot_group.time_group + '-' + plot_spec.plot_div,
+                        data_manager,
+                        plot_spec.layout,
+                        plot_spec.traces)
+                );
+            }
+            Promise.all(promises)
+                   .then(plots => {
+                       for (let plot of plots) {
+                           data_manager.subscribe(Plot.prototype.update.bind(plot));
+                       }
+                       resolve(plots);
                    });
-           });
-       })
-       .then(function (results) {
-           var console_template = results[0];
-           var wind_compass = results[1];
-           // The recent data and plots have been rendered. Time
-           // to subscribe to updates
-           var client = new Faye.Client("http://" + window.location.host + weert_config.faye_endpoint);
-           return client.subscribe("/" + recent_group.measurement, function (packet) {
-               var html = console_template(packet);
-               $("#wx-console-area").html(html);
-
-               // Update the wind compass
-               wind_compass.updateWind([packet.timestamp / 1000000,
-                                           packet.fields.wind_dir,
-                                           packet.fields.wind_speed]);
-
-
-               return extendPlotGroup(recent_group, packet);
-           });
-       })
-       .then(() => {
-           console.log(`Subscribed to POSTS to measurement ${recent_group.measurement}`);
-       })
-       .catch(function (err) {
-           console.log(`Error creating or updating measurement ${recent_group.measurement}: ${err}`);
-       });
-
-// Now do the "day" plots. Because the template is not involved, it's much simpler.
-getRecentData(day_group.measurement, day_group.max_initial_age)
-    .then(function (day_data) {
-        console.log("Got", day_data.length, "records for day group");
-        return createPlotGroup(day_group, day_data);
-    })
-    .then(function () {
-        var client = new Faye.Client("http://" + window.location.host + weert_config.faye_endpoint);
-        return client.subscribe("/" + day_group.measurement, function (packet) {
-            return extendPlotGroup(day_group, packet);
         });
-    })
-    .then(() => {
-        console.log(`Subscribed to CQ updates to measurement ${day_group.measurement}`);
-    })
-    .catch(err => {
-        console.log(`Error creating or updating measurement ${day_group.measurement}: ${err}`);
     });
+}
+
+const recent_data_manager = new DataManager(recent_group.measurement,
+                                            weert_config);
+const day_data_manager    = new DataManager(day_group.measurement,
+                                            weert_config);
+
+Promise.all([
+                readyTemplate(recent_data_manager),
+                readyWindCompass(recent_data_manager),
+                readyPlotGroup(recent_group, recent_data_manager),
+                readyPlotGroup(day_group, day_data_manager)])
+       .then(() => {
+           return Promise.all([
+                                  recent_data_manager.setMaxAge(recent_group.max_retained_age),
+                                  day_data_manager.setMaxAge(day_group.max_retained_age)
+                              ]);
+       });
 
 
 Handlebars.registerHelper("formatTimeStamp", function (ts) {
