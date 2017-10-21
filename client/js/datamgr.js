@@ -48,17 +48,24 @@ class DataManager {
             // First, trim off any stale data points off the front of the
             // x and y arrays.
             if (this.x.length) {
-                var lastTimestamp = this.x[this.x.length - 1];
-                var trim_time     = lastTimestamp - this.max_age;
-                var first_good    = this.x.findIndex(function (xval) {
+                let lastTimestamp = this.x[this.x.length - 1];
+                let trim_time     = lastTimestamp - this.max_age;
+                let first_good    = this.x.findIndex(function (xval) {
                     return xval >= trim_time;
                 });
 
-                let Ntrim = first_good === -1 ? this.x.length : first_good;
+                let start_trim, Ntrim;
+                if (first_good === -1) {
+                    start_trim = 0;
+                    Ntrim      = this.x.length;
+                } else {
+                    start_trim = first_good - 1;
+                    Ntrim      = first_good;
+                }
 
-                this.x.splice(first_good - 1, Ntrim);
+                this.x.splice(start_trim, Ntrim);
                 for (let obs_type of this.obs_types) {
-                    this.y[obs_type].splice(first_good - 1, Ntrim);
+                    this.y[obs_type].splice(start_trim, Ntrim);
                 }
             }
 
@@ -89,9 +96,10 @@ class DataManager {
      * @return {Promise} A promise to resolve to the number of packets returned from the server.
      */
     setMaxAge(max_age) {
-        this.max_age = max_age || 1200000;
+        max_age   = max_age || 1200000;
+        console.log('setting max age to', max_age)
         // Convert to nanoseconds
-        let since    = (Date.now() - this.max_age) * 1000000;
+        let since = (Date.now() - max_age) * 1000000;
         return $.ajax({
                           url     : "http://" + window.location.host + "/api/v1/measurements/" +
                                     this.measurement + "/packets",
@@ -104,13 +112,23 @@ class DataManager {
                           dataType: "JSON"
                       })
                 .then(packet_array => {
-                    // Go through the array of packets, adding to my internal array of
+
+                    // Got new data. First, get rid of the old
+                    this.x.splice(0, this.x.length);
+                    for (let obs_type of this.obs_types) {
+                        this.y[obs_type].splice(0, this.y[obs_type].length);
+                    }
+
+                    // Now go through the array of packets, adding to my internal array of
                     // x- and y-values.
                     for (let packet of packet_array) {
                         this._pushPacket(packet);
                     }
                     // Let my subscribers know I've changed.
                     this._notify_subscribers('reload', {x: this.x, y: this.y});
+
+                    // Now that I've loaded the data, it's ok to accept new packets from the server
+                    this.max_age = max_age;
 
                     return Promise.resolve(packet_array.length);
                 });

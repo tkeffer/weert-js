@@ -86,7 +86,12 @@
             <li><a href='#recent'>Recent</a></li>
             <li><a href='#day'>Today</a></li>
         </ul>
-        <div id='recent' class='plot-group'>
+        <div id='recent' class='plot-group'>Minutes:
+            <label><input type='radio' name='recent_span' value='5' onchange='changeSpan(this)' checked>5</label>
+            <label><input type='radio' name='recent_span' value='10' onchange='changeSpan(this)'>10</label>
+            <label><input type='radio' name='recent_span' value='20' onchange='changeSpan(this)'>20</label>
+            <label><input type='radio' name='recent_span' value='60' onchange='changeSpan(this)'>60</label>
+
             <div id='recent-windspeed-div' class='plot-area'></div>
             <div id='recent-outtemp-div' class='plot-area'></div>
             <div id='recent-radiation-div' class='plot-area'></div>

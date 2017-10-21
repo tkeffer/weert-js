@@ -159,6 +159,10 @@ Promise.all([
                               ]);
        });
 
+// Allow changing the total time span displayed by the "recent" plots:
+var changeSpan = function (x) {
+    recent_data_manager.setMaxAge(x.value * 60000);
+};
 
 Handlebars.registerHelper("formatTimeStamp", function (ts) {
     return new Date(ts / 1000000);
