@@ -12,6 +12,7 @@
  * application.
  */
 const bodyParser = require('body-parser');
+const compression = require('compression');
 const debug = require('debug')('weert:server');
 const http = require('http');
 const logger = require('morgan');
@@ -27,6 +28,7 @@ app.set('view engine', 'hbs');
 app.use(logger('dev'));
 //app.use(logger('combined'));
 
+app.use(compression());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 

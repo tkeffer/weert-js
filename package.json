@@ -19,6 +19,7 @@
   "dependencies": {
     "async": "^1.5.2",
     "body-parser": "^1.18.2",
+    "compression": "^1.7.1",
     "debug": "^2.2.0",
     "express": "^4.13.3",
     "faye": "^1.2.4",
