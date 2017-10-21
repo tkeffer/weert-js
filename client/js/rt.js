@@ -6,6 +6,7 @@
 
 "use strict";
 
+// This is the list of plots to be constructed for each document div.
 const plot_list = [
     {
         plot_div: 'windspeed-div',
@@ -56,21 +57,19 @@ const day_group = {
     plot_list       : plot_list
 };
 
-// Accumulate a list of observation types:
-const obs_types = [];
-for (let plot of plot_list) {
-    for (let trace of plot.traces) {
-        obs_types.push(trace.obs_type);
-    }
-}
-
 const weert_config = {
-    obs_types    : obs_types,
+    obs_types    : [],
     platform     : "default_platform",
     stream       : "default_stream",
     faye_endpoint: "/api/v1/faye"
 };
 
+// Accumulate a list of observation types:
+for (let plot of plot_list) {
+    for (let trace of plot.traces) {
+        weert_config.obs_types.push(trace.obs_type);
+    }
+}
 
 function readyTemplate(data_manager) {
     return new Promise(function (resolve) {
@@ -83,7 +82,7 @@ function readyTemplate(data_manager) {
             // Set the callback for new packets
             data_manager.subscribe((event_type, new_packet) => {
                 if (event_type === 'new_packet') {
-                    // Render the Handlebars template showing the current conditions
+                    // Render the Handlebars template showing the new conditions
                     let html = console_template(new_packet);
                     $("#wx-console-area").html(html);
                 }
@@ -116,7 +115,7 @@ function readyWindCompass(data_manager) {
     });
 }
 
-function readyPlotGroup(plot_group, data_manager) {
+function readyPlotGroup(data_manager, plot_group) {
     return new Promise(function (resolve) {
         document.addEventListener("DOMContentLoaded", function () {
             let promises = [];
@@ -131,6 +130,7 @@ function readyPlotGroup(plot_group, data_manager) {
             }
             Promise.all(promises)
                    .then(plots => {
+                       // Set the callback for new packets
                        for (let plot of plots) {
                            data_manager.subscribe(Plot.prototype.update.bind(plot));
                        }
@@ -148,9 +148,11 @@ const day_data_manager    = new DataManager(day_group.measurement,
 Promise.all([
                 readyTemplate(recent_data_manager),
                 readyWindCompass(recent_data_manager),
-                readyPlotGroup(recent_group, recent_data_manager),
-                readyPlotGroup(day_group, day_data_manager)])
+                readyPlotGroup(recent_data_manager, recent_group),
+                readyPlotGroup(day_data_manager, day_group)])
        .then(() => {
+           // Once all the components are ready,
+           // it's time to grab the initial data by calling setMaxAge()
            return Promise.all([
                                   recent_data_manager.setMaxAge(recent_group.max_retained_age),
                                   day_data_manager.setMaxAge(day_group.max_retained_age)
