@@ -9,15 +9,15 @@
  */
 "use strict";
 
-var async = require('async');
-var frisby = require('frisby');
+var async        = require('async');
+var frisby       = require('frisby');
 var normalizeUrl = require('normalize-url');
-var request = require('request');
+var request      = require('request');
 
 var config = require('../../server/config/config');
 
 var measurements_url = 'http://localhost:3000' + config.server.api + '/measurements';
-var packets_url = measurements_url + '/test_measurement/packets';
+var packets_url      = measurements_url + '/test_measurement/packets';
 
 // We have to make sure all inserted times are within the retention policy
 // of the database. So, use current time stamps.
@@ -42,14 +42,27 @@ var form_deep_packet = function (i) {
     return obj;
 };
 
+let auth_value = 'Basic ' + Buffer.from("weert:weert").toString('base64');
+
+// Make sure to add an Authorization header to all requests.
+frisby.globalSetup({
+                       request: {
+                           headers: {'Authorization': auth_value}
+                       }
+                   });
+
+request = request.defaults({
+                               headers: {'Authorization': auth_value}
+                           });
+
 describe('In the single packet tests', function () {
 
     // Before each test, delete the entire measurement.
     beforeEach(function (doneFn) {
         request({
-            url   : measurements_url,
-            method: 'DELETE'
-        }, function (err) {
+                    url   : measurements_url,
+                    method: 'DELETE'
+                }, function (err) {
             doneFn();
         });
 
@@ -108,9 +121,9 @@ describe('Malformed packet tests', function () {
     // Before each test, delete the packet (which may or may not exist).
     beforeEach(function (doneFn) {
         request({
-            url   : packet_url,
-            method: 'DELETE'
-        }, function (err) {
+                    url   : packet_url,
+                    method: 'DELETE'
+                }, function (err) {
             doneFn();
         });
 
@@ -126,7 +139,7 @@ describe('Malformed packet tests', function () {
               .done(doneFn);
     });
 
-    let bad_measurement_packet = form_deep_packet(0);
+    let bad_measurement_packet         = form_deep_packet(0);
     bad_measurement_packet.measurement = 'foo';
     it("should not POST a packet with a mis-matched value of 'measurement'", function (doneFn) {
         frisby.post(packets_url, bad_measurement_packet, {json: true})
@@ -135,7 +148,7 @@ describe('Malformed packet tests', function () {
     });
 
     // Try it with a good value for 'measurement'
-    let good_measurement_packet = form_deep_packet(0);
+    let good_measurement_packet         = form_deep_packet(0);
     good_measurement_packet.measurement = 'test_measurement';
     it("should POST a packet with a matched value of 'measurement'", function (doneFn) {
         frisby.post(packets_url, good_measurement_packet, {json: true})
@@ -144,7 +157,7 @@ describe('Malformed packet tests', function () {
     });
 
     // Test inserting a null value
-    let packet_with_null = form_deep_packet(0);
+    let packet_with_null             = form_deep_packet(0);
     packet_with_null.fields.humidity = null;
     it("should allow insertion of a NULL value", function (doneFn) {
         frisby.post(packets_url, packet_with_null, {json: true})
@@ -170,12 +183,12 @@ var N = 10;
 describe("Launch and test " + N + " POSTs of packets", function () {
     var query;
 
-    var indices = [];
-    var packets = [];
+    var indices         = [];
+    var packets         = [];
     var reverse_packets = [];
     for (var i = 0; i < N; i++) {
-        indices[i] = i;
-        packets[i] = form_deep_packet(i);
+        indices[i]                 = i;
+        packets[i]                 = form_deep_packet(i);
         reverse_packets[N - i - 1] = packets[i];
     }
 
@@ -184,24 +197,24 @@ describe("Launch and test " + N + " POSTs of packets", function () {
         return normalizeUrl(packets_url + '/' + timestamp);
     };
 
-    var results_finished = false;
+    var results_finished   = false;
     var results_successful = false;
 
     // Before any of the tests, first delete the measurement, then repopulate it
     beforeAll(function (doneFn) {
 
         request({
-            url   : measurements_url,
-            method: 'DELETE'
-        }, function (err) {
+                    url   : measurements_url,
+                    method: 'DELETE'
+                }, function (err) {
             // Now asynchronously repopulate it.
             async.each(indices, function (i, callback) {
                 request({
-                    url   : packets_url,
-                    method: 'POST',
-                    body  : packets[i],
-                    json  : true
-                }, function (error) {
+                            url   : packets_url,
+                            method: 'POST',
+                            body  : packets[i],
+                            json  : true
+                        }, function (error) {
                     return callback(error);
                 });
             }, function (err) {
@@ -294,11 +307,11 @@ describe("Testing measurement", function () {
     // Before each test, delete the packet (which may or may not exist).
     beforeEach(function (doneFn) {
         request({
-            url   : packets_url,
-            method: 'POST',
-            json  : true,
-            body  : form_deep_packet(0)
-        }, function (error) {
+                    url   : packets_url,
+                    method: 'POST',
+                    json  : true,
+                    body  : form_deep_packet(0)
+                }, function (error) {
             return doneFn();
         });
     });

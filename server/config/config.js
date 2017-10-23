@@ -11,6 +11,11 @@ module.exports = {
     // Set to 0 (zero) for no debugging, 1 (one) for debugging.
     debug: 1,
 
+    // Users and their passwords
+    users: {
+        "weert" : "weert"
+    },
+
     // Configuration info for the WeeRT server itself
     server: {
         port: 3000,

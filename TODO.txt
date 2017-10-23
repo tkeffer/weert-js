@@ -1,19 +1,17 @@
-
 SERVER
 
 CQ timer slowly advances forward in time. It needs to calculate the exact time to the
 next publishing event.
 
+Log any failed authentication attempts
+
+Update API docs to reflect authentication requirements
+
 
 
 CLIENT
 
-Should be able to handle scenario with "no recent packet." This typically happens if the browser
-comes up before the server.
-
 Deal with unit systems
-
-The time span of the "recent" display should be adjustable by the user.
 
 The "Current Conditions" time should pulse, acting as a heart beat.
 

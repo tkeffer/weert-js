@@ -11,23 +11,27 @@
  * This first part is pretty much boilerplate for any Express
  * application.
  */
-const bodyParser = require('body-parser');
+const bodyParser  = require('body-parser');
 const compression = require('compression');
-const debug = require('debug')('weert:server');
-const http = require('http');
-const logger = require('morgan');
-const path = require('path');
-const express = require('express');
-const app = express();
+const debug       = require('debug')('weert:server');
+const http        = require('http');
+const logger      = require('morgan');
+const path        = require('path');
+const basicAuth   = require('express-basic-auth');
+const express     = require('express');
+const app         = express();
+
 
 // Set up the view engine
 app.set('views', path.join(__dirname, './views'));
 app.set('view engine', 'hbs');
 
 // Log all requests to the server to the console
-app.use(logger('dev'));
 //app.use(logger('combined'));
+app.use(logger('dev'));
 
+// Using compression can result in an order-of-magnitude savings for
+// longer packet arrays
 app.use(compression());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
@@ -38,17 +42,18 @@ app.use(express.static(path.join(__dirname, '../client')));
 /*
  * Now comes the WeeRT-specific stuff
  */
-const config = require('./config/config');
-const MeasurementManager = require('./services/measurement_manager');
-const measurement_router_factory = require('./routes/measurement_routes');
-const subsampling = require('./services/subsampling');
-const retention_policies = require('./config/retention_policies');
+const config               = require('./config/config');
+const MeasurementManager   = require('./services/measurement_manager');
+const read_router_factory  = require('./routes/read_routes');
+const write_router_factory = require('./routes/write_routes');
+const subsampling          = require('./services/subsampling');
+const retention_policies   = require('./config/retention_policies');
 // This type of metadata should probably be in a database,
 // but for now, retrieve it from a JSON file
 const measurement_config = require('./meta_data/measurement_config');
 
 // Set up the sub-pub facility
-const faye = require('faye');
+const faye   = require('faye');
 const bayeux = new faye.NodeAdapter({mount: config.faye.endpoint, timeout: 45});
 // Monitor pub-sub clients
 bayeux.on('subscribe', function (clientId, channel) {
@@ -108,16 +113,22 @@ influx.getDatabaseNames()
           // Arrange to be notified after each continuous query has been run
           subsampling.setup_all_notices(measurement_manager, faye_client, measurement_config);
 
-          // Set up the routes
-          app.use(config.server.api, measurement_router_factory(measurement_manager, faye_client));
+          // Set up the read-only routes, which do not require authorization
+          app.use(config.server.api, read_router_factory(measurement_manager));
 
-          // error handlers
+          // Set up the basic authorization
+          app.use(basicAuth({'users': config.users}));
 
-          // If we got this far, the request did not match any router. It's a 404.
-          // Catch it and forward to error handler
+          // Set up the mutable routes, which do require authorization
+          app.use(config.server.api, write_router_factory(measurement_manager, faye_client));
+
+          /*
+           * Error handlers. If we got this far, the request did not match any router. It's a 404.
+           * Catch it and forward to error handler
+           */
           app.use(function (req, res, next) {
               debug('caught 404');
-              let err = new Error('Page not found: ' + req.originalUrl);
+              let err    = new Error('Page not found: ' + req.originalUrl);
               err.status = 404;
               next(err);
           });
@@ -125,18 +136,19 @@ influx.getDatabaseNames()
           // development error handler
           // will print stacktrace
           if (app.get('env') === 'development') {
-              app.use(function (err, req, res) {
+              app.use(function (err, req, res, next) {
                   res.status(err.status || 500);
                   res.render('error', {
                       message: err.message,
                       error  : err
                   });
+                  debug('error:', err);
               });
           }
 
           // production error handler
           // no stacktraces leaked to user
-          app.use(function (err, req, res) {
+          app.use(function (err, req, res, next) {
               res.status(err.status || 500);
               res.render('error', {
                   message: err.message,

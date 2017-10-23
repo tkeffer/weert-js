@@ -9,6 +9,7 @@
 # in weewx.
 #
 
+import base64
 import json
 import math
 import threading
@@ -27,6 +28,10 @@ defaults_ini = """
     # The WeeRT server
     host = localhost
     port = 3000
+    
+    # Default username and password. Change these!
+    user = weert
+    password = weert
 
     # A unique name for the location of the stream
     platform = default_platform
@@ -85,7 +90,7 @@ class WeeRT(weewx.restx.StdRESTful):
     def __init__(self, engine, config_dict):
         super(WeeRT, self).__init__(engine, config_dict)
 
-        weert_dict = weewx.restx.get_site_dict(config_dict, 'WeeRT', 'host', 'port')
+        weert_dict = weewx.restx.get_site_dict(config_dict, 'WeeRT', 'host', 'port', 'user', 'password')
         if weert_dict is None:
             return
 
@@ -124,6 +129,7 @@ class WeeRTThread(weewx.restx.RESTThread):
 
     def __init__(self, queue, manager_dict,
                  host, port,
+                 user, password,
                  measurement,
                  platform, stream,
                  loop_filters,
@@ -141,6 +147,9 @@ class WeeRTThread(weewx.restx.RESTThread):
 
           host:
           port: The host and port of the WeeRT server
+          
+          user:
+          password: The username and password to be send
 
           measurement: The InfluxDB measurement name to use.
 
@@ -167,6 +176,8 @@ class WeeRTThread(weewx.restx.RESTThread):
 
         self.host = host
         self.port = to_int(port)
+        self.user = user
+        self.password = password
         self.measurement = measurement
         self.platform = platform
         self.stream = stream
@@ -179,6 +190,15 @@ class WeeRTThread(weewx.restx.RESTThread):
 
         url = "http://%s:%s/api/v1/measurements/%s/packets" % (self.host, self.port, self.measurement)
         return url
+    
+    def get_request(self, url):
+        """Override and add user and password"""
+        # Get the basic Request from my superclass
+        request = super(WeeRTThread, self).get_request(url)
+        # add the authentication header:
+        base64string = base64.b64encode('%s:%s' % (self.user, self.password))
+        request.add_header("Authorization", "Basic %s" % base64string)
+        return request
 
     def get_post_body(self, packet):
         """Supply the body and MIME type of the POST"""

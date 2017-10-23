@@ -65,6 +65,8 @@ by the uploader.
         [[WeeRT]]
             host = localhost
             port = 3000
+            user = weert
+            password = weert
 
     ...
 
@@ -139,8 +141,7 @@ using option `log_success`:
 [StdRestful]
     ...
     [[WeeRT]]
-        host = localhost
-        port = 3000
+        ...
         log_success = false
 ```
 
@@ -168,6 +169,31 @@ HTML.
 Eventually, WeeRT will be able to determine the proper unit label to use from an
 observation's inferred unit group and from the type `unit_system`
 (similar to WeeWX's `usUnits`).
+
+### Security
+
+The server requires authentication for any mutating actions, that is, any POSTs
+or DELETEs. The default configuration (file `server/config/config.js`) includes
+a user `weert` with password `weert`. These should, obviously, be changed.
+
+The configuration for the WeeWX uploader in `weewx.conf` should be changed
+to match the chosen username and password.
+
+The authorization is done through an `Authorization` header, which should include
+the word `Basic`, followed by the base64 encoding of the username and password
+with a colon in between. In Python, this looks like:
+
+```python
+import urllib2, base64
+
+  ...
+request = urllib2.Request(url)
+base64string = base64.b64encode('%s:%s' % ('johndoe', 'mysecretpassword'))
+request.add_header("Authorization", "Basic %s" % base64string)
+
+```
+
+
 
 # Data model
 
