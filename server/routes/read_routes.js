@@ -38,7 +38,7 @@ const ReadRouterFactory = function (measurement_manager) {
                    .json(packet);
             })
             .catch(err => {
-                debug('GET /measurements/:measurement/packets/ error:', err);
+                debug('GET /measurements/:measurement/packets/ error:', err.message);
                 res.status(400)
                    .json(auxtools.fromError(400, err));
             });
@@ -65,7 +65,7 @@ const ReadRouterFactory = function (measurement_manager) {
                 }
             })
             .catch(err => {
-                debug('GET /measurements/:measurement/packets/:timestamp find error', err);
+                debug('GET /measurements/:measurement/packets/:timestamp find error', err.message);
                 res.status(400)
                    .json(auxtools.fromError(400, err));
             });
@@ -86,7 +86,7 @@ const ReadRouterFactory = function (measurement_manager) {
                 }
             })
             .catch(err => {
-                debug('GET /measurements/:measurement error:', err);
+                debug('GET /measurements/:measurement error:', err.message);
                 res.status(400)
                    .json(auxtools.fromError(400, err));
             });

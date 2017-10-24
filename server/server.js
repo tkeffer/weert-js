@@ -136,8 +136,8 @@ influx.getDatabaseNames()
               next(err);
           });
 
-          // development error handler
-          // will print stacktrace
+          // Development error handler --- rendering the full "err" object will
+          // include the stack (and lots of other stuff)
           if (app.get('env') === 'development') {
               app.use(function (err, req, res, next) {
                   res.status(err.status || 500);

@@ -42,11 +42,11 @@ const WriteRouterFactory = function (measurement_manager, pub_sub) {
                                      debug(`PUBlished packet ${new Date(packet.timestamp / 1000000)} to /${measurement}`);
                                  },
                                  function (err) {
-                                     debug("POST /measurements/:measurement/packets PUB-SUB error:", err);
+                                     debug("POST /measurements/:measurement/packets PUB-SUB error:", err.message);
                                  });
                 })
                 .catch(function (err) {
-                    debug('POST /measurements/:measurement/packets error:', err);
+                    debug('POST /measurements/:measurement/packets error:', err.message);
                     res.status(400)
                        .json(auxtools.fromError(400, err));
                 });
@@ -71,7 +71,7 @@ const WriteRouterFactory = function (measurement_manager, pub_sub) {
                 res.sendStatus(204);
             })
             .catch(err => {
-                debug('DELETE /measurements/:measurement/packets/:timestamp delete error:', err);
+                debug('DELETE /measurements/:measurement/packets/:timestamp delete error:', err.message);
                 res.status(400)
                    .json(auxtools.fromError(400, err));
             });
@@ -87,7 +87,7 @@ const WriteRouterFactory = function (measurement_manager, pub_sub) {
                 res.sendStatus(204);
             })
             .catch(err => {
-                debug('DELETE /measurements/:measurement error:', err);
+                debug('DELETE /measurements/:measurement error:', err.message);
                 res.status(400)
                    .json(auxtools.fromError(400, err));
             });
