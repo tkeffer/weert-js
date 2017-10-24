@@ -183,11 +183,37 @@ to match the chosen username and password.
 
 ## Background
 
-It is strongly recommended that you read the ["key concepts"
-section](https://docs.influxdata.com/influxdb/v1.3/concepts/key_concepts/)
-of the InfluxDB documentation. In particular, be sure to understand
+It is strongly recommended that you read the
+["key concepts"](https://docs.influxdata.com/influxdb/v1.3/concepts/key_concepts/)
+section of the InfluxDB documentation. In particular, be sure to understand
 the concepts of measurements, tags, and fields. These terms are used
 throughout WeeRT.
+
+## WeeRT and InfluxDB
+
+WeeRT stores incoming real-time packets into measurement `wxpackets`. These are then aggregated and subsampled
+regularly (typically, every 5 minutes) into another measurement, `wxrecords`.
+
+Data in `wxpackets` use a 24 hour retention policy --- they are purged if older than 24 hours.
+Data in `wxrecords` are retained indefinitely.
+
+### Schema
+
+InfluxDB does not use a schema. Nevertheless, data is organized in a structured, organized way.
+Both `wxpackets` and `wxrecords` use identical structures.
+
+WeeRT uses two InfluxDB *tags*: `platform` and `stream`. The former, `platform`, is intended to
+represent a physical presence, such as a house, car, or piece of industrial machinery.
+The latter, `stream`, represents a data stream within the platform, such
+as a specific weather station, or sensor. Like any InfluxDB tags, `platform` and `stream`
+are indexed. The default `platform` is `default_platform`; the default `stream` is
+`default_stream`.
+
+The observation values, such as `outside_temperature`, are stored as InfluxDB *fields*.
+They are not indexed. Because InfluxDB does not use a schema, new data types can be introduced
+into the data stream at any time and they will be stored in the database.
+
+The observation time is stored as field `time`, always in nanoseconds.
 
 ## Packets
 
@@ -564,6 +590,8 @@ Post a new packet.
 POST /api/v1/measurements/:measurement/packets
 ```
 
+**Header**
+
 The HTTP request must include an `Authorization` header.
 
 **JSON input**
@@ -624,6 +652,8 @@ Delete packets with a specific timestamp.
 ```
 DELETE /api/v1/measurements/:measurement/packets/:timestamp
 ```
+
+**Header**
 
 The HTTP request must include an `Authorization` header.
 
@@ -730,6 +760,8 @@ Delete a measurement from the InfluxDB database.
 ```
 DELETE ap/v1/measurements/:measurement
 ```
+
+**Header**
 
 The HTTP request must include an `Authorization` header.
 
