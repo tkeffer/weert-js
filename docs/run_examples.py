@@ -9,8 +9,8 @@ To use:
 
 3. Run the Python code:
 
-   $ cd weert
-   $ docs/run_examples README.md > test.md
+   $ cd weert-js
+   $ python docs/run_examples.py README.md > test.md
  
 4. Look over test.md. If it looks good, substitute it for README.md
  

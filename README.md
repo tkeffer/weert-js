@@ -179,22 +179,6 @@ a user `weert` with password `weert`. These should, obviously, be changed.
 The configuration for the WeeWX uploader in `weewx.conf` should be changed
 to match the chosen username and password.
 
-The authorization is done through an `Authorization` header, which should include
-the word `Basic`, followed by the base64 encoding of the username and password
-with a colon in between. In Python, this looks like:
-
-```python
-import urllib2, base64
-
-  ...
-request = urllib2.Request(url)
-base64string = base64.b64encode('%s:%s' % ('johndoe', 'mysecretpassword'))
-request.add_header("Authorization", "Basic %s" % base64string)
-
-```
-
-
-
 # Data model
 
 ## Background
@@ -264,7 +248,7 @@ ecosystem. It's useful to be aware of the differences.
 WeeRT tries to consistently traffic in "deep packets." Data going in and out of the WeeRT server
 are in this format. 
  
-# <a name="API"></api>API
+# <a name="API"></a>API
 
 [//]: # (# The following commands will set up the database)
 [//]: # (curl -XPOST 'http://localhost:8086/query?db=weert' --data-urlencode 'q=DROP MEASUREMENT "examples"')
@@ -278,10 +262,23 @@ are in this format.
 [//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=truck,stream=oil temperature=209,pressure=31.3 1506713320000000000')
 
 
+All mutating calls (POSTs and DELETEs) must be authorized through
+an `Authorization` header. It should include
+the word `Basic`, followed by the base64 encoding of the username and password
+with a colon in between. In Python, this looks like:
 
+```python
+import urllib2, base64
 
+...
+request = urllib2.Request(url)
+base64string = base64.b64encode('%s:%s' % ('johndoe', 'mysecretpassword'))
+request.add_header("Authorization", "Basic %s" % base64string)
 
+```
 
+Using `curl`, this can be done by adding the `-u` option, which is done in
+the mutating examples below.
  
 
 ## Get packets
@@ -321,9 +318,10 @@ $ curl -i --silent -X GET 'http://localhost:3000/api/v1/measurements/examples/pa
 HTTP/1.1 200 OK
 X-Powered-By: Express
 Content-Type: application/json; charset=utf-8
-Content-Length: 993
-ETag: W/"3e1-jwaqdm8V1DWmEkSqaU2pW8b7QkI"
-Date: Sat, 30 Sep 2017 18:44:48 GMT
+Content-Length: 977
+ETag: W/"3d1-z8xpd0zpO32IV/wmH/q6HDQGaH0"
+Vary: Accept-Encoding
+Date: Tue, 24 Oct 2017 00:55:37 GMT
 Connection: keep-alive
 
 [
@@ -428,9 +426,10 @@ $ curl -i --silent -X GET 'http://localhost:3000/api/v1/measurements/examples/pa
 HTTP/1.1 200 OK
 X-Powered-By: Express
 Content-Type: application/json; charset=utf-8
-Content-Length: 249
-ETag: W/"f9-f2fSFZh9IkaIFnn6m/ZtH32aznQ"
-Date: Sat, 30 Sep 2017 18:44:48 GMT
+Content-Length: 245
+ETag: W/"f5-G5Yauk5W7LXG63YkJb0or/uI8Xk"
+Vary: Accept-Encoding
+Date: Tue, 24 Oct 2017 00:55:37 GMT
 Connection: keep-alive
 
 [
@@ -469,9 +468,10 @@ $ curl -i -X GET 'http://localhost:3000/api/v1/measurements/examples/packets?sta
 HTTP/1.1 200 OK
 X-Powered-By: Express
 Content-Type: application/json; charset=utf-8
-Content-Length: 249
-ETag: W/"f9-24gaPxQBiCT4du1TnHz0Z12Z9ME"
-Date: Sat, 30 Sep 2017 18:44:48 GMT
+Content-Length: 245
+ETag: W/"f5-EC7e/TCAszVF1VOaA6dqKGmcOnM"
+Vary: Accept-Encoding
+Date: Tue, 24 Oct 2017 00:55:37 GMT
 Connection: keep-alive
 
 [
@@ -535,9 +535,10 @@ $ curl -i -X GET 'http://localhost:3000/api/v1/measurements/examples/packets/150
 HTTP/1.1 200 OK
 X-Powered-By: Express
 Content-Type: application/json; charset=utf-8
-Content-Length: 123
-ETag: W/"7b-hB0MTLw6Mo2NOw1g6UNRhDfnu1o"
-Date: Sat, 30 Sep 2017 18:44:48 GMT
+Content-Length: 121
+ETag: W/"79-6iBKrKP1W3M71u2HonnjN59/2zs"
+Vary: Accept-Encoding
+Date: Tue, 24 Oct 2017 00:55:37 GMT
 Connection: keep-alive
 
 {
@@ -562,6 +563,8 @@ Post a new packet.
 ```
 POST /api/v1/measurements/:measurement/packets
 ```
+
+The HTTP request must include an `Authorization` header.
 
 **JSON input**
 
@@ -591,7 +594,7 @@ response `Location` field set to the URL of the newly created resource (packet).
 Add a new packet for the platform `truck` and stream `oil`.
 
 ```shell
-$ curl -i --silent -X POST -H Content-type:application/json -d  \
+$ curl -u weert:weert -i --silent -X POST -H Content-type:application/json -d  \
 >   '{"timestamp" : 1506713320000000000, \
 >   "tags" : {"platform":"truck", "stream":"oil"}, \
 >   "fields" : {"temperature":209, "pressure": 31.4}} ' \
@@ -603,7 +606,8 @@ Location: http://localhost:3000/api/v1/measurements/examples/packets/15067133200
 Content-Type: text/plain; charset=utf-8
 Content-Length: 7
 ETag: W/"7-rM9AyJuqT6iOan/xHh+AW+7K/T8"
-Date: Sat, 30 Sep 2017 18:44:48 GMT
+Vary: Accept-Encoding
+Date: Tue, 24 Oct 2017 00:55:37 GMT
 Connection: keep-alive
 
 Created
@@ -620,6 +624,8 @@ Delete packets with a specific timestamp.
 ```
 DELETE /api/v1/measurements/:measurement/packets/:timestamp
 ```
+
+The HTTP request must include an `Authorization` header.
 
 **Parameters**
 
@@ -642,12 +648,12 @@ actually existed in the database.
 Delete all packets with timestamp `1506713320000000000`.
 
 ```shell
-$ curl -i --silent -X DELETE http://localhost:3000/api/v1/measurements/examples/packets/1506713320000000000
+$ curl -u weert:weert -i --silent -X DELETE http://localhost:3000/api/v1/measurements/examples/packets/1506713320000000000
 
 HTTP/1.1 204 No Content
 X-Powered-By: Express
 ETag: W/"a-bAsFyilMr4Ra1hIU5PyoyFRunpI"
-Date: Sat, 30 Sep 2017 18:44:48 GMT
+Date: Tue, 24 Oct 2017 00:55:37 GMT
 Connection: keep-alive
 
 ```
@@ -684,7 +690,8 @@ X-Powered-By: Express
 Content-Type: application/json; charset=utf-8
 Content-Length: 91
 ETag: W/"5b-vPUmWz8f/FSc+swPafrd2Z2eiKk"
-Date: Sat, 30 Sep 2017 18:44:48 GMT
+Vary: Accept-Encoding
+Date: Tue, 24 Oct 2017 00:55:37 GMT
 Connection: keep-alive
 
 [
@@ -709,7 +716,8 @@ X-Powered-By: Express
 Content-Type: text/plain; charset=utf-8
 Content-Length: 9
 ETag: W/"9-0gXL1ngzMqISxa6S1zx3F4wtLyg"
-Date: Sat, 30 Sep 2017 18:44:48 GMT
+Vary: Accept-Encoding
+Date: Tue, 24 Oct 2017 00:55:37 GMT
 Connection: keep-alive
 
 Not Found
@@ -723,6 +731,8 @@ Delete a measurement from the InfluxDB database.
 DELETE ap/v1/measurements/:measurement
 ```
 
+The HTTP request must include an `Authorization` header.
+
 **Return status**
 
 | *Status* | *Meaning*             |
@@ -735,12 +745,12 @@ DELETE ap/v1/measurements/:measurement
 Delete the measurement `examples`. All packets within the measurement will be deleted.
 
 ```shell
-$ curl -i --silent -X DELETE 'http://localhost:3000/api/v1/measurements/examples'
+$ curl -u weert:weert -i --silent -X DELETE 'http://localhost:3000/api/v1/measurements/examples'
 
 HTTP/1.1 204 No Content
 X-Powered-By: Express
 ETag: W/"a-bAsFyilMr4Ra1hIU5PyoyFRunpI"
-Date: Sat, 30 Sep 2017 18:44:48 GMT
+Date: Tue, 24 Oct 2017 00:55:38 GMT
 Connection: keep-alive
 
 ```
@@ -750,12 +760,12 @@ Do the example again, but using a bogus measurement name. It should
 return the same status code, 204.
 
 ```shell
-$ curl -i --silent -X DELETE 'http://localhost:3000/api/v1/measurements/foo'
+$ curl -u weert:weert -i --silent -X DELETE 'http://localhost:3000/api/v1/measurements/foo'
 
 HTTP/1.1 204 No Content
 X-Powered-By: Express
 ETag: W/"a-bAsFyilMr4Ra1hIU5PyoyFRunpI"
-Date: Sat, 30 Sep 2017 18:44:48 GMT
+Date: Tue, 24 Oct 2017 00:55:38 GMT
 Connection: keep-alive
 
 ```

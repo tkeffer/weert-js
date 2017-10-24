@@ -5,7 +5,7 @@ next publishing event.
 
 Log any failed authentication attempts
 
-Update API docs to reflect authentication requirements
+Some of the error messages are unnecessarily voluminous (try a post beyond the retention time).
 
 
 
