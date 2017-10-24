@@ -52,8 +52,8 @@ Later versions should work fine.
 
 ## Installing the WeeRT uploader on WeeWX
 
-1. Make sure you are running WeeWX V3.8 or later. Earlier versions do not support the POST method used
-by the uploader.
+1. Make sure you are running WeeWX V3.8 or later. Earlier versions do
+not support the POST method used by the uploader.
 
 2. Put the `weert.py` module in the WeeWX `user` subdirectory.
 
@@ -78,7 +78,7 @@ by the uploader.
 
 4. Run `weewxd`
 
-5. Open up a client at [http://localhost:3000/index.html](http://localhost:3000/index.html).
+5. Open up a client at [http://localhost:3000](http://localhost:3000).
 
 
 ## General architecture
@@ -166,52 +166,58 @@ browser client does. Right now, it assumes all units are US
 Customary. If they are in something else, you'll have to change the
 HTML.
 
-Eventually, WeeRT will be able to determine the proper unit label to use from an
-observation's inferred unit group and from the type `unit_system`
-(similar to WeeWX's `usUnits`).
+Eventually, WeeRT will be able to determine the proper unit label to
+use from an observation's inferred unit group and from the type
+`unit_system` (similar to WeeWX's `usUnits`).
 
 ### Security
 
-The server requires authentication for any mutating actions, that is, any POSTs
-or DELETEs. The default configuration (file `server/config/config.js`) includes
-a user `weert` with password `weert`. These should, obviously, be changed.
+The server requires authentication for any mutating actions, that is,
+any POSTs or DELETEs. The default configuration (file
+`server/config/config.js`) includes a user `weert` with password
+`weert`. These should, obviously, be changed.
 
-The configuration for the WeeWX uploader in `weewx.conf` should be changed
-to match the chosen username and password.
+The configuration for the WeeWX uploader in `weewx.conf` should be
+changed to match the chosen username and password.
 
 # Data model
 
 ## Background
 
-It is strongly recommended that you read the
-["key concepts"](https://docs.influxdata.com/influxdb/v1.3/concepts/key_concepts/)
-section of the InfluxDB documentation. In particular, be sure to understand
-the concepts of measurements, tags, and fields. These terms are used
-throughout WeeRT.
+It is strongly recommended that you read the ["key
+concepts"](https://docs.influxdata.com/influxdb/v1.3/concepts/key_concepts/)
+section of the InfluxDB documentation. In particular, be sure to
+understand the concepts of measurements, tags, and fields. These terms
+are used throughout WeeRT.
 
 ## WeeRT and InfluxDB
 
-WeeRT stores incoming real-time packets into measurement `wxpackets`. These are then aggregated and subsampled
-regularly (typically, every 5 minutes) into another measurement, `wxrecords`.
+WeeRT stores incoming real-time packets into measurement
+`wxpackets`. These are then aggregated and subsampled regularly
+(typically, every 5 minutes) into another measurement, `wxrecords`.
 
-Data in `wxpackets` use a 24 hour retention policy --- they are purged if older than 24 hours.
-Data in `wxrecords` are retained indefinitely.
+Data in `wxpackets` use a 24 hour retention policy --- they are purged
+if older than 24 hours.  Data in `wxrecords` are retained
+indefinitely.
 
 ### Schema
 
-InfluxDB does not use a schema. Nevertheless, data is organized in a structured, organized way.
-Both `wxpackets` and `wxrecords` use identical structures.
+InfluxDB does not use a schema. Nevertheless, data is organized in a
+structured, organized way.  Both `wxpackets` and `wxrecords` use
+identical structures.
 
-WeeRT uses two InfluxDB *tags*: `platform` and `stream`. The former, `platform`, is intended to
-represent a physical presence, such as a house, car, or piece of industrial machinery.
-The latter, `stream`, represents a data stream within the platform, such
-as a specific weather station, or sensor. Like any InfluxDB tags, `platform` and `stream`
-are indexed. The default `platform` is `default_platform`; the default `stream` is
-`default_stream`.
+WeeRT uses two InfluxDB *tags*: `platform` and `stream`. The former,
+`platform`, is intended to represent a physical presence, such as a
+house, car, or piece of industrial machinery.  The latter, `stream`,
+represents a data stream within the platform, such as a specific
+weather station, or sensor. Like any InfluxDB tags, `platform` and
+`stream` are indexed. The default `platform` is `default_platform`;
+the default `stream` is `default_stream`.
 
-The observation values, such as `outside_temperature`, are stored as InfluxDB *fields*.
-They are not indexed. Because InfluxDB does not use a schema, new data types can be introduced
-into the data stream at any time and they will be stored in the database.
+The observation values, such as `outside_temperature`, are stored as
+InfluxDB *fields*.  They are not indexed. Because InfluxDB does not
+use a schema, new data types can be introduced into the data stream at
+any time and they will be stored in the database.
 
 The observation time is stored as field `time`, always in nanoseconds.
 
@@ -220,59 +226,66 @@ The observation time is stored as field `time`, always in nanoseconds.
 There are several different ways of representing packet data in the WeeRT / Influx
 ecosystem. It's useful to be aware of the differences.
 
-- A __weewx-style packet__. This is the simple, flat data structure that weewx uses. 
-  It holds time (in seconds), field data, and the unit system used by the data, 
-  but no information about platforms or streams. It looks like:
+- A __weewx-style packet__. This is the simple, flat data structure
+  that weewx uses. It holds time (in integer seconds), field data, and the
+  unit system used by the data, but no information about platforms or
+  streams. It looks like:
   
    ```json
    {
      "dateTime" : 1507432417,
-     "temperature" : 108.3, 
-     "rpm" : 1850, 
-     "unit_system" : 16
+     "outTemp" : 20.5,
+     "outHumidity" : 65.0,
+     "usUnits" : 16
     }
     ```
 
-- What we are calling a __deep packet__. This is a structured packet that the Node
-  client library [node-influx](https://node-influx.github.io/) expects 
-  (as do the InfluxDB client libraries for most other languages). It is useful
-  because the InfluxDB "measurement" and "tags" are explicitly represented. Time is 
-  in field `time` and it is in *nanoseconds*. It looks something like this:
+- What we are calling a __deep packet__. This is a structured packet
+  that the Node client library
+  [node-influx](https://node-influx.github.io/) expects (as do the
+  InfluxDB client libraries for most other languages). It is useful
+  because the InfluxDB "measurement" and "tags" are explicitly
+  represented. Time is in field `time` and it is in *nanoseconds*. It
+  looks something like this:
  
    ```json
    {
-     "time" : 1507432417000000000,
-     "measurement" : "highway_data"
-     "tags" : {"platform" : "Red chevy", "stream" : "engine_parameters"}
-     "fields" : {"temperature" : 108.3, "rpm" : 1850, "unit_system" : 16}
+     "timestamp" : 1507432417000000000,
+     "measurement" : "wxpackets"
+     "tags" : {"platform" : "Red barn", "stream" : "Accurite"}
+     "fields" : {"outside_temperature" : 20.5, "outside_humidity" : 65.0, "unit_system" : 16}
     }
   ```
     
-- What we are calling a __flattened packet__. This is what is returned from
-  the [`query`](https://node-influx.github.io/class/src/index.js~InfluxDB.html#instance-method-query)
-  function of node-influx. Unfortunately, it is slightly different from a deep packet. The tag
-  members have been flattened in with the field data:
+- What we are calling a __flattened packet__. This is what is returned from the
+  [`query`](https://node-influx.github.io/class/src/index.js~InfluxDB.html#instance-method-query)
+  function of node-influx. Unfortunately, it is slightly different
+  from a deep packet. The tag members have been flattened in with the
+  field data, and the time is now in field `time`:
   
    ```json
    {
      "time" : 1507432417000000000,
-     "platform" : "Red chevy",
-     "stream" : "engine_parameters",
-     "temperature" : 108.3, 
-     "rpm" : 1850, 
+     "measurement" : "wxpackets",
+     "platform" : "Red barn",
+     "stream" : "Accurite",
+     "outside_temperature" : 20.5,
+     "outside_humidity" : 65.0,
      "unit_system" : 16
     }
    ```
     
-- The InfluxDB [__line protocol__](https://docs.influxdata.com/influxdb/v1.2/write_protocols/line_protocol_reference/).
-  This protocol is designed for on-the-wire efficiency. It is not explicitly used within WeeRT. It looks something like this:
+- The InfluxDB [__line
+  protocol__](https://docs.influxdata.com/influxdb/v1.2/write_protocols/line_protocol_reference/).
+  This protocol is designed for on-the-wire efficiency. It is not
+  explicitly used within WeeRT. It looks something like this:
  
-   ~~~
-   highway_data, platform="Red chevy",stream="engine_parameters" temperature=108.3,rpm=1850 1507432417000000000
-   ~~~
+   ```
+   wxpackets,platform="Red barn",stream="Accurite" outside_temperature=20.5,outside_humidity=65.0,unit_system=16 1507432417000000000
+   ```
 
-WeeRT tries to consistently traffic in "deep packets." Data going in and out of the WeeRT server
-are in this format. 
+WeeRT tries to consistently traffic in "deep packets," and does any conversions
+that might be necessary. Both incoming and outgoing data use this format.
  
 # <a name="API"></a>API
 
