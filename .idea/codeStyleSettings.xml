@@ -10,6 +10,7 @@
           <option name="FORCE_SEMICOLON_STYLE" value="true" />
           <option name="ALIGN_OBJECT_PROPERTIES" value="2" />
           <option name="ALIGN_VAR_STATEMENTS" value="2" />
+          <option name="USE_DOUBLE_QUOTES" value="false" />
           <option name="USE_CHAINED_CALLS_GROUP_INDENTS" value="true" />
         </JSCodeStyleSettings>
         <JSON>
@@ -26,7 +27,6 @@
           <option name="ALIGN_MULTILINE_PARAMETERS_IN_CALLS" value="true" />
           <option name="ALIGN_MULTILINE_BINARY_OPERATION" value="true" />
           <option name="CALL_PARAMETERS_WRAP" value="1" />
-          <option name="PREFER_PARAMETERS_WRAP" value="true" />
           <option name="METHOD_CALL_CHAIN_WRAP" value="1" />
           <option name="WRAP_COMMENTS" value="true" />
         </codeStyleSettings>

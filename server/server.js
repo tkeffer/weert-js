@@ -117,7 +117,10 @@ influx.getDatabaseNames()
           app.use(config.server.api, read_router_factory(measurement_manager));
 
           // Set up the basic authorization
-          app.use(basicAuth({'users': config.users}));
+          app.use(basicAuth({
+                                'users'               : config.users,
+                                'unauthorizedResponse': getUnauthorizedResponse
+                            }));
 
           // Set up the mutable routes, which do require authorization
           app.use(config.server.api, write_router_factory(measurement_manager, faye_client));
@@ -184,3 +187,8 @@ influx.getDatabaseNames()
           console.error(`Error creating Influx database!`, err);
           process.exit(1);
       });
+
+function getUnauthorizedResponse(req) {
+    console.error(`Unauthorized request from req IP ${req.ip}`);
+    return req.auth ? ('Credentials ' + req.auth.user + ':' + req.auth.password + ' rejected') : 'No credentials provided';
+}
