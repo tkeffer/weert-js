@@ -17,7 +17,6 @@ const debug       = require('debug')('weert:server');
 const http        = require('http');
 const logger      = require('morgan');
 const path        = require('path');
-const basicAuth   = require('express-basic-auth');
 const express     = require('express');
 const app         = express();
 
@@ -44,6 +43,7 @@ app.use(express.static(path.join(__dirname, '../client')));
  */
 const config               = require('./config/config');
 const MeasurementManager   = require('./services/measurement_manager');
+const auth_router_factory  = require('./routes/auth_routes');
 const read_router_factory  = require('./routes/read_routes');
 const write_router_factory = require('./routes/write_routes');
 const subsampling          = require('./services/subsampling');
@@ -113,14 +113,11 @@ influx.getDatabaseNames()
           // Arrange to be notified after each continuous query has been run
           subsampling.setup_all_notices(measurement_manager, faye_client, measurement_config);
 
+          // Set up the basic authorization
+          app.use(config.server.api, auth_router_factory(config.users));
+
           // Set up the read-only routes, which do not require authorization
           app.use(config.server.api, read_router_factory(measurement_manager));
-
-          // Set up the basic authorization
-          app.use(basicAuth({
-                                'users'               : config.users,
-                                'unauthorizedResponse': getUnauthorizedResponse
-                            }));
 
           // Set up the mutable routes, which do require authorization
           app.use(config.server.api, write_router_factory(measurement_manager, faye_client));
@@ -188,7 +185,3 @@ influx.getDatabaseNames()
           process.exit(1);
       });
 
-function getUnauthorizedResponse(req) {
-    console.error(`Unauthorized request from req IP ${req.ip}`);
-    return req.auth ? ('Credentials ' + req.auth.user + ':' + req.auth.password + ' rejected') : 'No credentials provided';
-}
