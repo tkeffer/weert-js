@@ -44,8 +44,7 @@ app.use(express.static(path.join(__dirname, '../client')));
 const config               = require('./config/config');
 const MeasurementManager   = require('./services/measurement_manager');
 const auth_router_factory  = require('./routes/auth_routes');
-const read_router_factory  = require('./routes/read_routes');
-const write_router_factory = require('./routes/write_routes');
+const packet_router_factory  = require('./routes/packet_routes');
 const subsampling          = require('./services/subsampling');
 const retention_policies   = require('./config/retention_policies');
 // This type of metadata should probably be in a database,
@@ -116,11 +115,8 @@ influx.getDatabaseNames()
           // Set up the basic authorization
           app.use(config.server.api, auth_router_factory(config.users));
 
-          // Set up the read-only routes, which do not require authorization
-          app.use(config.server.api, read_router_factory(measurement_manager));
-
-          // Set up the mutable routes, which do require authorization
-          app.use(config.server.api, write_router_factory(measurement_manager, faye_client));
+          // Set up the packet routes
+          app.use(config.server.api, packet_router_factory(measurement_manager, faye_client));
 
           /*
            * Error handlers. If we got this far, the request did not match any router. It's a 404.
