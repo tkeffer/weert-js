@@ -31,7 +31,7 @@
             <tbody>
             <tr>
                 <td class='stats_label'>Time</td>
-                <td class='stats_data'>{{formatTimeStamp timestamp}}</td>
+                <td class='stats_data fadeIn'>{{formatTimeStamp timestamp}}</td>
             </tr>
             <tr>
                 <td class='stats_label'>Outside Temperature</td>
@@ -84,7 +84,7 @@
     <div id='content'>
         <ul id='tabs'>
             <li><a href='#recent'>Recent</a></li>
-            <li><a href='#day'>Today</a></li>
+            <li><a href='#day'>24 Hours</a></li>
         </ul>
         <div id='recent' class='plot-group'>Minutes:
             <label><input type='radio' name='recent_span' value='5' onchange='changeSpan(this)' checked>5</label>

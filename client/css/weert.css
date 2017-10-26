@@ -49,9 +49,21 @@ div.tabContent.hide {
     height: 300px;
 }
 
+/*
+ * For fading in real-time updates
+ */
+@keyframes fadeIn {
+    0% {opacity: 0;}
+    100% {opacity: 1;}
+}
+
+.fadeIn {
+    animation-name: fadeIn;
+    animation-duration: 1s;
+}
 
 /*
-  compass
+ * Wind compass
  */
 .compass {
 }
