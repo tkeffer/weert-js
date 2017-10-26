@@ -56,7 +56,7 @@ var AuthRouterFactory = function (users) {
 
 var unauthorized = function (req, res, user_info) {
     res.status(403).send("Unauthorized");
-    debug(`User ${user_info.user} (IP ${req.ip}) unauthorized for ${req.method} to ${req.url}`);
+    debug(`IP ${req.ip} unauthorized for ${req.method} to ${req.originalUrl}`);
 };
 
 module.exports = AuthRouterFactory;
