@@ -168,7 +168,15 @@ Handlebars.registerHelper("formatTimeStamp", function (ts) {
     return new Date(ts / 1000000);
 });
 
-Handlebars.registerHelper("formatNumber", function (val, digits) {
+Handlebars.registerHelper("precision", function (val, digits) {
+    if (val === null || val === undefined) {
+        return "N/A";
+    } else {
+        return val.toPrecision(digits);
+    }
+});
+
+Handlebars.registerHelper("fixed", function (val, digits) {
     if (val === null || val === undefined) {
         return "N/A";
     } else {

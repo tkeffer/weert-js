@@ -35,33 +35,33 @@
             </tr>
             <tr>
                 <td class='stats_label'>Outside Temperature</td>
-                <td class='stats_data'>{{formatNumber fields.outside_temperature 1}}</td>
+                <td class='stats_data'>{{precision fields.outside_temperature 3}}</td>
             </tr>
             <tr>
                 <td class='stats_label'>Inside Temperature</td>
-                <td class='stats_data'>{{formatNumber fields.inside_temperature 1}}</td>
+                <td class='stats_data'>{{precision fields.inside_temperature 3}}</td>
             </tr>
             <tr>
                 <td class='stats_label'>Humidity</td>
-                <td class='stats_data'>{{formatNumber fields.outside_humidity 0}}</td>
+                <td class='stats_data'>{{precision fields.outside_humidity 2}}</td>
             </tr>
             <tr>
                 <td class='stats_label'>Barometer</td>
-                <td class='stats_data'>{{formatNumber fields.sealevel_pressure 3}}</td>
+                <td class='stats_data'>{{precision fields.sealevel_pressure 5}}</td>
             </tr>
             <tr>
                 <td class='stats_label'>Wind</td>
-                <td class='stats_data'>{{formatNumber fields.wind_speed 0}} from {{formatNumber fields.wind_dir
+                <td class='stats_data'>{{fixed fields.wind_speed 0}} from {{fixed fields.wind_dir
                                        0}}
                 </td>
             </tr>
             <tr>
                 <td class='stats_label'>UV</td>
-                <td class='stats_data'>{{formatNumber fields.uv_uv 0}}</td>
+                <td class='stats_data'>{{fixed fields.uv_uv 0}}</td>
             </tr>
             <tr>
                 <td class='stats_label'>Solar Radiation</td>
-                <td class='stats_data'>{{formatNumber fields.radiation_radiation 0}}</td>
+                <td class='stats_data'>{{precision fields.radiation_radiation 3}}</td>
             </tr>
             </tbody>
         </table>
