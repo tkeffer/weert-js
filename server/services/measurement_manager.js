@@ -61,7 +61,7 @@ class MeasurementManager {
     }
 
     find_packets(measurement, {
-        platform = undefined, stream: stream = undefined,
+        platform = undefined, stream = undefined,
         start_time = undefined, stop_time = undefined,
         limit = undefined, direction = 'asc'
     } = {}) {
