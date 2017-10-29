@@ -846,7 +846,7 @@ The HTTP request must include an `Authorization` header.
 | *Status* | *Meaning*             |
 |:---------|:----------------------|
 | 204      | Success / NO CONTENT  |
-| 404      | Measurement not found |
+
 
 **Examples**
 
