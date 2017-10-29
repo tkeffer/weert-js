@@ -41,12 +41,13 @@ app.use(express.static(path.join(__dirname, '../client')));
 /*
  * Now comes the WeeRT-specific stuff
  */
-const config               = require('./config/config');
-const MeasurementManager   = require('./services/measurement_manager');
-const auth_router_factory  = require('./routes/auth_routes');
-const packet_router_factory  = require('./routes/packet_routes');
-const subsampling          = require('./services/subsampling');
-const retention_policies   = require('./config/retention_policies');
+const config                = require('./config/config');
+const MeasurementManager    = require('./services/measurement_manager');
+const auth_router_factory   = require('./routes/auth_routes');
+const packet_router_factory = require('./routes/packet_routes');
+const stats_router_factory  = require('./routes/stats_routes');
+const subsampling           = require('./services/subsampling');
+const retention_policies    = require('./config/retention_policies');
 // This type of metadata should probably be in a database,
 // but for now, retrieve it from a JSON file
 const measurement_config = require('./meta_data/measurement_config');
@@ -117,6 +118,9 @@ influx.getDatabaseNames()
 
           // Set up the packet routes
           app.use(config.server.api, packet_router_factory(measurement_manager, faye_client));
+
+          // Set up the statistics routes
+          app.use(config.server.api, stats_router_factory(influx))
 
           /*
            * Error handlers. If we got this far, the request did not match any router. It's a 404.

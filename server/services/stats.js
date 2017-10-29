@@ -48,9 +48,10 @@ const config = require('../config/config');
 function run_stats(influx, stats_specs, {
     measurement = undefined,
     platform = undefined, stream = undefined,
-    now = moment(), span = 'day', timeshift = 0
+    now = undefined, span = 'day', timeshift = 0
 }) {
-
+    if (now === undefined)
+        now = moment();
     let start    = now.startOf(span) * 1000000;
     let stop     = now.endOf(span) * 1000000;
     let queries  = [];
@@ -96,11 +97,15 @@ function run_stats(influx, stats_specs, {
 
 }
 
-const Influx = require('influx');
-const influx = new Influx.InfluxDB(config.influxdb);
-const obs_types = require('../config/obs_types');
-run_stats(influx, obs_types, {span: 'month', measurement: 'wxrecords', platform: "default_platform"})
-    .then(results => {
-        console.log(results);
-    });
+module.exports = {
+    run_stats: run_stats
+};
 
+// const Influx = require('influx');
+// const influx = new Influx.InfluxDB(config.influxdb);
+// const obs_types = require('../config/obs_types');
+// run_stats(influx, obs_types, {span: 'month', measurement: 'wxrecords', platform: "default_platform"})
+//     .then(results => {
+//         console.log(results);
+//     });
+//
