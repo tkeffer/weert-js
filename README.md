@@ -291,14 +291,15 @@ that might be necessary. Both incoming and outgoing data use this format.
 
 [//]: # (# The following commands will set up the database)
 [//]: # (curl -XPOST 'http://localhost:8086/query?db=weert' --data-urlencode 'q=DROP MEASUREMENT "examples"')
-[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=chevy,stream=oil temperature=177,pressure=27.9 1506713140000000000')
-[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=chevy,stream=oil temperature=181,pressure=27.8 1506713200000000000')
-[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=chevy,stream=oil temperature=182,pressure=27.6 1506713260000000000')
-[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=chevy,stream=oil temperature=184,pressure=27.1 1506713320000000000')
-[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=truck,stream=oil temperature=202,pressure=30.9 1506713140000000000')
-[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=truck,stream=oil temperature=204,pressure=31.2 1506713200000000000')
-[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=truck,stream=oil temperature=207,pressure=31.3 1506713260000000000')
-[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=truck,stream=oil temperature=209,pressure=31.3 1506713320000000000')
+[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=barn,stream=accurite outside_temperature=55.2,sealevel_pressure=29.812 1506713140000000000')
+[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=barn,stream=accurite outside_temperature=55.3,sealevel_pressure=29.839 1506713200000000000')
+[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=barn,stream=accurite outside_temperature=55.5,sealevel_pressure=29.840 1506713260000000000')
+[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=barn,stream=accurite outside_temperature=55.6,sealevel_pressure=29.838 1506713320000000000')
+[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=barn,stream=loft outside_temperature=61.2,sealevel_pressure=29.881 1506713140000000000')
+[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=barn,stream=loft outside_temperature=61.3,sealevel_pressure=29.901 1506713200000000000')
+[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=barn,stream=loft outside_temperature=61.6,sealevel_pressure=29.908 1506713260000000000')
+[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=barn,stream=loft outside_temperature=61.6,sealevel_pressure=29.910 1506713320000000000')
+
 
 
 All mutating calls (POSTs and DELETEs) must be authorized through
@@ -334,8 +335,8 @@ GET /api/v1/measurements/:measurement/packets
 |:----------------|:--------|:--------------------------------------------------------------------------------------------------------------------|
 | `platform`      | string  | Include only packets from platform `platform`.                                                                      |
 | `stream`        | string  | Include only packets from stream `stream`.                                                                          |
-| `start`         | integer | All packets greater than this timestamp will be included in the results. Default: first available packet.           |
-| `stop`          | integer | All packets less than or equal to this timestamp will be included in the results. Default: last available packet.   |
+| `start`         | integer | All packets greater than this timestamp in nanoseconds will be included in the results. Default: first available packet.           |
+| `stop`          | integer | All packets less than or equal to this timestamp in nanoseconds will be included in the results. Default: last available packet.   |
 | `limit`         | integer | Limit the number of returned packets to this value. Default: no limit.                                              |
 | `direction`     | string  | The direction of the sort. Can be either `asc` or `desc`. Default: `asc`.                                           |
 
@@ -357,98 +358,98 @@ $ curl -i --silent -X GET 'http://localhost:3000/api/v1/measurements/examples/pa
 HTTP/1.1 200 OK
 X-Powered-By: Express
 Content-Type: application/json; charset=utf-8
-Content-Length: 977
-ETag: W/"3d1-z8xpd0zpO32IV/wmH/q6HDQGaH0"
+Content-Length: 1151
+ETag: W/"47f-PdH2ku7kI05Em0p97Q2ME5acn8c"
 Vary: Accept-Encoding
-Date: Tue, 24 Oct 2017 00:55:37 GMT
+Date: Sun, 29 Oct 2017 13:08:54 GMT
 Connection: keep-alive
 
 [
     {
         "fields": {
-            "pressure": 27.9,
-            "temperature": 177
+            "outside_temperature": 55.2,
+            "sealevel_pressure": 29.812
         },
         "tags": {
-            "platform": "chevy",
-            "stream": "oil"
+            "platform": "barn",
+            "stream": "accurite"
         },
         "timestamp": 1506713140000000000
     },
     {
         "fields": {
-            "pressure": 30.9,
-            "temperature": 202
+            "outside_temperature": 61.2,
+            "sealevel_pressure": 29.881
         },
         "tags": {
-            "platform": "truck",
-            "stream": "oil"
+            "platform": "barn",
+            "stream": "loft"
         },
         "timestamp": 1506713140000000000
     },
     {
         "fields": {
-            "pressure": 27.8,
-            "temperature": 181
+            "outside_temperature": 55.3,
+            "sealevel_pressure": 29.839
         },
         "tags": {
-            "platform": "chevy",
-            "stream": "oil"
+            "platform": "barn",
+            "stream": "accurite"
         },
         "timestamp": 1506713200000000000
     },
     {
         "fields": {
-            "pressure": 31.2,
-            "temperature": 204
+            "outside_temperature": 61.3,
+            "sealevel_pressure": 29.901
         },
         "tags": {
-            "platform": "truck",
-            "stream": "oil"
+            "platform": "barn",
+            "stream": "loft"
         },
         "timestamp": 1506713200000000000
     },
     {
         "fields": {
-            "pressure": 27.6,
-            "temperature": 182
+            "outside_temperature": 55.5,
+            "sealevel_pressure": 29.84
         },
         "tags": {
-            "platform": "chevy",
-            "stream": "oil"
+            "platform": "barn",
+            "stream": "accurite"
         },
         "timestamp": 1506713260000000000
     },
     {
         "fields": {
-            "pressure": 31.3,
-            "temperature": 207
+            "outside_temperature": 61.6,
+            "sealevel_pressure": 29.908
         },
         "tags": {
-            "platform": "truck",
-            "stream": "oil"
+            "platform": "barn",
+            "stream": "loft"
         },
         "timestamp": 1506713260000000000
     },
     {
         "fields": {
-            "pressure": 27.1,
-            "temperature": 184
+            "outside_temperature": 55.6,
+            "sealevel_pressure": 29.838
         },
         "tags": {
-            "platform": "chevy",
-            "stream": "oil"
+            "platform": "barn",
+            "stream": "accurite"
         },
         "timestamp": 1506713320000000000
     },
     {
         "fields": {
-            "pressure": 31.3,
-            "temperature": 209
+            "outside_temperature": 61.6,
+            "sealevel_pressure": 29.91
         },
         "tags": {
-            "platform": "truck",
-            "stream": "oil"
+            "platform": "barn",
+            "stream": "loft"
         },
         "timestamp": 1506713320000000000
     }
@@ -456,41 +457,41 @@ Connection: keep-alive
 
 ```
 
-Query again, but this time ask for only those packets on platform `truck`, and limit it
+Query again, but this time ask for only those packets on stream `loft`, and limit it
 to 2 packets:
 
 ```shell
-$ curl -i --silent -X GET 'http://localhost:3000/api/v1/measurements/examples/packets?platform=truck&limit=2'
+$ curl -i --silent -X GET 'http://localhost:3000/api/v1/measurements/examples/packets?stream=loft&limit=2'
 
 HTTP/1.1 200 OK
 X-Powered-By: Express
 Content-Type: application/json; charset=utf-8
-Content-Length: 245
-ETag: W/"f5-G5Yauk5W7LXG63YkJb0or/uI8Xk"
+Content-Length: 285
+ETag: W/"11d-bEOhn3xaLkbvFBXQfdO/sP9w0Vk"
 Vary: Accept-Encoding
-Date: Tue, 24 Oct 2017 00:55:37 GMT
+Date: Sun, 29 Oct 2017 13:08:54 GMT
 Connection: keep-alive
 
 [
     {
         "fields": {
-            "pressure": 30.9,
-            "temperature": 202
+            "outside_temperature": 61.2,
+            "sealevel_pressure": 29.881
         },
         "tags": {
-            "platform": "truck",
-            "stream": "oil"
+            "platform": "barn",
+            "stream": "loft"
         },
         "timestamp": 1506713140000000000
     },
     {
         "fields": {
-            "pressure": 31.2,
-            "temperature": 204
+            "outside_temperature": 61.3,
+            "sealevel_pressure": 29.901
         },
         "tags": {
-            "platform": "truck",
-            "stream": "oil"
+            "platform": "barn",
+            "stream": "loft"
         },
         "timestamp": 1506713200000000000
     }
@@ -498,41 +499,41 @@ Connection: keep-alive
 
 ```
 
-Query, constraining by time and platform name, returning results in reverse order:
+Query, constraining by time and stream name, returning results in reverse order:
 
 
 ```shell
-$ curl -i -X GET 'http://localhost:3000/api/v1/measurements/examples/packets?start=1506713140000000000&stop=1506713260000000000&platform=chevy&direction=desc'
+$ curl -i -X GET 'http://localhost:3000/api/v1/measurements/examples/packets?start=1506713140000000000&stop=1506713260000000000&stream=loft&direction=desc'
 
 HTTP/1.1 200 OK
 X-Powered-By: Express
 Content-Type: application/json; charset=utf-8
-Content-Length: 245
-ETag: W/"f5-EC7e/TCAszVF1VOaA6dqKGmcOnM"
+Content-Length: 285
+ETag: W/"11d-wdqlsqbgopLcZjhyqL9ZgNRimGM"
 Vary: Accept-Encoding
-Date: Tue, 24 Oct 2017 00:55:37 GMT
+Date: Sun, 29 Oct 2017 13:08:54 GMT
 Connection: keep-alive
 
 [
     {
         "fields": {
-            "pressure": 27.6,
-            "temperature": 182
+            "outside_temperature": 61.6,
+            "sealevel_pressure": 29.908
         },
         "tags": {
-            "platform": "chevy",
-            "stream": "oil"
+            "platform": "barn",
+            "stream": "loft"
         },
         "timestamp": 1506713260000000000
     },
     {
         "fields": {
-            "pressure": 27.8,
-            "temperature": 181
+            "outside_temperature": 61.3,
+            "sealevel_pressure": 29.901
         },
         "tags": {
-            "platform": "chevy",
-            "stream": "oil"
+            "platform": "barn",
+            "stream": "loft"
         },
         "timestamp": 1506713200000000000
     }
@@ -566,34 +567,33 @@ GET /api/v1/measurements/:measurement/packets/:timestamp
 
 **Example**
 
-Get all packets at timestamp `1506713200000000000` on the platform `truck`.
+Get all packets at timestamp `1506713200000000000` on the stream `accurite`.
 
 ```shell
-$ curl -i -X GET 'http://localhost:3000/api/v1/measurements/examples/packets/1506713200000000000?platform=truck'
+$ curl -i -X GET 'http://localhost:3000/api/v1/measurements/examples/packets/1506713200000000000?stream=accurite'
 
 HTTP/1.1 200 OK
 X-Powered-By: Express
 Content-Type: application/json; charset=utf-8
-Content-Length: 121
-ETag: W/"79-6iBKrKP1W3M71u2HonnjN59/2zs"
+Content-Length: 145
+ETag: W/"91-kvRZ/dEVq1ftvykYlSh1M4x5e/Q"
 Vary: Accept-Encoding
-Date: Tue, 24 Oct 2017 00:55:37 GMT
+Date: Sun, 29 Oct 2017 13:08:54 GMT
 Connection: keep-alive
 
 {
     "fields": {
-        "pressure": 31.2,
-        "temperature": 204
+        "outside_temperature": 55.3,
+        "sealevel_pressure": 29.839
     },
     "tags": {
-        "platform": "truck",
-        "stream": "oil"
+        "platform": "barn",
+        "stream": "accurite"
     },
     "timestamp": 1506713200000000000
 }
 
 ```
-
 
 ## Post a new packet
 
@@ -632,13 +632,13 @@ response `Location` field set to the URL of the newly created resource (packet).
 
 **Example**
 
-Add a new packet for the platform `truck` and stream `oil`.
+Add a new packet for the platform `barn` and stream `accurite`.
 
 ```shell
 $ curl -u weert:weert -i --silent -X POST -H Content-type:application/json -d  \
 >   '{"timestamp" : 1506713320000000000, \
->   "tags" : {"platform":"truck", "stream":"oil"}, \
->   "fields" : {"temperature":209, "pressure": 31.4}} ' \
+>   "tags" : {"platform":"barn", "stream":"accurite"}, \
+>   "fields" : {"outside_temperature":56.1, "sealevel_pressure": 29.881}} ' \
 >   http://localhost:3000/api/v1/measurements/examples/packets
 
 HTTP/1.1 201 Created
@@ -648,7 +648,7 @@ Content-Type: text/plain; charset=utf-8
 Content-Length: 7
 ETag: W/"7-rM9AyJuqT6iOan/xHh+AW+7K/T8"
 Vary: Accept-Encoding
-Date: Tue, 24 Oct 2017 00:55:37 GMT
+Date: Sun, 29 Oct 2017 13:08:54 GMT
 Connection: keep-alive
 
 Created
@@ -696,13 +696,13 @@ $ curl -u weert:weert -i --silent -X DELETE http://localhost:3000/api/v1/measure
 HTTP/1.1 204 No Content
 X-Powered-By: Express
 ETag: W/"a-bAsFyilMr4Ra1hIU5PyoyFRunpI"
-Date: Tue, 24 Oct 2017 00:55:37 GMT
+Date: Sun, 29 Oct 2017 13:08:54 GMT
 Connection: keep-alive
 
 ```
 
 
-## Get information about a measurement.
+## Get meta-information about a measurement.
 
 Query the database for information about an InfluxDB measurement.
 
@@ -731,18 +731,18 @@ $ curl -i --silent -X GET 'http://localhost:3000/api/v1/measurements/examples'
 HTTP/1.1 200 OK
 X-Powered-By: Express
 Content-Type: application/json; charset=utf-8
-Content-Length: 91
-ETag: W/"5b-vPUmWz8f/FSc+swPafrd2Z2eiKk"
+Content-Length: 95
+ETag: W/"5f-yLmyaipH4SiO3Fw4kY0f2OgVIgU"
 Vary: Accept-Encoding
-Date: Tue, 24 Oct 2017 00:55:37 GMT
+Date: Sun, 29 Oct 2017 13:08:54 GMT
 Connection: keep-alive
 
 [
     {
-        "key": "examples,platform=chevy,stream=oil"
+        "key": "examples,platform=barn,stream=accurite"
     },
     {
-        "key": "examples,platform=truck,stream=oil"
+        "key": "examples,platform=barn,stream=loft"
     }
 ]
 
@@ -760,10 +760,73 @@ Content-Type: text/plain; charset=utf-8
 Content-Length: 9
 ETag: W/"9-0gXL1ngzMqISxa6S1zx3F4wtLyg"
 Vary: Accept-Encoding
-Date: Tue, 24 Oct 2017 00:55:37 GMT
+Date: Sun, 29 Oct 2017 13:08:54 GMT
 Connection: keep-alive
 
 Not Found
+```
+
+## Get statistics
+
+Return general statistics about a measurement
+
+```
+GET /api/v1/measurements/:measurement/stats
+```
+
+**Parameters**
+
+| *Name*      | *Type*  | *Description*                                                                                                    |
+|:------------|:--------|:-----------------------------------------------------------------------------------------------------------------|
+| `platform`  | string  | Include only data from platform `platform`. Default is to include all platforms.                                 |
+| `stream`    | string  | Include only data from stream `stream`. Default is to include all streams.                                       |
+| `span`      | string  | Return statistics for the given time span. Choices are `day`,`week`, `month` or `year`. Required.                |
+| `now  `     | integer | This variable is a time in nanoseconds somewhere in that `span`. Default is the present time.                    |
+
+
+**Response code**
+
+| *Status* | *Meaning*             |
+|:---------|:----------------------|
+| 200      | Success               |
+| 400      | Malformed query       |
+
+**Examples**
+```shell
+$ curl -i --silent -X GET 'http://localhost:3000/api/v1/measurements/examples/stats?span=day&now=1506713200000000000'
+
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Content-Length: 263
+ETag: W/"107-bzjNYVvCiPYlLnIcOcj0AnT6Cus"
+Vary: Accept-Encoding
+Date: Sun, 29 Oct 2017 13:08:54 GMT
+Connection: keep-alive
+
+{
+    "outside_temperature": {
+        "max": {
+            "timestamp": 1506713260000000000,
+            "value": 61.6
+        },
+        "min": {
+            "timestamp": 1506713140000000000,
+            "value": 55.2
+        }
+    },
+    "sealevel_pressure": {
+        "max": {
+            "timestamp": 1506713260000000000,
+            "value": 29.908
+        },
+        "min": {
+            "timestamp": 1506713140000000000,
+            "value": 29.812
+        }
+    }
+}
+
 ```
 
 ## Delete a measurement
@@ -795,7 +858,7 @@ $ curl -u weert:weert -i --silent -X DELETE 'http://localhost:3000/api/v1/measur
 HTTP/1.1 204 No Content
 X-Powered-By: Express
 ETag: W/"a-bAsFyilMr4Ra1hIU5PyoyFRunpI"
-Date: Tue, 24 Oct 2017 00:55:38 GMT
+Date: Sun, 29 Oct 2017 13:08:54 GMT
 Connection: keep-alive
 
 ```
@@ -810,7 +873,7 @@ $ curl -u weert:weert -i --silent -X DELETE 'http://localhost:3000/api/v1/measur
 HTTP/1.1 204 No Content
 X-Powered-By: Express
 ETag: W/"a-bAsFyilMr4Ra1hIU5PyoyFRunpI"
-Date: Tue, 24 Oct 2017 00:55:38 GMT
+Date: Sun, 29 Oct 2017 13:08:54 GMT
 Connection: keep-alive
 
 ```

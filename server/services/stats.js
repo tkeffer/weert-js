@@ -50,10 +50,9 @@ function run_stats(influx, stats_specs, {
     platform = undefined, stream = undefined,
     now = undefined, span = 'day', timeshift = 0
 }) {
-    if (now === undefined)
-        now = moment();
-    let start    = now.startOf(span) * 1000000;
-    let stop     = now.endOf(span) * 1000000;
+    let now_moment = now ? moment(now / 1000000) : moment();
+    let start    = now_moment.startOf(span) * 1000000;
+    let stop     = now_moment.endOf(span) * 1000000;
     let queries  = [];
     let ordering = [];
 

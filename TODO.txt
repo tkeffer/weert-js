@@ -1,15 +1,13 @@
 SERVER
 
+CQ timer slowly advances forward in time. It needs to calculate the exact time to the
+next publishing event.
+
 Need to add timeshift to stats results.
 
 Need to publish new stats as they become available.
 
-CQ timer slowly advances forward in time. It needs to calculate the exact time to the
-next publishing event.
-
 Need to refactor CQ specs so they use the configuration file config/obs_type.js
-
-
 
 
 CLIENT
