@@ -5,7 +5,7 @@
  */
 
 /*
- * Non-mutable measurement-related routes
+ * Measurement-related routes
  *
  */
 
@@ -16,7 +16,7 @@ const express = require('express');
 
 const auxtools = require('../auxtools');
 
-const ReadRouterFactory = function (measurement_manager, pub_sub) {
+const PacketRouterFactory = function (measurement_manager, pub_sub) {
 
     const router = express.Router();
 
@@ -169,4 +169,4 @@ const ReadRouterFactory = function (measurement_manager, pub_sub) {
 
 };
 
-module.exports = ReadRouterFactory;
+module.exports = PacketRouterFactory;
