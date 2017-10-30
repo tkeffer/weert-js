@@ -21,7 +21,6 @@
 
 
 <script id='wx-console-template' type='text/x-handlebars-template'>
-
     <div class='stats'>
         <div class='stats_header'>
             Current Conditions
@@ -69,6 +68,98 @@
 </script>
 
 
+<script id='wx-stats-template' type='text/x-handlebars-template'>
+    <div class='stats'>
+        <div class='stats_header'>
+            Since Midnight
+        </div>
+        <table>
+            <tbody>
+            <tr>
+                <td class='stats_label'>
+                    High Temperature<br/>
+                    Low Temperature
+                </td>
+                <td class='stats_data'>
+                    {{precision day.outside_temperature.max.value 3}} at {{formatTimeStamp day.outside_temperature.max.time}}<br/>
+                    {{precision day.outside_temperature.min.value 3}} at {{formatTimeStamp day.outside_temperature.min.time}}
+                </td>
+            </tr>
+            <tr>
+                <td class='stats_label'>
+                    High Heat Index<br/>
+                    Low Wind Chill
+                </td>
+                <td class='stats_data'>
+                    {{precision day.heatindex_temperature.max.value 3}} at {{formatTimeStamp day.heatindex.max.time}}<br/>
+                    {{precision day.windchill_temperature.min.value 3}} at {{formatTimeStamp day.windchill.min.time}}
+                </td>
+            </tr>
+            <tr>
+                <td class='stats_label'>
+                    High Humidity<br/>
+                    Low Humidity
+                </td>
+                <td class='stats_data'>
+                    {{precision day.outside_humidity.max.value 3}} at {{formatTimeStamp day.outHumidity.max.time}}<br/>
+                    {{precision day.outside_humidity.min.value 3}} at {{formatTimeStamp day.outHumidity.min.time}}
+                </td>
+            </tr>
+            <tr>
+                <td class='stats_label'>
+                    High Dewpoint<br/>
+                    Low Dewpoint
+                </td>
+                <td class='stats_data'>
+                    {{precision day.dewpoint_temperature.max.value 3}} at {{formatTimeStamp day.dewpoint.max.time}}<br/>
+                    {{precision day.dewpoint_temperature.min.value 3}} at {{formatTimeStamp day.dewpoint.min.time}}
+                </td>
+            </tr>
+            <tr>
+                <td class='stats_label'>
+                    High Barometer<br/>
+                    Low Barometer
+                </td>
+                <td class='stats_data'>
+                    {{precision day.sealevel_pressure.max.value 3}} at {{formatTimeStamp day.barometer.max.time}}<br/>
+                    {{precision day.sealevel_pressure.min.value 3}} at {{formatTimeStamp day.barometer.min.time}}
+                </td>
+            </tr>
+            <tr>
+                <td class='stats_label'>Today's Rain</td>
+                <td class='stats_data'>{{precision day.rain_rain.sum.value 3}}</td>
+            </tr>
+            <tr>
+                <td class='stats_label'>
+                    High Wind
+                </td>
+                <td class='stats_data'>
+                    {{precision day.wind_speed.max.value 3}} at {{formatTimeStamp day.wind_speed.max.time}}
+                </td>
+            </tr>
+            <tr>
+                <td class='stats_label'>
+                    Average Wind
+                </td>
+                <td class='stats_data'>
+                    {{precision day.wind_speed.avg.value 3}}
+                </td>
+            </tr>
+            <tr>
+                <td class='stats_label'>
+                    High Radiation<br/>
+                    Low Radiation
+                </td>
+                <td class='stats_data'>
+                    {{precision day.radiation.max.value 3}} at {{formatTimeStamp day.radiation.max.time}}<br/>
+                    {{precision day.radiation.min.value 3}} at {{formatTimeStamp day.radiation.min.time}}
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div> <!--End class "stats" -->
+</script>
+
 <div id='container'>
 
     <h1>Welcome to WeeRT</h1>
@@ -76,7 +167,7 @@
 
     <!-- Left hand side div -->
     <div id='stats_group'>
-        <div id='wx-console-area'><!-- Handlebars instantiation will go here --></div>
+        <div id='wx-console-area'><!-- Current conditions will go here --></div>
         <div id='windCompass' class='compass'><!-- Animated wind compass will go here --></div>
     </div>
 
@@ -87,10 +178,10 @@
             <li><a href='#day'>24 Hours</a></li>
         </ul>
         <div id='recent' class='plot-group'>Minutes:
-            <label><input type='radio' name='recent_span' value='5' onchange='changeSpan(this)' checked>5</label>
-            <label><input type='radio' name='recent_span' value='10' onchange='changeSpan(this)'>10</label>
-            <label><input type='radio' name='recent_span' value='20' onchange='changeSpan(this)'>20</label>
-            <label><input type='radio' name='recent_span' value='60' onchange='changeSpan(this)'>60</label>
+            <label><input type='radio' name='recent_span' value='5' onchange='changeSpan(this);' checked>5</label>
+            <label><input type='radio' name='recent_span' value='10' onchange='changeSpan(this);'>10</label>
+            <label><input type='radio' name='recent_span' value='20' onchange='changeSpan(this);'>20</label>
+            <label><input type='radio' name='recent_span' value='60' onchange='changeSpan(this);'>60</label>
 
             <div id='recent-windspeed-div' class='plot-area'></div>
             <div id='recent-outtemp-div' class='plot-area'></div>

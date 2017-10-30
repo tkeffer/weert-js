@@ -9,35 +9,35 @@
 // This is the list of plots to be constructed for each document div.
 const plot_list = [
     {
-        plot_div: 'windspeed-div',
-        layout  : {
+        plotly: 'windspeed-div',
+        layout: {
             xaxis: {type: "date"},
             yaxis: {rangemode: "nonnegative"},
             title: "Wind Speed (mph)"
         },
-        traces  : [
+        traces: [
             {obs_type: 'wind_speed'}
         ]
     },
     {
-        plot_div: 'outtemp-div',
-        layout  : {
+        plotly: 'outtemp-div',
+        layout: {
             xaxis: {type: "date"},
             title: "Outside Temperature (°F)"
         },
-        traces  : [
+        traces: [
             {obs_type: 'outside_temperature', label: 'Temperature'},
             {obs_type: 'dewpoint_temperature', label: 'Dewpoint'}
         ]
     },
     {
-        plot_div: 'radiation-div',
-        layout  : {
+        plotly: 'radiation-div',
+        layout: {
             xaxis: {type: "date"},
             yaxis: {rangemode: "nonnegative"},
             title: "Solar Radiation (W/m²)"
         },
-        traces  : [
+        traces: [
             {obs_type: 'radiation_radiation', label: 'Radiation'}
         ]
     }
@@ -122,7 +122,7 @@ function readyPlotGroup(data_manager, plot_group) {
             for (let plot_spec of plot_group.plot_list) {
                 promises.push(
                     Plot.createPlot(
-                        plot_group.time_group + '-' + plot_spec.plot_div,
+                        plot_group.time_group + '-' + plot_spec.plotly,
                         data_manager,
                         plot_spec.layout,
                         plot_spec.traces)

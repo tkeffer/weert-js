@@ -9,9 +9,13 @@ Need to publish new stats as they become available.
 
 Need to refactor CQ specs so they use the configuration file config/obs_type.js
 
+Need to record gust directions
+
 
 CLIENT
 
-Deal with unit systems
+Deal with unit systems.
+
+Add statistics for the day.
 
 

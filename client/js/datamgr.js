@@ -6,7 +6,8 @@
 
 "use strict";
 
-/** @classdesc Class that manages the data connection back to the server.
+/** @classdesc Class that manages the data connection back to the server. This is basically the "model"
+ * part of a Model-View-Controller triad.
  *  @property {Number[]} x Array of timestamps in milliseconds.
  *  @property {Object} y An object holding the y-values. When keyed with an observation type, it
  *  returns an Array of y-values.
@@ -34,6 +35,7 @@ class DataManager {
 
         this.max_age   = undefined;
         this.callbacks = [];
+        // TODO: Not sure it's necessary to maintain the internal arrays any more.
         this.x         = [];
         this.y         = {};
         for (let obs_type of this.obs_types)
@@ -96,8 +98,8 @@ class DataManager {
      * @return {Promise} A promise to resolve to the number of packets returned from the server.
      */
     setMaxAge(max_age) {
-        max_age   = max_age || 1200000;
-        console.log('setting max age to', max_age)
+        max_age = max_age || 1200000;
+        console.log('setting max age to', max_age);
         // Convert to nanoseconds
         let since = (Date.now() - max_age) * 1000000;
         return $.ajax({
@@ -114,9 +116,9 @@ class DataManager {
                 .then(packet_array => {
 
                     // Got new data. First, get rid of the old
-                    this.x.splice(0, this.x.length);
+                    this.x = [];
                     for (let obs_type of this.obs_types) {
-                        this.y[obs_type].splice(0, this.y[obs_type].length);
+                        this.y[obs_type] = [];
                     }
 
                     // Now go through the array of packets, adding to my internal array of
@@ -125,7 +127,7 @@ class DataManager {
                         this._pushPacket(packet);
                     }
                     // Let my subscribers know I've changed.
-                    this._notify_subscribers('reload', {x: this.x, y: this.y});
+                    this._notify_subscribers('reload', {x: this.x, y: this.y, max_age: max_age});
 
                     // Now that I've loaded the data, it's ok to accept new packets from the server
                     this.max_age = max_age;

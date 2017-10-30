@@ -108,7 +108,7 @@ module.exports = [
     {
         obs_type : "wind_speed",
         subsample: "avg",
-        stats    : ["min", "max"]
+        stats    : ["min", "max", "avg"]
 
     },
     {

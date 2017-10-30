@@ -9,25 +9,90 @@
 /**
  * Class representing a single real-time {@link https://plot.ly/javascript Plotly.js} plot.
  * It may have multiple traces.
+ *
+ * This is basically the "view" of a Model-View-Controller triad.
  */
 class Plot {
 
     /**
      * Construct a Plot object. This constructor is not intended to be used directly. Instead,
-     * the static method {@link Plot.createPlot} should be used instead.
-     * @param {String} plot_div The id of the document <tt>div</tt> where the plot is located. (This
+     * the static method {@link Plot.createPlot} should be used instead. This avoids having the
+     * constructor take a Promise.
+     * @param {String} plotly The document <tt>div</tt> where the plot is located. (This
      *    is what's returned by the Plotly function
      *    {@link https://plot.ly/javascript/plotlyjs-function-reference/#plotlynewplot Plotly.newPlot})
      */
-    constructor(plot_div) {
-        this.plot_div = plot_div;
+    constructor(plotly, max_age, trace_specs) {
+        this.plotly      = plotly;
+        this.max_age     = max_age;
+        this.trace_specs = trace_specs;
     }
 
     /**
      * Update the plot to reflect a changed model
      */
     update(event_type, event_data) {
-        Plotly.redraw(this.plot_div);
+        if (event_type === 'new_packet') {
+            this.extend(event_data);
+        } else if (event_type === 'reload') {
+            this.replace(event_data);
+        }
+    }
+
+    /*
+     * Extend the plot with a new data point.
+     */
+    extend(packet) {
+        let Nkeep;
+        let x = this.plotly.data[0].x;
+        if (x.length) {
+            let lastTimestamp = x[x.length - 1];
+            let trim_time     = lastTimestamp - this.max_age;
+            let first_good    = x.findIndex(function (xval) {
+                return xval >= trim_time;
+            });
+
+            if (first_good === -1) {
+                // All data points have expired. Keep none of them.
+                Nkeep = 0;
+            } else if (first_good === 0) {
+                // They are all good. Don't trim anything
+                Nkeep = undefined;
+            } else {
+                // The points before first_good have expired. Keep the rest.
+                Nkeep = x.length - first_good;
+            }
+        }
+
+        // Each trace gets an index
+        let new_xs        = [];
+        let new_ys        = [];
+        let trace_numbers = [];
+        let i             = 0;
+        for (let trace_spec of this.trace_specs) {
+            new_xs.push([packet.timestamp / 1000000]);
+            new_ys.push([packet.fields[trace_spec.obs_type]]);
+            trace_numbers.push(i++);
+        }
+        return Plotly.extendTraces(this.plotly, {
+            x: new_xs,
+            y: new_ys
+        }, trace_numbers, Nkeep);
+    }
+
+    /*
+     * Replace the plot data with totally new data.
+     */
+    replace(new_data) {
+        this.max_age = new_data.max_age;
+        for (let i = 0; i < this.trace_specs.length; i++) {
+
+            let obs_type = this.trace_specs[i].obs_type;
+
+            this.plotly.data[i].x = new_data.x;
+            this.plotly.data[i].y = new_data.y[obs_type];
+        }
+        Plotly.redraw(this.plotly);
     }
 
     /**
@@ -57,7 +122,7 @@ class Plot {
         return Plotly.newPlot(plot_div, data, plot_layout)
                      .then(plotly => {
                          // Return the resolved promise of a new Plot object
-                         return Promise.resolve(new Plot(plot_div));
+                         return Promise.resolve(new Plot(plotly, datamanager.max_age, trace_specs));
                      });
     }
 }
