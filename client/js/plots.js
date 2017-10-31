@@ -21,6 +21,9 @@ class Plot {
      * @param {String} plotly The document <tt>div</tt> where the plot is located. (This
      *    is what's returned by the Plotly function
      *    {@link https://plot.ly/javascript/plotlyjs-function-reference/#plotlynewplot Plotly.newPlot})
+     * @param {number} max_age The maximum age that should be shown on the plots in nanoseconds.
+     * @param {Object[]} trace_specs An array of objects, one for each trace to be included.
+     * @param {String} trace_specs[].obs_type The observation type for this trace.
      */
     constructor(plotly, max_age, trace_specs) {
         this.plotly      = plotly;
@@ -29,7 +32,11 @@ class Plot {
     }
 
     /**
-     * Update the plot to reflect a changed model
+     * Update the plot to reflect a changed model.
+     * @param {string} event_type If set to <tt>new_packet</tt> then the <tt>event_data</tt> should
+     * be a new deep packet that is to be added on to the end of the plot. If set to <tt>reload</tt>
+     * then <tt>event_data</tt> should be new x- and y-vectors, along with a new <tt>max_age</tt>.
+     * @param {object} event_data The new model data.
      */
     update(event_type, event_data) {
         if (event_type === 'new_packet') {

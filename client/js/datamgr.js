@@ -15,8 +15,8 @@
 class DataManager {
 
     /**
-     * Create a DataManager object. This will merely create the object. To load it with data,
-     * use the function {@link DataManager#setMaxAge DataManager.setMaxAge}.
+     * Create a DataManager object. This will merely create the object and not load it. To
+     * create and load, use static function {@link createDataManager}.
      * @constructor
      * @param {String} measurement The InfluxDB measurement to use
      * @param {Object} options A hash of options:
@@ -134,6 +134,25 @@ class DataManager {
 
                     return Promise.resolve(packet_array.length);
                 });
+    }
+
+    /**
+     * Static method to create and load a DataManager object with data.
+     * @param {String} measurement The InfluxDB measurement to use
+     * @param {number} max_age The maximum age to be retained in milliseconds.
+     * @param {Object} options A hash of options:
+     * @param {String[]} options.obs_types An array specifying the observation types to be managed.
+     * @param {String} [options.platform=default_platform] The platform.
+     * @param {String} [options.stream=default_stream] The stream.
+     * @param {String} [options.faye_endpoint="/api/v1/faye"] The endpoint where the Faye pub-sub facility can be
+     *     found.
+     */
+    static createDataManager(measurement, max_age, options) {
+        let manager = new DataManager(measurement, options);
+        return manager.setMaxAge(max_age)
+                      .then(result => {
+                          return Promise.resolve(manager);
+                      });
     }
 
     _pushPacket(packet) {

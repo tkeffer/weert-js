@@ -43,18 +43,16 @@ const plot_list = [
     }
 ];
 
-const recent_group = {
-    time_group      : "recent",
-    measurement     : "wxpackets",
-    max_retained_age: 1200000,       // In milliseconds
-    plot_list       : plot_list
+const recent_plot_group = {
+    time_group : "recent",
+    measurement: "wxpackets",
+    plot_list  : plot_list
 };
 
-const day_group = {
-    time_group      : "day",
-    measurement     : "wxrecords",
-    max_retained_age: 27 * 3600000, // In milliseconds
-    plot_list       : plot_list
+const day_plot_group = {
+    time_group : "day",
+    measurement: "wxrecords",
+    plot_list  : plot_list
 };
 
 const weert_config = {
@@ -71,11 +69,13 @@ for (let plot of plot_list) {
     }
 }
 
+const initial_recent_max_age = 1200000;         // In milliseconds
+const initial_day_max_age    = 27 * 3600000;    // In milliseconds
+
 function readyTemplate(data_manager) {
     return new Promise(function (resolve) {
         // The DOM has to be ready before we can select the SVG area.
-        document.addEventListener("DOMContentLoaded", function () {
-
+        $(function () {
             // Compile the console template
             let source           = $("#wx-console-template").html();
             let console_template = new Handlebars.compile(source);
@@ -90,13 +90,12 @@ function readyTemplate(data_manager) {
             resolve(console_template);
         });
     });
-};
+}
 
 function readyWindCompass(data_manager) {
     return new Promise(function (resolve) {
         // The DOM has to be ready before we can select the SVG area.
-        document.addEventListener("DOMContentLoaded", function () {
-
+        $(function () {
             let wind_compass = new WindCompass();
             // set the callback for new packets
             data_manager.subscribe((event_type, new_packet) => {
@@ -117,7 +116,7 @@ function readyWindCompass(data_manager) {
 
 function readyPlotGroup(data_manager, plot_group) {
     return new Promise(function (resolve) {
-        document.addEventListener("DOMContentLoaded", function () {
+        $(function () {
             let promises = [];
             for (let plot_spec of plot_group.plot_list) {
                 promises.push(
@@ -140,29 +139,39 @@ function readyPlotGroup(data_manager, plot_group) {
     });
 }
 
-const recent_data_manager = new DataManager(recent_group.measurement,
-                                            weert_config);
-const day_data_manager    = new DataManager(day_group.measurement,
-                                            weert_config);
-
-Promise.all([
-                readyTemplate(recent_data_manager),
-                readyWindCompass(recent_data_manager),
-                readyPlotGroup(recent_data_manager, recent_group),
-                readyPlotGroup(day_data_manager, day_group)])
-       .then(() => {
-           // Once all the components are ready,
-           // it's time to grab the initial data by calling setMaxAge()
-           return Promise.all([
-                                  recent_data_manager.setMaxAge(recent_group.max_retained_age),
-                                  day_data_manager.setMaxAge(day_group.max_retained_age)
-                              ]);
-       });
+var recent_data_manager;
+var day_data_manager;
 
 // Allow changing the total time span displayed by the "recent" plots:
 var changeSpan = function (x) {
     recent_data_manager.setMaxAge(x.value * 60000);
 };
+
+DataManager.createDataManager(recent_plot_group.measurement,
+                              initial_recent_max_age,
+                              weert_config)
+           .then(rdmgr => {
+               recent_data_manager = rdmgr;
+               return Promise.all([
+                                      readyTemplate(recent_data_manager),
+                                      readyWindCompass(recent_data_manager),
+                                      readyPlotGroup(recent_data_manager, recent_plot_group)
+                                  ]);
+
+           })
+           .then(() => {
+               console.log("'Recent' data manager ready");
+           });
+DataManager.createDataManager(day_plot_group.measurement,
+                              initial_day_max_age,
+                              weert_config)
+           .then(ddmgr => {
+               day_data_manager = ddmgr;
+               return readyPlotGroup(day_data_manager, day_plot_group);
+           })
+           .then(() => {
+               console.log("'Day' data manager ready");
+           });
 
 Handlebars.registerHelper("formatTimeStamp", function (ts) {
     return new Date(ts / 1000000);
