@@ -42,7 +42,7 @@ class Plot {
         if (event_type === 'new_packet') {
             this.extend(event_data);
         } else if (event_type === 'reload') {
-            this.replace(event_data);
+            this.replace(event_data.packets, event_data.max_age);
         }
     }
 
@@ -90,14 +90,14 @@ class Plot {
     /*
      * Replace the plot data with totally new data.
      */
-    replace(new_data) {
-        this.max_age = new_data.max_age;
+    replace(packets, max_age) {
+        this.max_age = max_age;
         for (let i = 0; i < this.trace_specs.length; i++) {
 
             let obs_type = this.trace_specs[i].obs_type;
 
-            this.plotly.data[i].x = new_data.x;
-            this.plotly.data[i].y = new_data.y[obs_type];
+            this.plotly.data[i].x = packets.map(function (packet) {return packet.timestamp / 1000000;});
+            this.plotly.data[i].y = packets.map(function (packet) {return packet.fields[obs_type];});
         }
         Plotly.redraw(this.plotly);
     }
@@ -119,8 +119,8 @@ class Plot {
         let data = [];
         for (let trace of trace_specs) {
             data.push({
-                          x   : datamanager.x,
-                          y   : datamanager.y[trace.obs_type],
+                          x   : datamanager.packets.map(function (packet) {return packet.timestamp / 1000000;}),
+                          y   : datamanager.packets.map(function (packet) {return packet.fields[trace.obs_type];}),
                           mode: "lines",
                           type: "scatter",
                           name: trace.label

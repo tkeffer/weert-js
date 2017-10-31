@@ -11,11 +11,19 @@ Need to refactor CQ specs so they use the configuration file config/obs_type.js
 
 Need to record gust directions
 
+Consider trafficing in milliseconds (instead of nanoseconds)
+
 
 CLIENT
+
+Should be able to extract the last packet out of the data manager, for use when initializing
+the templates and wind compass.
 
 Deal with unit systems.
 
 Add statistics for the day.
 
 
+DATABASE
+
+Need utility to load sqlite archived records into InfluxDB.

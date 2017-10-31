@@ -69,8 +69,8 @@ for (let plot of plot_list) {
     }
 }
 
-const initial_recent_max_age = 1200000;         // In milliseconds
-const initial_day_max_age    = 27 * 3600000;    // In milliseconds
+const initial_recent_max_age = 300000000000;       // 5 minutes in nanoseconds
+const initial_day_max_age    = 27 * 3600000000000;  // 27 hours in nanoseconds
 
 function readyTemplate(data_manager) {
     return new Promise(function (resolve) {
@@ -79,12 +79,17 @@ function readyTemplate(data_manager) {
             // Compile the console template
             let source           = $("#wx-console-template").html();
             let console_template = new Handlebars.compile(source);
+
+            // Render the last packet if one is available
+            let packet = data_manager.lastPacket();
+            if (packet) {
+                $("#wx-console-area").html(console_template(packet));
+            }
             // Set the callback for new packets
             data_manager.subscribe((event_type, new_packet) => {
                 if (event_type === 'new_packet') {
                     // Render the Handlebars template showing the new conditions
-                    let html = console_template(new_packet);
-                    $("#wx-console-area").html(html);
+                    $("#wx-console-area").html(console_template(new_packet));
                 }
             });
             resolve(console_template);
@@ -144,12 +149,11 @@ var day_data_manager;
 
 // Allow changing the total time span displayed by the "recent" plots:
 var changeSpan = function (x) {
-    recent_data_manager.setMaxAge(x.value * 60000);
+    recent_data_manager.setMaxAge(x.value * 60000000000);
 };
 
 DataManager.createDataManager(recent_plot_group.measurement,
-                              initial_recent_max_age,
-                              weert_config)
+                              Object.assign({}, weert_config, {max_age: initial_recent_max_age}))
            .then(rdmgr => {
                recent_data_manager = rdmgr;
                return Promise.all([
@@ -163,8 +167,7 @@ DataManager.createDataManager(recent_plot_group.measurement,
                console.log("'Recent' data manager ready");
            });
 DataManager.createDataManager(day_plot_group.measurement,
-                              initial_day_max_age,
-                              weert_config)
+                              Object.assign({}, weert_config, {max_age: initial_day_max_age}))
            .then(ddmgr => {
                day_data_manager = ddmgr;
                return readyPlotGroup(day_data_manager, day_plot_group);
