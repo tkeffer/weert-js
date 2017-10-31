@@ -14,11 +14,10 @@
 const debug   = require('debug')('weert:routes');
 const express = require('express');
 
-const stats     = require('../services/stats');
 const auxtools  = require('../auxtools');
 const obs_types = require('../config/obs_types');
 
-const StatsRouterFactory = function (influx) {
+const StatsRouterFactory = function (measurement_manager) {
 
     const router = express.Router();
 
@@ -30,8 +29,7 @@ const StatsRouterFactory = function (influx) {
                .send("No time span specified");
         }
 
-        stats.run_stats(influx, obs_types, {
-                 measurement: req.params.measurement,
+        measurement_manager.run_stats(req.params.measurement, obs_types, {
                  platform   : req.query.platform,
                  stream     : req.query.stream,
                  now        : req.query.now,

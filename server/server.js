@@ -120,7 +120,7 @@ influx.getDatabaseNames()
           app.use(config.server.api, packet_router_factory(measurement_manager, faye_client));
 
           // Set up the statistics routes
-          app.use(config.server.api, stats_router_factory(influx))
+          app.use(config.server.api, stats_router_factory(measurement_manager));
 
           /*
            * Error handlers. If we got this far, the request did not match any router. It's a 404.

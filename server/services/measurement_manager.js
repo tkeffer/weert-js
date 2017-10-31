@@ -6,6 +6,8 @@
 
 'use strict';
 
+const moment = require('moment');
+
 const auxtools = require('../auxtools');
 
 /*
@@ -15,7 +17,7 @@ const auxtools = require('../auxtools');
 class MeasurementManager {
 
     constructor(influx, config) {
-        this.influx = influx;
+        this.influx             = influx;
         this.measurement_config = config;
     }
 
@@ -140,6 +142,64 @@ class MeasurementManager {
         }
         return this.influx.dropMeasurement(measurement, db);
     }
+
+
+    run_stats(measurement, stats_specs, {
+        platform = undefined, stream = undefined,
+        now = undefined, span = 'day', timeshift = 0
+    }) {
+        let now_moment  = now ? moment(now / 1000000) : moment();
+        let start       = now_moment.startOf(span) * 1000000;
+        let stop        = now_moment.endOf(span) * 1000000;
+        let queries     = [];
+        let ordering    = [];
+        let from_clause = auxtools.get_query_from(measurement, this.measurement_config[measurement]);
+
+
+        for (let stats_spec of stats_specs) {
+            let obs_type = stats_spec.obs_type;
+            let stats    = stats_spec.stats;
+            if (stats) {
+                for (let agg of stats) {
+                    let agg_lc = agg.toLowerCase();
+                    if (agg_lc === 'avg')
+                        agg_lc = 'mean';
+                    // TODO: The time boundaries work for the results of a CQ, but not other sources
+                    let query_string = `SELECT ${agg_lc}(${obs_type}) ` +
+                                       `FROM ${from_clause} WHERE time>=${start} AND time<${stop}`;
+
+                    if (platform)
+                        query_string += ` AND platform = '${platform}'`;
+                    if (stream)
+                        query_string += ` AND stream = '${stream}'`;
+                    queries.push(query_string);
+                    ordering.push([obs_type, agg_lc]);
+                }
+            }
+        }
+
+        return this.influx.query(queries)
+                   .then(q_results => {
+                       let results = {};
+                       for (let i = 0; i < ordering.length; i++) {
+                           let obs_type = ordering[i][0];
+                           let agg      = ordering[i][1];
+                           if (q_results[i].length) {
+                               if (results[obs_type] === undefined)
+                                   results[obs_type] = {};
+                               results[obs_type][agg] = {
+                                   value: q_results[i][0][agg],
+                               };
+                               if (agg !== 'count' && agg !== 'sum')
+                                   results[obs_type][agg]['timestamp'] = +q_results[i][0].time.getNanoTime() + timeshift;
+                           }
+                       }
+                       return Promise.resolve(results);
+                   });
+
+
+    }
+
 
     _get_write_options(measurement) {
         let rp = undefined;
