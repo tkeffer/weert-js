@@ -111,7 +111,7 @@ function setup_all_notices(measurement_manager, pub_sub, measurement_configs) {
                                        .then(result => {
                                            if (result.length) {
                                                let packet = result[0];
-                                               let d = new Date(packet.timestamp / 1000000);
+                                               let d = new Date(packet.timestamp);
                                                debug(`Publishing packet from ${cq_destination} for ` +
                                                    `time ${d} (${packet.timestamp})`);
                                                return pub_sub.publish(`/${cq_destination}`, packet);

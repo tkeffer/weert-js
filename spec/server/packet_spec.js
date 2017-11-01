@@ -17,7 +17,8 @@ var request      = require('request');
 var config = require('../../server/config/config');
 
 var measurements_url = 'http://localhost:3000' + config.server.api + '/measurements';
-var packets_url      = measurements_url + '/test_measurement/packets';
+var measurement_url  = measurements_url + '/test_measurement';
+var packets_url      = measurement_url + '/packets';
 
 // We have to make sure all inserted times are within the retention policy
 // of the database. So, use current time stamps.
@@ -25,8 +26,7 @@ var now = Date.now();
 
 var timestamp = function (i) {
     // Base time is an hour ago. Data points every 10 seconds.
-    // Convert to nanoseconds
-    return (now - 3600000 + i * 10000) * 1000000;
+    return now - 3600000 + i * 10000;
 };
 
 var temperature = function (i) {
@@ -60,7 +60,7 @@ describe('In the single packet tests', function () {
     // Before each test, delete the entire measurement.
     beforeEach(function (doneFn) {
         request({
-                    url   : measurements_url,
+                    url   : measurement_url,
                     method: 'DELETE'
                 }, function (err) {
             doneFn();
@@ -76,9 +76,11 @@ describe('In the single packet tests', function () {
                   // out of the returned header
                   var packet_link = res.headers.get('location');
                   // Now retrieve and check the POSTed packet
-                  frisby.get(packet_link)
-                        .expect('status', 200)
-                        .expect('json', form_deep_packet(0));
+                  return frisby.get(packet_link)
+                               .expect('status', 200)
+                               .then(function (res) {
+                                   expect(res.body).toEqual([form_deep_packet(0)]);
+                               });
               })
               .done(doneFn);
     });
@@ -93,14 +95,14 @@ describe('In the single packet tests', function () {
                   // Check its value
                   expect(packet_link).toEqual(packets_url + '/' + timestamp(0));
                   // Now delete it.
-                  frisby.del(packet_link)
-                        .expect('status', 204)
-                        .then(function (res) {
-                            // Make sure it's truly deleted. This also tests getting a non-existent packet
-                            return frisby.get(packet_link)
-                                         .expect('status', 404);
-                        })
-                        .done(doneFn);
+                  return frisby.del(packet_link)
+                               .expect('status', 204)
+                               .then(function (res) {
+                                   // Make sure it's truly deleted. This also tests getting a non-existent packet
+                                   return frisby.get(packet_link)
+                                                .expect('status', 404);
+                               })
+                               .done(doneFn);
               });
     });
 
@@ -169,10 +171,11 @@ describe('Malformed packet tests', function () {
                   // Retrieve and check the POSTed packet
                   return frisby.get(packet_link)
                                .expect('status', 200)
-                               .expect('json', form_deep_packet(0));
+                               .then(function (res) {
+                                   expect(res.body).toEqual([form_deep_packet(0)]);
+                               });
               })
               .done(doneFn);
-
     });
 
 });
@@ -204,7 +207,7 @@ describe("Launch and test " + N + " POSTs of packets", function () {
     beforeAll(function (doneFn) {
 
         request({
-                    url   : measurements_url,
+                    url   : measurement_url,
                     method: 'DELETE'
                 }, function (err) {
             // Now asynchronously repopulate it.
@@ -287,7 +290,7 @@ describe("Launch and test " + N + " POSTs of packets", function () {
         frisby.get(packets_url + '/' + timestamp(3))
               .expect('status', 200)
               .then(function (res) {
-                  expect(res.body).toEqual(packets[3]);
+                  expect(res.body).toEqual([packets[3]]);
               })
               .done(doneFn);
     });
@@ -296,7 +299,7 @@ describe("Launch and test " + N + " POSTs of packets", function () {
         frisby.get(packets_url + '/' + timestamp(3) + '?platform=test_platform')
               .expect('status', 200)
               .then(function (res) {
-                  expect(res.body).toEqual(packets[3]);
+                  expect(res.body).toEqual([packets[3]]);
               })
               .done(doneFn);
     });
@@ -318,7 +321,7 @@ describe("Testing measurement", function () {
 
 
     it("should return metadata about a measurement", function (doneFn) {
-        frisby.get(measurements_url + '/test_measurement')
+        frisby.get(measurement_url)
               .expect('status', 200)
               .then(function (res) {
                   expect(res.body).toEqual([{key: 'test_measurement,platform=test_platform'}]);
@@ -326,10 +329,10 @@ describe("Testing measurement", function () {
               .done(doneFn);
     });
     it("should delete a measurement", function (doneFn) {
-        frisby.del(measurements_url + '/test_measurement')
+        frisby.del(measurement_url)
               .expect('status', 204)
               .then(function () {
-                  frisby.get(measurements_url + '/test_measurement')
+                  frisby.get(measurement_url)
                         .expect('status', 404)
                         .done(doneFn());
               });

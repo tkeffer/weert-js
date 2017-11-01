@@ -27,7 +27,7 @@ const PacketRouterFactory = function (measurement_manager, pub_sub) {
             // Get the measurement
             const measurement = req.params.measurement;
             // Get the packet out of the request body:
-            const packet = req.body;
+            const packet      = req.body;
             // Insert the packet into the database
             measurement_manager
                 .insert_packet(measurement, packet)
@@ -39,7 +39,7 @@ const PacketRouterFactory = function (measurement_manager, pub_sub) {
                     // Notify any subscribers via the pub-sub facility
                     pub_sub.publish(`/${measurement}`, packet)
                            .then(function () {
-                                     debug(`PUBlished packet ${new Date(packet.timestamp / 1000000)} to /${measurement}`);
+                                     debug(`PUBlished packet ${new Date(packet.timestamp)} to /${measurement}`);
                                  },
                                  function (err) {
                                      debug("POST /measurements/:measurement/packets PUB-SUB error:", err.message);
@@ -60,7 +60,7 @@ const PacketRouterFactory = function (measurement_manager, pub_sub) {
     router.delete('/measurements/:measurement/packets/:timestamp', function (req, res) {
         // Get the measurement and timestamp out of the route path
         const measurement = req.params.measurement;
-        const timestamp = req.params.timestamp;
+        const timestamp   = req.params.timestamp;
         measurement_manager
             .delete_packet(measurement, timestamp, {
                 platform: req.query.platform,
@@ -113,12 +113,12 @@ const PacketRouterFactory = function (measurement_manager, pub_sub) {
                 platform: req.query.platform,
                 stream  : req.query.stream
             })
-            .then((packet) => {
-                if (packet === undefined)
-                    res.sendStatus(404);
-                else {
+            .then((results) => {
+                if (results.length)
                     res.status(200)
-                       .json(packet);
+                       .json(results);
+                else {
+                    res.sendStatus(404);
                 }
             })
             .catch(err => {

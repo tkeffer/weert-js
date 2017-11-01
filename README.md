@@ -219,7 +219,7 @@ InfluxDB *fields*.  They are not indexed. Because InfluxDB does not
 use a schema, new data types can be introduced into the data stream at
 any time and they will be stored in the database.
 
-The observation time is stored as field `time`, always in nanoseconds.
+The observation time is stored as field `time` in the database.
 
 ## Packets
 
@@ -245,12 +245,12 @@ ecosystem. It's useful to be aware of the differences.
   [node-influx](https://node-influx.github.io/) expects (as do the
   InfluxDB client libraries for most other languages). It is useful
   because the InfluxDB "measurement" and "tags" are explicitly
-  represented. Time is in field `time` and it is in *nanoseconds*. It
+  represented. Time is in field `time` and it is in *milliseconds*. It
   looks something like this:
  
    ```json
    {
-     "timestamp" : 1507432417000000000,
+     "timestamp" : 1507432417000,
      "measurement" : "wxpackets"
      "tags" : {"platform" : "Red barn", "stream" : "Accurite"}
      "fields" : {"outside_temperature" : 20.5, "outside_humidity" : 65.0, "unit_system" : 16}
@@ -265,7 +265,7 @@ ecosystem. It's useful to be aware of the differences.
   
    ```json
    {
-     "time" : 1507432417000000000,
+     "time" : 1507432417000,
      "measurement" : "wxpackets",
      "platform" : "Red barn",
      "stream" : "Accurite",
@@ -302,6 +302,8 @@ that might be necessary. Both incoming and outgoing data use this format.
 
 
 
+
+
 All mutating calls (POSTs and DELETEs) must be authorized through
 an `Authorization` header. It should include
 the word `Basic`, followed by the base64 encoding of the username and password
@@ -331,12 +333,12 @@ GET /api/v1/measurements/:measurement/packets
 
 **Parameters**
 
-| *Name*          | *Type*  | *Description*                                                                                                                    |
+| *Name*          | *Type*  | *Description*                                                                                                       |
 |:----------------|:--------|:--------------------------------------------------------------------------------------------------------------------|
 | `platform`      | string  | Include only packets from platform `platform`.                                                                      |
 | `stream`        | string  | Include only packets from stream `stream`.                                                                          |
-| `start`         | integer | All packets greater than this timestamp in nanoseconds will be included in the results. Default: first available packet.           |
-| `stop`          | integer | All packets less than or equal to this timestamp in nanoseconds will be included in the results. Default: last available packet.   |
+| `start`         | integer | All packets greater than this timestamp in milliseconds will be included in the results. Default: first available packet.          |
+| `stop`          | integer | All packets less than or equal to this timestamp in milliseconds will be included in the results. Default: last available packet.  |
 | `limit`         | integer | Limit the number of returned packets to this value. Default: no limit.                                              |
 | `direction`     | string  | The direction of the sort. Can be either `asc` or `desc`. Default: `asc`.                                           |
 
@@ -358,10 +360,10 @@ $ curl -i --silent -X GET 'http://localhost:3000/api/v1/measurements/examples/pa
 HTTP/1.1 200 OK
 X-Powered-By: Express
 Content-Type: application/json; charset=utf-8
-Content-Length: 1151
-ETag: W/"47f-PdH2ku7kI05Em0p97Q2ME5acn8c"
+Content-Length: 1103
+ETag: W/"44f-FXNE7SWkA3UNTwmWW3APgfjgerQ"
 Vary: Accept-Encoding
-Date: Sun, 29 Oct 2017 13:08:54 GMT
+Date: Wed, 01 Nov 2017 18:55:34 GMT
 Connection: keep-alive
 
 [
@@ -374,7 +376,7 @@ Connection: keep-alive
             "platform": "barn",
             "stream": "accurite"
         },
-        "timestamp": 1506713140000000000
+        "timestamp": 1506713140000
     },
     {
         "fields": {
@@ -385,7 +387,7 @@ Connection: keep-alive
             "platform": "barn",
             "stream": "loft"
         },
-        "timestamp": 1506713140000000000
+        "timestamp": 1506713140000
     },
     {
         "fields": {
@@ -396,7 +398,7 @@ Connection: keep-alive
             "platform": "barn",
             "stream": "accurite"
         },
-        "timestamp": 1506713200000000000
+        "timestamp": 1506713200000
     },
     {
         "fields": {
@@ -407,7 +409,7 @@ Connection: keep-alive
             "platform": "barn",
             "stream": "loft"
         },
-        "timestamp": 1506713200000000000
+        "timestamp": 1506713200000
     },
     {
         "fields": {
@@ -418,7 +420,7 @@ Connection: keep-alive
             "platform": "barn",
             "stream": "accurite"
         },
-        "timestamp": 1506713260000000000
+        "timestamp": 1506713260000
     },
     {
         "fields": {
@@ -429,7 +431,7 @@ Connection: keep-alive
             "platform": "barn",
             "stream": "loft"
         },
-        "timestamp": 1506713260000000000
+        "timestamp": 1506713260000
     },
     {
         "fields": {
@@ -440,7 +442,7 @@ Connection: keep-alive
             "platform": "barn",
             "stream": "accurite"
         },
-        "timestamp": 1506713320000000000
+        "timestamp": 1506713320000
     },
     {
         "fields": {
@@ -451,7 +453,7 @@ Connection: keep-alive
             "platform": "barn",
             "stream": "loft"
         },
-        "timestamp": 1506713320000000000
+        "timestamp": 1506713320000
     }
 ]
 
@@ -466,10 +468,10 @@ $ curl -i --silent -X GET 'http://localhost:3000/api/v1/measurements/examples/pa
 HTTP/1.1 200 OK
 X-Powered-By: Express
 Content-Type: application/json; charset=utf-8
-Content-Length: 285
-ETag: W/"11d-bEOhn3xaLkbvFBXQfdO/sP9w0Vk"
+Content-Length: 273
+ETag: W/"111-943kObNtwLVG33lOFplNtaCD5Ww"
 Vary: Accept-Encoding
-Date: Sun, 29 Oct 2017 13:08:54 GMT
+Date: Wed, 01 Nov 2017 18:55:34 GMT
 Connection: keep-alive
 
 [
@@ -482,7 +484,7 @@ Connection: keep-alive
             "platform": "barn",
             "stream": "loft"
         },
-        "timestamp": 1506713140000000000
+        "timestamp": 1506713140000
     },
     {
         "fields": {
@@ -493,7 +495,7 @@ Connection: keep-alive
             "platform": "barn",
             "stream": "loft"
         },
-        "timestamp": 1506713200000000000
+        "timestamp": 1506713200000
     }
 ]
 
@@ -503,15 +505,15 @@ Query, constraining by time and stream name, returning results in reverse order:
 
 
 ```shell
-$ curl -i -X GET 'http://localhost:3000/api/v1/measurements/examples/packets?start=1506713140000000000&stop=1506713260000000000&stream=loft&direction=desc'
+$ curl -i -X GET 'http://localhost:3000/api/v1/measurements/examples/packets?start=1506713140000&stop=1506713260000&stream=loft&direction=desc'
 
 HTTP/1.1 200 OK
 X-Powered-By: Express
 Content-Type: application/json; charset=utf-8
-Content-Length: 285
-ETag: W/"11d-wdqlsqbgopLcZjhyqL9ZgNRimGM"
+Content-Length: 273
+ETag: W/"111-MdR0uz3YnZpIjTX5MIsATGLUAGE"
 Vary: Accept-Encoding
-Date: Sun, 29 Oct 2017 13:08:54 GMT
+Date: Wed, 01 Nov 2017 18:55:34 GMT
 Connection: keep-alive
 
 [
@@ -524,7 +526,7 @@ Connection: keep-alive
             "platform": "barn",
             "stream": "loft"
         },
-        "timestamp": 1506713260000000000
+        "timestamp": 1506713260000
     },
     {
         "fields": {
@@ -535,7 +537,7 @@ Connection: keep-alive
             "platform": "barn",
             "stream": "loft"
         },
-        "timestamp": 1506713200000000000
+        "timestamp": 1506713200000
     }
 ]
 
@@ -567,31 +569,33 @@ GET /api/v1/measurements/:measurement/packets/:timestamp
 
 **Example**
 
-Get all packets at timestamp `1506713200000000000` on the stream `accurite`.
+Get all packets at timestamp `1506713200000` on the stream `accurite`.
 
 ```shell
-$ curl -i -X GET 'http://localhost:3000/api/v1/measurements/examples/packets/1506713200000000000?stream=accurite'
+$ curl -i -X GET 'http://localhost:3000/api/v1/measurements/examples/packets/1506713200000?stream=accurite'
 
 HTTP/1.1 200 OK
 X-Powered-By: Express
 Content-Type: application/json; charset=utf-8
-Content-Length: 145
-ETag: W/"91-kvRZ/dEVq1ftvykYlSh1M4x5e/Q"
+Content-Length: 141
+ETag: W/"8d-lgMXMsIcgUBQa3fZ2LE08kZwnZY"
 Vary: Accept-Encoding
-Date: Sun, 29 Oct 2017 13:08:54 GMT
+Date: Wed, 01 Nov 2017 18:55:34 GMT
 Connection: keep-alive
 
-{
-    "fields": {
-        "outside_temperature": 55.3,
-        "sealevel_pressure": 29.839
-    },
-    "tags": {
-        "platform": "barn",
-        "stream": "accurite"
-    },
-    "timestamp": 1506713200000000000
-}
+[
+    {
+        "fields": {
+            "outside_temperature": 55.3,
+            "sealevel_pressure": 29.839
+        },
+        "tags": {
+            "platform": "barn",
+            "stream": "accurite"
+        },
+        "timestamp": 1506713200000
+    }
+]
 
 ```
 
@@ -614,7 +618,7 @@ A deep packet must be included in the body of the request.
 The packet need not include a value for `measurement`, but, if included,
 it must match the value given in the URL.
 
-The packet must include a value for `timestamp`.
+The packet must include a value for `timestamp` in milliseconds.
 
 Any fields with a `null` value will be ignored and not inserted into the
 database.
@@ -636,19 +640,19 @@ Add a new packet for the platform `barn` and stream `accurite`.
 
 ```shell
 $ curl -u weert:weert -i --silent -X POST -H Content-type:application/json -d  \
->   '{"timestamp" : 1506713320000000000, \
+>   '{"timestamp" : 1506713320000, \
 >   "tags" : {"platform":"barn", "stream":"accurite"}, \
 >   "fields" : {"outside_temperature":56.1, "sealevel_pressure": 29.881}} ' \
 >   http://localhost:3000/api/v1/measurements/examples/packets
 
 HTTP/1.1 201 Created
 X-Powered-By: Express
-Location: http://localhost:3000/api/v1/measurements/examples/packets/1506713320000000000
+Location: http://localhost:3000/api/v1/measurements/examples/packets/1506713320000
 Content-Type: text/plain; charset=utf-8
 Content-Length: 7
 ETag: W/"7-rM9AyJuqT6iOan/xHh+AW+7K/T8"
 Vary: Accept-Encoding
-Date: Sun, 29 Oct 2017 13:08:54 GMT
+Date: Wed, 01 Nov 2017 18:55:34 GMT
 Connection: keep-alive
 
 Created
@@ -688,15 +692,15 @@ actually existed in the database.
 
 **Example**
 
-Delete all packets with timestamp `1506713320000000000`.
+Delete all packets with timestamp `1506713320000`.
 
 ```shell
-$ curl -u weert:weert -i --silent -X DELETE http://localhost:3000/api/v1/measurements/examples/packets/1506713320000000000
+$ curl -u weert:weert -i --silent -X DELETE http://localhost:3000/api/v1/measurements/examples/packets/1506713320000
 
 HTTP/1.1 204 No Content
 X-Powered-By: Express
 ETag: W/"a-bAsFyilMr4Ra1hIU5PyoyFRunpI"
-Date: Sun, 29 Oct 2017 13:08:54 GMT
+Date: Wed, 01 Nov 2017 18:55:34 GMT
 Connection: keep-alive
 
 ```
@@ -734,7 +738,7 @@ Content-Type: application/json; charset=utf-8
 Content-Length: 95
 ETag: W/"5f-yLmyaipH4SiO3Fw4kY0f2OgVIgU"
 Vary: Accept-Encoding
-Date: Sun, 29 Oct 2017 13:08:54 GMT
+Date: Wed, 01 Nov 2017 18:55:34 GMT
 Connection: keep-alive
 
 [
@@ -760,7 +764,7 @@ Content-Type: text/plain; charset=utf-8
 Content-Length: 9
 ETag: W/"9-0gXL1ngzMqISxa6S1zx3F4wtLyg"
 Vary: Accept-Encoding
-Date: Sun, 29 Oct 2017 13:08:54 GMT
+Date: Wed, 01 Nov 2017 18:55:34 GMT
 Connection: keep-alive
 
 Not Found
@@ -776,12 +780,12 @@ GET /api/v1/measurements/:measurement/stats
 
 **Parameters**
 
-| *Name*      | *Type*  | *Description*                                                                                                    |
-|:------------|:--------|:-----------------------------------------------------------------------------------------------------------------|
-| `platform`  | string  | Include only data from platform `platform`. Default is to include all platforms.                                 |
-| `stream`    | string  | Include only data from stream `stream`. Default is to include all streams.                                       |
-| `span`      | string  | Return statistics for the given time span. Choices are `day`,`week`, `month` or `year`. Required.                |
-| `now  `     | integer | This variable is a time in nanoseconds somewhere in that `span`. Default is the present time.                    |
+| *Name*      | *Type*  | *Description*                                                                                     |
+|:------------|:--------|:--------------------------------------------------------------------------------------------------|
+| `platform`  | string  | Include only data from platform `platform`. Default is to include all platforms.                  |
+| `stream`    | string  | Include only data from stream `stream`. Default is to include all streams.                        |
+| `span`      | string  | Return statistics for the given time span. Choices are `day`,`week`, `month` or `year`. Required. |
+| `now`       | integer | This variable is a time in nanoseconds somewhere in that `span`. Default is the present time.     |
 
 
 **Response code**
@@ -791,38 +795,208 @@ GET /api/v1/measurements/:measurement/stats
 | 200      | Success               |
 | 400      | Malformed query       |
 
-**Examples**
+**Example**
+
+Get the statistics for the day surrounding the sample data. Note that only a handful of the returned
+values are non-null. This is because statistics, unlike other queries, require a schema to specify not
+only which types are to be returned, but also which aggregations are to be run against those types.
+
+For the sample data, most of these types were not inserted into the database. Hence, their statistics are null.
+
+See file `server/config/obs_types.js` for the schema.
+
 ```shell
-$ curl -i --silent -X GET 'http://localhost:3000/api/v1/measurements/examples/stats?span=day&now=1506713200000000000'
+$ curl -i --silent -X GET 'http://localhost:3000/api/v1/measurements/examples/stats?span=day&now=1506713200000'
 
 HTTP/1.1 200 OK
 X-Powered-By: Express
 Content-Type: application/json; charset=utf-8
-Content-Length: 263
-ETag: W/"107-bzjNYVvCiPYlLnIcOcj0AnT6Cus"
+Content-Length: 1752
+ETag: W/"6d8-6hMpYg4Iv+pfChtGbVY1hYNLxr4"
 Vary: Accept-Encoding
-Date: Sun, 29 Oct 2017 13:08:54 GMT
+Date: Wed, 01 Nov 2017 18:55:34 GMT
 Connection: keep-alive
 
 {
+    "altimeter_pressure": {
+        "max": {
+            "timestamp": null,
+            "value": null
+        },
+        "min": {
+            "timestamp": null,
+            "value": null
+        }
+    },
+    "console_voltage": {
+        "last": {
+            "timestamp": null,
+            "value": null
+        }
+    },
+    "dewpoint_temperature": {
+        "max": {
+            "timestamp": null,
+            "value": null
+        },
+        "min": {
+            "timestamp": null,
+            "value": null
+        }
+    },
+    "extra1_humidity": {
+        "max": {
+            "timestamp": null,
+            "value": null
+        },
+        "min": {
+            "timestamp": null,
+            "value": null
+        }
+    },
+    "extra1_temperature": {
+        "max": {
+            "timestamp": null,
+            "value": null
+        },
+        "min": {
+            "timestamp": null,
+            "value": null
+        }
+    },
+    "gauge_pressure": {
+        "max": {
+            "timestamp": null,
+            "value": null
+        },
+        "min": {
+            "timestamp": null,
+            "value": null
+        }
+    },
+    "heatindex_temperature": {
+        "max": {
+            "timestamp": null,
+            "value": null
+        },
+        "min": {
+            "timestamp": null,
+            "value": null
+        }
+    },
+    "inside_humidity": {
+        "max": {
+            "timestamp": null,
+            "value": null
+        },
+        "min": {
+            "timestamp": null,
+            "value": null
+        }
+    },
+    "inside_temperature": {
+        "max": {
+            "timestamp": null,
+            "value": null
+        },
+        "min": {
+            "timestamp": null,
+            "value": null
+        }
+    },
     "outside_temperature": {
         "max": {
-            "timestamp": 1506713260000000000,
+            "timestamp": 1506713260000,
             "value": 61.6
         },
         "min": {
-            "timestamp": 1506713140000000000,
+            "timestamp": 1506713140000,
             "value": 55.2
+        }
+    },
+    "radiation_radiation": {
+        "max": {
+            "timestamp": null,
+            "value": null
+        },
+        "min": {
+            "timestamp": null,
+            "value": null
+        }
+    },
+    "rain_rain": {
+        "sum": {
+            "value": null
         }
     },
     "sealevel_pressure": {
         "max": {
-            "timestamp": 1506713260000000000,
+            "timestamp": 1506713260000,
             "value": 29.908
         },
         "min": {
-            "timestamp": 1506713140000000000,
+            "timestamp": 1506713140000,
             "value": 29.812
+        }
+    },
+    "unit_system": {
+        "max": {
+            "timestamp": null,
+            "value": null
+        },
+        "min": {
+            "timestamp": null,
+            "value": null
+        }
+    },
+    "uv_uv": {
+        "max": {
+            "timestamp": null,
+            "value": null
+        },
+        "min": {
+            "timestamp": null,
+            "value": null
+        }
+    },
+    "wind_speed": {
+        "max": {
+            "timestamp": null,
+            "value": null
+        },
+        "mean": {
+            "timestamp": null,
+            "value": null
+        },
+        "min": {
+            "timestamp": null,
+            "value": null
+        }
+    },
+    "windchill_temperature": {
+        "max": {
+            "timestamp": null,
+            "value": null
+        },
+        "min": {
+            "timestamp": null,
+            "value": null
+        }
+    },
+    "x_wind_speed": {
+        "count": {
+            "value": null
+        },
+        "sum": {
+            "value": null
+        }
+    },
+    "y_wind_speed": {
+        "count": {
+            "value": null
+        },
+        "sum": {
+            "value": null
         }
     }
 }
@@ -858,7 +1032,7 @@ $ curl -u weert:weert -i --silent -X DELETE 'http://localhost:3000/api/v1/measur
 HTTP/1.1 204 No Content
 X-Powered-By: Express
 ETag: W/"a-bAsFyilMr4Ra1hIU5PyoyFRunpI"
-Date: Sun, 29 Oct 2017 13:08:54 GMT
+Date: Wed, 01 Nov 2017 18:55:34 GMT
 Connection: keep-alive
 
 ```
@@ -873,7 +1047,7 @@ $ curl -u weert:weert -i --silent -X DELETE 'http://localhost:3000/api/v1/measur
 HTTP/1.1 204 No Content
 X-Powered-By: Express
 ETag: W/"a-bAsFyilMr4Ra1hIU5PyoyFRunpI"
-Date: Sun, 29 Oct 2017 13:08:54 GMT
+Date: Wed, 01 Nov 2017 18:55:34 GMT
 Connection: keep-alive
 
 ```

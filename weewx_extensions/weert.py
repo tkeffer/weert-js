@@ -217,7 +217,7 @@ class WeeRTThread(weewx.restx.RESTThread):
 
         body = {"measurement": self.measurement,
                      "tags"       : {"platform": self.platform, "stream"  : self.stream},
-                     "timestamp"   : int(packet["dateTime"] * 1000000000),  # Convert to nanoseconds
+                     "timestamp"   : int(packet["dateTime"] * 1000),  # Convert to milliseconds
                      "fields"     : out_packet
                     }
         json_body = json.dumps(body)

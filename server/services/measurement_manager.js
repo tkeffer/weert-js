@@ -16,9 +16,9 @@ const auxtools = require('../auxtools');
 
 class MeasurementManager {
 
-    constructor(influx, config) {
+    constructor(influx, measurement_config) {
         this.influx             = influx;
-        this.measurement_config = config;
+        this.measurement_config = measurement_config;
     }
 
     insert_packet(measurement, deep_packet) {
@@ -44,21 +44,21 @@ class MeasurementManager {
 
         let from_clause = auxtools.get_query_from(measurement, this.measurement_config[measurement]);
 
-        let query_string = `SELECT * FROM ${from_clause} WHERE time=${timestamp}`;
+        let query_string = `SELECT * FROM ${from_clause} WHERE time=${timestamp}ms`;
         if (platform)
             query_string += ` AND platform='${platform}'`;
         if (stream)
             query_string += ` AND stream='${stream}'`;
         return this.influx
-                   .query(query_string)
+                   .queryRaw(query_string, {precision: 'ms'})
                    .then(results => {
-                       let packet;
-                       // Return only the first result
-                       if (results[0] !== undefined) {
-                           packet = auxtools.flat_to_deep(results[0]);
-                           this._shift_timestamp(measurement, packet);
+                       let packet_arrays = auxtools.raws_to_deeps(results.results);
+                       for (let packet of packet_arrays[0]) {
+                           if (packet) {
+                               this._shift_timestamp(measurement, packet);
+                           }
                        }
-                       return Promise.resolve(packet);
+                       return Promise.resolve(packet_arrays[0]);
                    });
     }
 
@@ -73,12 +73,12 @@ class MeasurementManager {
         let query_string;
         if (start_time) {
             if (stop_time)
-                query_string = `SELECT * FROM ${from_clause} WHERE time > ${start_time} AND time <= ${stop_time}`;
+                query_string = `SELECT * FROM ${from_clause} WHERE time > ${start_time}ms AND time <= ${stop_time}ms`;
             else
-                query_string = `SELECT * FROM ${from_clause} WHERE time > ${start_time}`;
+                query_string = `SELECT * FROM ${from_clause} WHERE time > ${start_time}ms`;
         } else {
             if (stop_time)
-                query_string = `SELECT * FROM ${from_clause} WHERE time <= ${stop_time}`;
+                query_string = `SELECT * FROM ${from_clause} WHERE time <= ${stop_time}ms`;
             else
                 query_string = `SELECT * FROM ${from_clause}`;
         }
@@ -104,14 +104,15 @@ class MeasurementManager {
         }
 
         return this.influx
-                   .query(query_string)
-                   .then(result => {
-                       let deep_result = [];
-                       for (let i in result) {
-                           deep_result[i] = auxtools.flat_to_deep(result[i]);
-                           this._shift_timestamp(measurement, deep_result[i]);
+                   .queryRaw(query_string, {precision: 'ms'})
+                   .then(results => {
+                       let packet_arrays = auxtools.raws_to_deeps(results.results);
+                       for (let packet of packet_arrays[0]) {
+                           if (packet) {
+                               this._shift_timestamp(measurement, packet);
+                           }
                        }
-                       return Promise.resolve(deep_result);
+                       return Promise.resolve(packet_arrays[0]);
                    });
     }
 
@@ -119,12 +120,12 @@ class MeasurementManager {
 
         let from_clause = auxtools.get_query_from(measurement, this.measurement_config[measurement]);
 
-        let delete_stmt = `DELETE FROM ${from_clause} WHERE time=${timestamp}`;
+        let delete_stmt = `DELETE FROM ${from_clause} WHERE time=${timestamp}ms`;
         if (platform)
             delete_stmt += ` AND platform='${platform}'`;
         if (stream)
             delete_stmt += ` AND stream='${stream}'`;
-        return this.influx.query(delete_stmt);
+        return this.influx.queryRaw(delete_stmt);
     }
 
     get_measurement_info(measurement) {
@@ -146,16 +147,26 @@ class MeasurementManager {
 
     run_stats(measurement, stats_specs, {
         platform = undefined, stream = undefined,
-        now = undefined, span = 'day', timeshift = 0
-    }) {
-        let now_moment  = now ? moment(now / 1000000) : moment();
-        let start       = now_moment.startOf(span) * 1000000;
-        let stop        = now_moment.endOf(span) * 1000000;
+        now = undefined, span = 'day'
+    } = {}) {
+        let now_moment  = moment(+now);
+        let start       = +now_moment.startOf(span);
+        let stop        = +now_moment.endOf(span);
         let queries     = [];
         let ordering    = [];
         let from_clause = auxtools.get_query_from(measurement, this.measurement_config[measurement]);
 
+        console.log(now_moment);
+        console.log(start, stop);
 
+        // Calculate any necessary time shift for this measurement
+        let timeshift = this.measurement_config[measurement] &&
+                        this.measurement_config[measurement].timeshift ?
+            this.measurement_config[measurement].timeshift : 0;
+
+
+        // First, build all the queries that will be needed.
+        // One for each measurement and aggregation type
         for (let stats_spec of stats_specs) {
             let obs_type = stats_spec.obs_type;
             let stats    = stats_spec.stats;
@@ -164,40 +175,85 @@ class MeasurementManager {
                     let agg_lc = agg.toLowerCase();
                     if (agg_lc === 'avg')
                         agg_lc = 'mean';
-                    // TODO: The time boundaries work for the results of a CQ, but not other sources
-                    let query_string = `SELECT ${agg_lc}(${obs_type}) ` +
-                                       `FROM ${from_clause} WHERE time>=${start} AND time<${stop}`;
+                    let query_string;
+                    // The query will vary whether a timestamp marks the beginning or end of an interval.
+                    // All are the end, except the results of Continuous Queries, which, inexplicably,
+                    // are timestamped by their beginning. Vary the query accordingly
+                    if (timeshift) {
+                        query_string = `SELECT ${agg_lc}(${obs_type}) ` +
+                                       `FROM ${from_clause} WHERE time>=${start}ms AND time<${stop}ms`;
+                    } else {
+                        query_string = `SELECT ${agg_lc}(${obs_type}) ` +
+                                       `FROM ${from_clause} WHERE time>${start}ms AND time<=${stop}ms`;
+                    }
 
                     if (platform)
                         query_string += ` AND platform = '${platform}'`;
                     if (stream)
                         query_string += ` AND stream = '${stream}'`;
                     queries.push(query_string);
+
+                    // Remember the observation types and aggregation type for each query
                     ordering.push([obs_type, agg_lc]);
                 }
             }
         }
 
-        return this.influx.query(queries)
-                   .then(q_results => {
-                       let results = {};
-                       for (let i = 0; i < ordering.length; i++) {
+        // Now run the query and process the results.
+        return this.influx.queryRaw(queries, {precision: 'ms'})
+                   .then(result_set => {
+
+                       // This will be what gets returned:
+                       let final_results = {};
+
+                       // Process the result set, one query at a time
+                       for (let i = 0; i < result_set.results.length; i++) {
+
                            let obs_type = ordering[i][0];
-                           let agg      = ordering[i][1];
-                           if (q_results[i].length) {
-                               if (results[obs_type] === undefined)
-                                   results[obs_type] = {};
-                               results[obs_type][agg] = {
-                                   value: q_results[i][0][agg],
-                               };
-                               if (agg !== 'count' && agg !== 'sum')
-                                   results[obs_type][agg]['timestamp'] = +q_results[i][0].time.getNanoTime() + timeshift;
+                           let agg_type = ordering[i][1];
+                           // If we haven't seen this observation type before then initialize it
+                           if (final_results[obs_type] === undefined)
+                               final_results[obs_type] = {};
+                           // Initialize the aggregation type
+                           final_results[obs_type][agg_type] = {"value": null};
+                           // Aggregation types 'count' and 'sum' do not have a timestamp
+                           // associated with them.
+                           if (agg_type !== 'count' && agg_type != 'sum')
+                               final_results[obs_type][agg_type]['timestamp'] = null;
+
+
+                           // Simplify what follows by extracting this particular result
+                           // out of the result set
+                           let result = result_set.results[i];
+                           // Was their a result for this observation and aggregation type?
+                           // If so, process it.
+                           if (result.series) {
+                               // The raw query returns results as a column of names, and an
+                               // array of result rows.
+                               let time, agg_name, agg_value;
+                               // Go through this result finding the time, aggregation type and value
+                               for (let col = 0; col < result.series[0].columns.length; col++) {
+                                   let name = result.series[0].columns[col];
+                                   let val  = result.series[0].values[0][col];
+                                   if (name === 'time')
+                                       time = val;
+                                   else {
+                                       agg_name  = name;
+                                       agg_value = val;
+                                   }
+                               }
+                               if (agg_type !== agg_name) {
+                                   throw new Error("Internal error. Aggregation types do not match");
+                               }
+                               // OK, we've found the aggregation value and time. Set the final result
+                               // accordingly
+                               final_results[obs_type][agg_type]['value'] = agg_value;
+                               if (agg_type !== 'count' && agg_type != 'sum')
+                                   final_results[obs_type][agg_type]['timestamp'] = time + timeshift;
                            }
                        }
-                       return Promise.resolve(results);
+                       return Promise.resolve(final_results);
                    });
-
-
     }
 
 
@@ -210,7 +266,8 @@ class MeasurementManager {
         }
         return {
             retentionPolicy: rp,
-            database       : db
+            database       : db,
+            precision      : 'ms'
         };
     }
 
