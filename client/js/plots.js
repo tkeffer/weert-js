@@ -102,6 +102,10 @@ class Plot {
         Plotly.redraw(this.plotly);
     }
 
+    relayout(update) {
+        Plotly.relayout(this.plotly, update);
+    }
+
     /**
      * Static method to create a single Plotly.js plot, using a DataManager as a data source.
      * @param {String} plot_div The id of the document <tt>div</tt> where the plot will be put.
@@ -131,5 +135,58 @@ class Plot {
                          // Return the resolved promise of a new Plot object
                          return Promise.resolve(new Plot(plotly, datamanager.max_age, trace_specs));
                      });
+    }
+}
+
+/**
+ * Represents a group of plots, managed as a whole.
+ */
+class PlotGroup {
+
+    /**
+     * Construct a new plot group.
+     * @param {Plots} plots An array of {@link Plots} objects.
+     * @param {DataManager} datamanager The {@link DataManager} object to be used as the data source
+     * for this plot.
+     */
+    constructor(plots, data_manager) {
+        this.plots = plots;
+        // Set the callback for new packets
+        for (let plot of this.plots) {
+            data_manager.subscribe(Plot.prototype.update.bind(plot));
+        }
+    }
+
+    relayout(update) {
+        for (let plot of this.plots) {
+            plot.relayout(update);
+        }
+    }
+
+    /**
+     * Static function to create a {@link PlotGroup} from a plot_group specification.
+     * @param {DataManager} data_manager The {@link DataManager} object to be used as the data source
+     * for this plot.
+     * @param {object} plot_group_spec Specifies which plots to create
+     * @param {string} plot_group_spec.time_group The name of the time group for this plot. Something
+     * like <tt>recent</tt> or <tt>day</tt>. This is used to figure out which <tt>div</tt> to put the plots in.
+     * @param {string} plot_group_spec.measurement Which measurement should be used to populate the group.
+     * @param {object[]} plot_group_spec.plot_list An array of individual plot specifications.
+     */
+    static createPlotGroup(data_manager, plot_group_spec) {
+        let promises = [];
+        for (let plot_spec of plot_group_spec.plot_list) {
+            promises.push(
+                Plot.createPlot(
+                    plot_group_spec.time_group + '-' + plot_spec.plotly,
+                    data_manager,
+                    plot_spec.layout,
+                    plot_spec.traces)
+            );
+        }
+        return Promise.all(promises)
+               .then(plots => {
+                   return Promise.resolve(new PlotGroup(plots, data_manager));
+               });
     }
 }

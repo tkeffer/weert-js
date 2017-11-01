@@ -43,13 +43,13 @@ const plot_list = [
     }
 ];
 
-const recent_plot_group = {
+const recent_plot_group_spec = {
     time_group : "recent",
     measurement: "wxpackets",
     plot_list  : plot_list
 };
 
-const day_plot_group = {
+const day_plot_group_spec = {
     time_group : "day",
     measurement: "wxrecords",
     plot_list  : plot_list
@@ -69,8 +69,16 @@ for (let plot of plot_list) {
     }
 }
 
-const initial_recent_max_age = 300000;       // 5 minutes in milliseconds
+const initial_recent_max_age = 300000;        // 5 minutes in milliseconds
 const initial_day_max_age    = 27 * 3600000;  // 27 hours in milliseconds
+
+// The tick distance for each plot length
+const dticks = {
+    "5" : 60000,
+    "10": 60000,
+    "20": 120000,
+    "60": 600000
+};
 
 function readyTemplate(data_manager) {
     return new Promise(function (resolve) {
@@ -119,60 +127,42 @@ function readyWindCompass(data_manager) {
     });
 }
 
-function readyPlotGroup(data_manager, plot_group) {
-    return new Promise(function (resolve) {
-        $(function () {
-            let promises = [];
-            for (let plot_spec of plot_group.plot_list) {
-                promises.push(
-                    Plot.createPlot(
-                        plot_group.time_group + '-' + plot_spec.plotly,
-                        data_manager,
-                        plot_spec.layout,
-                        plot_spec.traces)
-                );
-            }
-            Promise.all(promises)
-                   .then(plots => {
-                       // Set the callback for new packets
-                       for (let plot of plots) {
-                           data_manager.subscribe(Plot.prototype.update.bind(plot));
-                       }
-                       resolve(plots);
-                   });
-        });
-    });
-}
-
+// Once we're done creating things, these will be filled out
 var recent_data_manager;
 var day_data_manager;
+var recent_plot_group;
+var day_plot_group;
 
 // Allow changing the total time span displayed by the "recent" plots:
 var changeSpan = function (x) {
     recent_data_manager.setMaxAge(x.value * 60000);
+    recent_plot_group.relayout({'xaxis.dtick': dticks[x.value]});
 };
 
-DataManager.createDataManager(recent_plot_group.measurement,
+DataManager.createDataManager(recent_plot_group_spec.measurement,
                               Object.assign({}, weert_config, {max_age: initial_recent_max_age}))
            .then(rdmgr => {
                recent_data_manager = rdmgr;
                return Promise.all([
                                       readyTemplate(recent_data_manager),
                                       readyWindCompass(recent_data_manager),
-                                      readyPlotGroup(recent_data_manager, recent_plot_group)
+                                      PlotGroup.createPlotGroup(recent_data_manager, recent_plot_group_spec)
                                   ]);
 
            })
-           .then(() => {
+           .then((results) => {
+               recent_plot_group = results[2];
+               recent_plot_group.relayout({'xaxis.dtick': 60000});
                console.log("'Recent' data manager ready");
            });
-DataManager.createDataManager(day_plot_group.measurement,
+DataManager.createDataManager(day_plot_group_spec.measurement,
                               Object.assign({}, weert_config, {max_age: initial_day_max_age}))
            .then(ddmgr => {
                day_data_manager = ddmgr;
-               return readyPlotGroup(day_data_manager, day_plot_group);
+               return PlotGroup.createPlotGroup(day_data_manager, day_plot_group_spec);
            })
-           .then(() => {
+           .then((dpg) => {
+               day_plot_group = dpg;
                console.log("'Day' data manager ready");
            });
 
