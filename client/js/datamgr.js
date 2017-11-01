@@ -23,7 +23,7 @@ class DataManager {
      * @param {String[]} options.obs_types An array specifying the observation types to be managed.
      * @param {String} [options.platform=default_platform] The platform.
      * @param {String} [options.stream=default_stream] The stream.
-     * @param {number} [options.max_age] The maximum age to be retained in nanoseconds.
+     * @param {number} [options.max_age] The maximum age to be retained in milliseconds.
      * Default is 1200000 (20 minutes).
      * @param {String} [options.faye_endpoint="/api/v1/faye"] The endpoint where the Faye pub-sub facility can be
      *     found.
@@ -33,7 +33,7 @@ class DataManager {
         this.obs_types   = options.obs_types;
         this.platform    = options.platform || "default_platform";
         this.stream      = options.stream || "default_stream";
-        this.max_age     = options.max_age || 1200000000000;
+        this.max_age     = options.max_age || 1200000;
         let fe           = options.faye_endpoint || '/api/v1/faye';
 
         // TODO: Not sure it's necessary to maintain the internal arrays any more.
@@ -56,6 +56,7 @@ class DataManager {
                 let Ntrim = first_good === -1 ? this.packets.length : first_good;
                 // Trim off the front
                 this.packets.splice(0, Ntrim);
+                console.log('data is', this.packets.length, 'long')
             }
 
             // Now push the new packet on to the end
@@ -83,15 +84,14 @@ class DataManager {
 
     /**
      * Set how far back in time the data manager will manage. This will force a data reload.
-     * @param {Number} [max_age=1200000000000] The max age in nanoseconds that will be requested from the
-     *     server and maintained by the DataManager. The default is <tt>1200000000000</tt> nanoseconds,
+     * @param {Number} [max_age=1200000] The max age in milliseconds that will be requested from the
+     *     server and maintained by the DataManager. The default is <tt>1200000</tt> milliseconds,
      *     or 20 minutes.
      * @return {Promise} A promise to resolve to the number of packets returned from the server.
      */
     setMaxAge(max_age) {
-        this.max_age = max_age || 1200000000000;
-        // Convert to nanoseconds
-        let since = Date.now() * 1000000 - this.max_age;
+        this.max_age = max_age || 1200000;
+        let since = Date.now() - this.max_age;
         return $.ajax({
                           url     : "http://" + window.location.host + "/api/v1/measurements/" +
                                     this.measurement + "/packets",
@@ -118,13 +118,13 @@ class DataManager {
     /**
      * Static method to create and load a DataManager object with data.
      * @param {String} measurement The InfluxDB measurement to use
-     * @param {number} max_age The maximum age to be retained in nanoseconds.
+     * @param {number} max_age The maximum age to be retained in milliseconds.
      * @param {Object} options A hash of options:
      * @param {String[]} options.obs_types An array specifying the observation types to be managed.
      * @param {String} [options.platform=default_platform] The platform.
      * @param {String} [options.stream=default_stream] The stream.
-     * @param {number} [options.max_age] The maximum age to be retained in nanoseconds.
-     * Default is 1200000000000 (20 minutes).
+     * @param {number} [options.max_age] The maximum age to be retained in milliseconds.
+     * Default is 1200000 (20 minutes).
      * @param {String} [options.faye_endpoint="/api/v1/faye"] The endpoint where the Faye pub-sub facility can be
      *     found.
      */

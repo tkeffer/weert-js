@@ -77,7 +77,7 @@ class Plot {
         let trace_numbers = [];
         let i             = 0;
         for (let trace_spec of this.trace_specs) {
-            new_xs.push([packet.timestamp / 1000000]);
+            new_xs.push([packet.timestamp]);
             new_ys.push([packet.fields[trace_spec.obs_type]]);
             trace_numbers.push(i++);
         }
@@ -96,7 +96,7 @@ class Plot {
 
             let obs_type = this.trace_specs[i].obs_type;
 
-            this.plotly.data[i].x = packets.map(function (packet) {return packet.timestamp / 1000000;});
+            this.plotly.data[i].x = packets.map(function (packet) {return packet.timestamp;});
             this.plotly.data[i].y = packets.map(function (packet) {return packet.fields[obs_type];});
         }
         Plotly.redraw(this.plotly);
@@ -119,7 +119,7 @@ class Plot {
         let data = [];
         for (let trace of trace_specs) {
             data.push({
-                          x   : datamanager.packets.map(function (packet) {return packet.timestamp / 1000000;}),
+                          x   : datamanager.packets.map(function (packet) {return packet.timestamp;}),
                           y   : datamanager.packets.map(function (packet) {return packet.fields[trace.obs_type];}),
                           mode: "lines",
                           type: "scatter",

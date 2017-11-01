@@ -69,8 +69,8 @@ for (let plot of plot_list) {
     }
 }
 
-const initial_recent_max_age = 300000000000;       // 5 minutes in nanoseconds
-const initial_day_max_age    = 27 * 3600000000000;  // 27 hours in nanoseconds
+const initial_recent_max_age = 300000;       // 5 minutes in milliseconds
+const initial_day_max_age    = 27 * 3600000;  // 27 hours in milliseconds
 
 function readyTemplate(data_manager) {
     return new Promise(function (resolve) {
@@ -107,7 +107,7 @@ function readyWindCompass(data_manager) {
                 if (event_type === 'new_packet') {
                     // Update the wind compass
                     wind_compass.updateWind([
-                                                new_packet.timestamp / 1000000,
+                                                new_packet.timestamp,
                                                 new_packet.fields.wind_dir,
                                                 new_packet.fields.wind_speed
                                             ]);
@@ -149,7 +149,7 @@ var day_data_manager;
 
 // Allow changing the total time span displayed by the "recent" plots:
 var changeSpan = function (x) {
-    recent_data_manager.setMaxAge(x.value * 60000000000);
+    recent_data_manager.setMaxAge(x.value * 60000);
 };
 
 DataManager.createDataManager(recent_plot_group.measurement,
@@ -177,7 +177,7 @@ DataManager.createDataManager(day_plot_group.measurement,
            });
 
 Handlebars.registerHelper("formatTimeStamp", function (ts) {
-    return new Date(ts / 1000000);
+    return new Date(ts);
 });
 
 Handlebars.registerHelper("precision", function (val, digits) {
