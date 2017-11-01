@@ -56,7 +56,6 @@ class DataManager {
                 let Ntrim = first_good === -1 ? this.packets.length : first_good;
                 // Trim off the front
                 this.packets.splice(0, Ntrim);
-                console.log('data is', this.packets.length, 'long')
             }
 
             // Now push the new packet on to the end
@@ -91,7 +90,7 @@ class DataManager {
      */
     setMaxAge(max_age) {
         this.max_age = max_age || 1200000;
-        let since = Date.now() - this.max_age;
+        let since    = Date.now() - this.max_age;
         return $.ajax({
                           url     : "http://" + window.location.host + "/api/v1/measurements/" +
                                     this.measurement + "/packets",
@@ -137,8 +136,10 @@ class DataManager {
     }
 
     _notify_subscribers(event, event_data) {
+        let promises = [];
         for (let callback of this.callbacks) {
-            callback(event, event_data);
+            promises.push(callback(event, event_data));
         }
+        return Promise.all(promises);
     }
 }

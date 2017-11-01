@@ -40,9 +40,9 @@ class Plot {
      */
     update(event_type, event_data) {
         if (event_type === 'new_packet') {
-            this.extend(event_data);
+            return this.extend(event_data);
         } else if (event_type === 'reload') {
-            this.replace(event_data.packets, event_data.max_age);
+            return this.replace(event_data.packets, event_data.max_age);
         }
     }
 
@@ -99,11 +99,11 @@ class Plot {
             this.plotly.data[i].x = packets.map(function (packet) {return packet.timestamp;});
             this.plotly.data[i].y = packets.map(function (packet) {return packet.fields[obs_type];});
         }
-        Plotly.redraw(this.plotly);
+        return Plotly.redraw(this.plotly);
     }
 
     relayout(update) {
-        Plotly.relayout(this.plotly, update);
+        return Plotly.relayout(this.plotly, update);
     }
 
     /**
@@ -158,9 +158,11 @@ class PlotGroup {
     }
 
     relayout(update) {
+        let promises = [];
         for (let plot of this.plots) {
-            plot.relayout(update);
+            promises.push(plot.relayout(update));
         }
+        return Promise.all(promises);
     }
 
     /**
@@ -185,8 +187,8 @@ class PlotGroup {
             );
         }
         return Promise.all(promises)
-               .then(plots => {
-                   return Promise.resolve(new PlotGroup(plots, data_manager));
-               });
+                      .then(plots => {
+                          return Promise.resolve(new PlotGroup(plots, data_manager));
+                      });
     }
 }

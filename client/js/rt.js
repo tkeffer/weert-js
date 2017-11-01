@@ -135,8 +135,12 @@ var day_plot_group;
 
 // Allow changing the total time span displayed by the "recent" plots:
 var changeSpan = function (x) {
-    recent_data_manager.setMaxAge(x.value * 60000);
-    recent_plot_group.relayout({'xaxis.dtick': dticks[x.value]});
+    // Changing the max_age will cause new data to be downloaded.
+    // Wait until it settles down before changing the tick distance.
+    return recent_data_manager.setMaxAge(x.value * 60000)
+                              .then(() => {
+                                  return recent_plot_group.relayout({'xaxis.dtick': dticks[x.value]});
+                              });
 };
 
 DataManager.createDataManager(recent_plot_group_spec.measurement,
@@ -152,7 +156,7 @@ DataManager.createDataManager(recent_plot_group_spec.measurement,
            })
            .then((results) => {
                recent_plot_group = results[2];
-               recent_plot_group.relayout({'xaxis.dtick': 60000});
+               recent_plot_group.relayout({'xaxis.dtick': dticks["5"]});
                console.log("'Recent' data manager ready");
            });
 DataManager.createDataManager(day_plot_group_spec.measurement,
