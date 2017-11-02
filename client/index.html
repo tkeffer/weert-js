@@ -81,8 +81,10 @@
                     Low Temperature
                 </td>
                 <td class='stats_data'>
-                    {{precision day.outside_temperature.max.value 3}} at {{formatTimeStamp day.outside_temperature.max.time}}<br/>
-                    {{precision day.outside_temperature.min.value 3}} at {{formatTimeStamp day.outside_temperature.min.time}}
+                    {{precision day.outside_temperature.max.value 3}} at {{formatTimeStamp
+                    day.outside_temperature.max.time}}<br/>
+                    {{precision day.outside_temperature.min.value 3}} at {{formatTimeStamp
+                    day.outside_temperature.min.time}}
                 </td>
             </tr>
             <tr>
@@ -91,7 +93,8 @@
                     Low Wind Chill
                 </td>
                 <td class='stats_data'>
-                    {{precision day.heatindex_temperature.max.value 3}} at {{formatTimeStamp day.heatindex.max.time}}<br/>
+                    {{precision day.heatindex_temperature.max.value 3}} at {{formatTimeStamp
+                    day.heatindex.max.time}}<br/>
                     {{precision day.windchill_temperature.min.value 3}} at {{formatTimeStamp day.windchill.min.time}}
                 </td>
             </tr>
@@ -192,8 +195,8 @@
             <div id='day-outtemp-div' class='plot-area'></div>
             <div id='day-radiation-div' class='plot-area'></div>
         </div>    <!-- End id "day" -->
-
     </div>     <!-- End id "content" -->
+
     <h2>Architecture</h2>
     <ul>
         <li>Uses a <a href='https://nodejs.org'>Node</a> server with the

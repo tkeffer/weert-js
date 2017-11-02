@@ -25,8 +25,9 @@ class Plot {
      * @param {Object[]} trace_specs An array of objects, one for each trace to be included.
      * @param {String} trace_specs[].obs_type The observation type for this trace.
      */
-    constructor(plotly, max_age, trace_specs) {
+    constructor(plotly, plot_div, max_age, trace_specs) {
         this.plotly      = plotly;
+        this.plot_div    = plot_div;
         this.max_age     = max_age;
         this.trace_specs = trace_specs;
     }
@@ -81,7 +82,7 @@ class Plot {
             new_ys.push([packet.fields[trace_spec.obs_type]]);
             trace_numbers.push(i++);
         }
-        return Plotly.extendTraces(this.plotly, {
+        return Plotly.extendTraces(this.plot_div, {
             x: new_xs,
             y: new_ys
         }, trace_numbers, Nkeep);
@@ -99,11 +100,11 @@ class Plot {
             this.plotly.data[i].x = packets.map(function (packet) {return packet.timestamp;});
             this.plotly.data[i].y = packets.map(function (packet) {return packet.fields[obs_type];});
         }
-        return Plotly.redraw(this.plotly);
+        return Plotly.redraw(this.plot_div);
     }
 
     relayout(update) {
-        return Plotly.relayout(this.plotly, update);
+        return Plotly.relayout(this.plot_div, update);
     }
 
     /**
@@ -133,7 +134,7 @@ class Plot {
         return Plotly.newPlot(plot_div, data, plot_layout)
                      .then(plotly => {
                          // Return the resolved promise of a new Plot object
-                         return Promise.resolve(new Plot(plotly, datamanager.max_age, trace_specs));
+                         return Promise.resolve(new Plot(plotly, plot_div, datamanager.max_age, trace_specs));
                      });
     }
 }
@@ -180,7 +181,7 @@ class PlotGroup {
         for (let plot_spec of plot_group_spec.plot_list) {
             promises.push(
                 Plot.createPlot(
-                    plot_group_spec.time_group + '-' + plot_spec.plotly,
+                    plot_group_spec.time_group + '-' + plot_spec.div_root,
                     data_manager,
                     plot_spec.layout,
                     plot_spec.traces)

@@ -9,7 +9,7 @@
 // This is the list of plots to be constructed for each document div.
 const plot_list = [
     {
-        plotly: 'windspeed-div',
+        div_root: 'windspeed-div',
         layout: {
             xaxis: {type: "date"},
             yaxis: {rangemode: "nonnegative"},
@@ -20,7 +20,7 @@ const plot_list = [
         ]
     },
     {
-        plotly: 'outtemp-div',
+        div_root: 'outtemp-div',
         layout: {
             xaxis: {type: "date"},
             title: "Outside Temperature (°F)"
@@ -31,7 +31,7 @@ const plot_list = [
         ]
     },
     {
-        plotly: 'radiation-div',
+        div_root: 'radiation-div',
         layout: {
             xaxis: {type: "date"},
             yaxis: {rangemode: "nonnegative"},
@@ -56,7 +56,7 @@ const day_plot_group_spec = {
 };
 
 const weert_config = {
-    obs_types    : [],
+    obs_types    : [],  // This will get populated below
     platform     : "default_platform",
     stream       : "default_stream",
     faye_endpoint: "/api/v1/faye"
