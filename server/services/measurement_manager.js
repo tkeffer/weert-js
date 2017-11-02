@@ -149,7 +149,7 @@ class MeasurementManager {
         platform = undefined, stream = undefined,
         now = undefined, span = 'day'
     } = {}) {
-        let now_moment  = moment(+now);
+        let now_moment  = now ? moment(+now) : moment();
         let start       = +now_moment.startOf(span);
         let stop        = +now_moment.endOf(span);
         let queries     = [];
