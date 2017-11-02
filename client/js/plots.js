@@ -18,15 +18,12 @@ class Plot {
      * Construct a Plot object. This constructor is not intended to be used directly. Instead,
      * the static method {@link Plot.createPlot} should be used instead. This avoids having the
      * constructor take a Promise.
-     * @param {String} plotly The document <tt>div</tt> where the plot is located. (This
-     *    is what's returned by the Plotly function
-     *    {@link https://plot.ly/javascript/plotlyjs-function-reference/#plotlynewplot Plotly.newPlot})
-     * @param {number} max_age The maximum age that should be shown on the plots in nanoseconds.
+     * @param {String} plot_div The name of the document <tt>div</tt> where the Plotly.js plot is located.
+     * @param {number} max_age The maximum age that should be shown on the plots in milliseconds.
      * @param {Object[]} trace_specs An array of objects, one for each trace to be included.
      * @param {String} trace_specs[].obs_type The observation type for this trace.
      */
-    constructor(plotly, plot_div, max_age, trace_specs) {
-        this.plotly      = plotly;
+    constructor(plot_div, max_age, trace_specs) {
         this.plot_div    = plot_div;
         this.max_age     = max_age;
         this.trace_specs = trace_specs;
@@ -52,7 +49,8 @@ class Plot {
      */
     extend(packet) {
         let Nkeep;
-        let x = this.plotly.data[0].x;
+        let plotly_data = document.getElementById(this.plot_div).data;
+        let x           = plotly_data[0].x;
         if (x.length) {
             let lastTimestamp = x[x.length - 1];
             let trim_time     = lastTimestamp - this.max_age;
@@ -91,14 +89,15 @@ class Plot {
     /*
      * Replace the plot data with totally new data.
      */
-    replace(packets, max_age) {
-        this.max_age = max_age;
+    replace(packet_array, max_age) {
+        this.max_age    = max_age;
+        let plotly_data = document.getElementById(this.plot_div).data;
         for (let i = 0; i < this.trace_specs.length; i++) {
 
             let obs_type = this.trace_specs[i].obs_type;
 
-            this.plotly.data[i].x = packets.map(function (packet) {return packet.timestamp;});
-            this.plotly.data[i].y = packets.map(function (packet) {return packet.fields[obs_type];});
+            plotly_data[i].x = packet_array.map(function (packet) {return packet.timestamp;});
+            plotly_data[i].y = packet_array.map(function (packet) {return packet.fields[obs_type];});
         }
         return Plotly.redraw(this.plot_div);
     }
@@ -132,9 +131,9 @@ class Plot {
                       });
         }
         return Plotly.newPlot(plot_div, data, plot_layout)
-                     .then(plotly => {
+                     .then(() => {
                          // Return the resolved promise of a new Plot object
-                         return Promise.resolve(new Plot(plotly, plot_div, datamanager.max_age, trace_specs));
+                         return Promise.resolve(new Plot(plot_div, datamanager.max_age, trace_specs));
                      });
     }
 }
