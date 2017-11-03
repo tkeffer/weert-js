@@ -18,13 +18,14 @@ class Plot {
      * Construct a Plot object. This constructor is not intended to be used directly. Instead,
      * the static method {@link Plot.createPlot} should be used instead. This avoids having the
      * constructor take a Promise.
-     * @param {String} plot_div The name of the document <tt>div</tt> where the Plotly.js plot is located.
+     * @param {object} div_element The document <tt>div</tt> element where the Plotly.js plot is located.
+     * This is basically what is returned by the call to Plotly.newPlot.
      * @param {number} max_age The maximum age that should be shown on the plots in milliseconds.
      * @param {Object[]} trace_specs An array of objects, one for each trace to be included.
      * @param {String} trace_specs[].obs_type The observation type for this trace.
      */
-    constructor(plot_div, max_age, trace_specs) {
-        this.plot_div    = plot_div;
+    constructor(div_element, max_age, trace_specs) {
+        this.div_element = div_element;
         this.max_age     = max_age;
         this.trace_specs = trace_specs;
     }
@@ -49,8 +50,7 @@ class Plot {
      */
     extend(packet) {
         let Nkeep;
-        let plotly_data = document.getElementById(this.plot_div).data;
-        let x           = plotly_data[0].x;
+        let x = this.div_element.data[0].x;
         if (x.length) {
             let lastTimestamp = x[x.length - 1];
             let trim_time     = lastTimestamp - this.max_age;
@@ -74,13 +74,12 @@ class Plot {
         let new_xs        = [];
         let new_ys        = [];
         let trace_numbers = [];
-        let i             = 0;
-        for (let trace_spec of this.trace_specs) {
+        for (let j = 0; j < this.trace_specs.length; j++) {
             new_xs.push([packet.timestamp]);
-            new_ys.push([packet.fields[trace_spec.obs_type]]);
-            trace_numbers.push(i++);
+            new_ys.push([packet.fields[this.trace_specs[j].obs_type]]);
+            trace_numbers.push(j);
         }
-        return Plotly.extendTraces(this.plot_div, {
+        return Plotly.extendTraces(this.div_element, {
             x: new_xs,
             y: new_ys
         }, trace_numbers, Nkeep);
@@ -91,19 +90,18 @@ class Plot {
      */
     replace(packet_array, max_age) {
         this.max_age    = max_age;
-        let plotly_data = document.getElementById(this.plot_div).data;
         for (let i = 0; i < this.trace_specs.length; i++) {
 
             let obs_type = this.trace_specs[i].obs_type;
 
-            plotly_data[i].x = packet_array.map(function (packet) {return packet.timestamp;});
-            plotly_data[i].y = packet_array.map(function (packet) {return packet.fields[obs_type];});
+            this.div_element.data[i].x = packet_array.map(function (packet) {return packet.timestamp;});
+            this.div_element.data[i].y = packet_array.map(function (packet) {return packet.fields[obs_type];});
         }
-        return Plotly.redraw(this.plot_div);
+        return Plotly.redraw(this.div_element);
     }
 
     relayout(update) {
-        return Plotly.relayout(this.plot_div, update);
+        return Plotly.relayout(this.div_element, update);
     }
 
     /**
@@ -131,9 +129,9 @@ class Plot {
                       });
         }
         return Plotly.newPlot(plot_div, data, plot_layout)
-                     .then(() => {
+                     .then((plotly) => {
                          // Return the resolved promise of a new Plot object
-                         return Promise.resolve(new Plot(plot_div, datamanager.max_age, trace_specs));
+                         return Promise.resolve(new Plot(plotly, datamanager.max_age, trace_specs));
                      });
     }
 }
@@ -152,15 +150,15 @@ class PlotGroup {
     constructor(plots, data_manager) {
         this.plots = plots;
         // Set the callback for new packets
-        for (let plot of this.plots) {
-            data_manager.subscribe(Plot.prototype.update.bind(plot));
+        for (let i = 0; i < this.plots.length; i++) {
+            data_manager.subscribe(Plot.prototype.update.bind(this.plots[i]));
         }
     }
 
     relayout(update) {
         let promises = [];
-        for (let plot of this.plots) {
-            promises.push(plot.relayout(update));
+        for (let i = 0; i < this.plots.length; i++) {
+            promises.push(this.plots[i].relayout(update));
         }
         return Promise.all(promises);
     }

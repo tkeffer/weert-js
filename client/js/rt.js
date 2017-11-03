@@ -10,34 +10,34 @@
 const plot_list = [
     {
         div_root: 'windspeed-div',
-        layout: {
+        layout  : {
             xaxis: {type: "date"},
             yaxis: {rangemode: "nonnegative"},
             title: "Wind Speed (mph)"
         },
-        traces: [
+        traces  : [
             {obs_type: 'wind_speed'}
         ]
     },
     {
         div_root: 'outtemp-div',
-        layout: {
+        layout  : {
             xaxis: {type: "date"},
             title: "Outside Temperature (°F)"
         },
-        traces: [
+        traces  : [
             {obs_type: 'outside_temperature', label: 'Temperature'},
             {obs_type: 'dewpoint_temperature', label: 'Dewpoint'}
         ]
     },
     {
         div_root: 'radiation-div',
-        layout: {
+        layout  : {
             xaxis: {type: "date"},
             yaxis: {rangemode: "nonnegative"},
             title: "Solar Radiation (W/m²)"
         },
-        traces: [
+        traces  : [
             {obs_type: 'radiation_radiation', label: 'Radiation'}
         ]
     }
