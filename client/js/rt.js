@@ -6,8 +6,8 @@
 
 "use strict";
 
-// This is the list of plots to be constructed for each document div.
-const plot_list = [
+// This is the list of plots to be constructed for each document plot group div.
+const plot_group_list = [
     {
         div_root: 'windspeed-div',
         layout  : {
@@ -46,13 +46,15 @@ const plot_list = [
 const recent_plot_group_spec = {
     time_group : "recent",
     measurement: "wxpackets",
-    plot_list  : plot_list
+    // Make a copy in case we change something. This is slow, but makes a deep copy.
+    plot_list  : JSON.parse(JSON.stringify(plot_group_list))
 };
 
 const day_plot_group_spec = {
     time_group : "day",
     measurement: "wxrecords",
-    plot_list  : plot_list
+    // Make a copy in case we change something. This is slow, but makes a deep copy.
+    plot_list  : JSON.parse(JSON.stringify(plot_group_list))
 };
 
 const weert_config = {
@@ -63,7 +65,7 @@ const weert_config = {
 };
 
 // Accumulate a list of observation types:
-for (let plot of plot_list) {
+for (let plot of plot_group_list) {
     for (let trace of plot.traces) {
         weert_config.obs_types.push(trace.obs_type);
     }
