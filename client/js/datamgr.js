@@ -38,6 +38,7 @@ class DataManager {
 
         // TODO: Not sure it's necessary to maintain the internal arrays any more.
         this.packets     = [];
+        this.stats       = undefined;
         this.callbacks   = [];
         this.faye_client = new Faye.Client("http://" + window.location.host + fe);
         this.faye_client.subscribe("/" + measurement, packet => {
@@ -112,6 +113,34 @@ class DataManager {
 
                     return Promise.resolve(packet_array.length);
                 });
+    }
+
+    getStats() {
+        this.stats   = {};
+        let promises = [];
+        for (let span of ['day', 'week', 'month']) {
+            promises.push($.ajax({
+                                     url     : "http://" + window.location.host + "/api/v1/measurements/" +
+                                               this.measurement + "/stats",
+                                     data    : {
+                                         span    : span,
+                                         platform: this.platform,
+                                         stream  : this.stream
+                                     },
+                                     method  : "GET",
+                                     dataType: "JSON"
+                                 })
+                           .then(stats_array => {
+
+                               // Replace the existing stats array:
+                               this.stats[span] = stats_array;
+
+                               // Let my subscribers know I've changed.
+                               this._notify_subscribers('stats', this.stats);
+                           })
+            );
+        }
+        return Promise.all(promises);
     }
 
     /**

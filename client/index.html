@@ -7,6 +7,7 @@
     <meta content='en-us' http-equiv='Content-Language'/>
     <meta content='text/html; charset=utf-8' http-equiv='Content-Type'/>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.19.1/moment.min.js"></script>
     <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>
     <script src='https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.10/handlebars.min.js'></script>
     <script src='dist/plotly-basic.min.js'></script>
@@ -34,23 +35,23 @@
             </tr>
             <tr>
                 <td class='stats_label'>Outside Temperature</td>
-                <td class='stats_data'>{{precision fields.outside_temperature 3}}</td>
+                <td class='stats_data'>{{precision fields.outside_temperature 3}}&deg;F</td>
             </tr>
             <tr>
                 <td class='stats_label'>Inside Temperature</td>
-                <td class='stats_data'>{{precision fields.inside_temperature 3}}</td>
+                <td class='stats_data'>{{precision fields.inside_temperature 3}}&deg;F</td>
             </tr>
             <tr>
                 <td class='stats_label'>Humidity</td>
-                <td class='stats_data'>{{precision fields.outside_humidity 2}}</td>
+                <td class='stats_data'>{{precision fields.outside_humidity 2}}%</td>
             </tr>
             <tr>
                 <td class='stats_label'>Barometer</td>
-                <td class='stats_data'>{{precision fields.sealevel_pressure 5}}</td>
+                <td class='stats_data'>{{precision fields.sealevel_pressure 5}} inHg</td>
             </tr>
             <tr>
                 <td class='stats_label'>Wind</td>
-                <td class='stats_data'>{{fixed fields.wind_speed 0}} from {{fixed fields.wind_dir
+                <td class='stats_data'>{{fixed fields.wind_speed 0}} mph from {{fixed fields.wind_dir
                                        0}}
                 </td>
             </tr>
@@ -60,7 +61,7 @@
             </tr>
             <tr>
                 <td class='stats_label'>Solar Radiation</td>
-                <td class='stats_data'>{{precision fields.radiation_radiation 3}}</td>
+                <td class='stats_data'>{{precision fields.radiation_radiation 3}} W/m&sup2;</td>
             </tr>
             </tbody>
         </table>
@@ -81,10 +82,10 @@
                     Low Temperature
                 </td>
                 <td class='stats_data'>
-                    {{precision day.outside_temperature.max.value 3}} at {{formatTimeStamp
-                    day.outside_temperature.max.time}}<br/>
-                    {{precision day.outside_temperature.min.value 3}} at {{formatTimeStamp
-                    day.outside_temperature.min.time}}
+                    {{precision day.outside_temperature.max.value 3}}&deg;F at {{formatTimeStamp
+                    day.outside_temperature.max.timestamp 'HH:mm:ss'}}<br/>
+                    {{precision day.outside_temperature.min.value 3}}&deg;F at {{formatTimeStamp
+                    day.outside_temperature.min.timestamp 'HH:mm:ss'}}
                 </td>
             </tr>
             <tr>
@@ -93,9 +94,10 @@
                     Low Wind Chill
                 </td>
                 <td class='stats_data'>
-                    {{precision day.heatindex_temperature.max.value 3}} at {{formatTimeStamp
-                    day.heatindex.max.time}}<br/>
-                    {{precision day.windchill_temperature.min.value 3}} at {{formatTimeStamp day.windchill.min.time}}
+                    {{precision day.heatindex_temperature.max.value 3}}&deg;F at {{formatTimeStamp
+                    day.heatindex_temperature.max.timestamp "HH:mm:ss"}}<br/>
+                    {{precision day.windchill_temperature.min.value 3}}&deg;F at {{formatTimeStamp
+                    day.windchill_temperature.min.timestamp "HH:mm:ss"}}
                 </td>
             </tr>
             <tr>
@@ -104,8 +106,10 @@
                     Low Humidity
                 </td>
                 <td class='stats_data'>
-                    {{precision day.outside_humidity.max.value 3}} at {{formatTimeStamp day.outHumidity.max.time}}<br/>
-                    {{precision day.outside_humidity.min.value 3}} at {{formatTimeStamp day.outHumidity.min.time}}
+                    {{fixed day.outside_humidity.max.value 0}}% at {{formatTimeStamp
+                    day.outside_humidity.max.timestamp "HH:mm:ss"}}<br/>
+                    {{fixed day.outside_humidity.min.value 0}}% at {{formatTimeStamp
+                    day.outside_humidity.min.timestamp "HH:mm:ss"}}
                 </td>
             </tr>
             <tr>
@@ -114,8 +118,10 @@
                     Low Dewpoint
                 </td>
                 <td class='stats_data'>
-                    {{precision day.dewpoint_temperature.max.value 3}} at {{formatTimeStamp day.dewpoint.max.time}}<br/>
-                    {{precision day.dewpoint_temperature.min.value 3}} at {{formatTimeStamp day.dewpoint.min.time}}
+                    {{precision day.dewpoint_temperature.max.value 3}}&deg;F at {{formatTimeStamp
+                    day.dewpoint_temperature.max.timestamp "HH:mm:ss"}}<br/>
+                    {{precision day.dewpoint_temperature.min.value 3}}&deg;F at {{formatTimeStamp
+                    day.dewpoint_temperature.min.timestamp "HH:mm:ss"}}
                 </td>
             </tr>
             <tr>
@@ -124,20 +130,22 @@
                     Low Barometer
                 </td>
                 <td class='stats_data'>
-                    {{precision day.sealevel_pressure.max.value 3}} at {{formatTimeStamp day.barometer.max.time}}<br/>
-                    {{precision day.sealevel_pressure.min.value 3}} at {{formatTimeStamp day.barometer.min.time}}
+                    {{precision day.sealevel_pressure.max.value 5}} inHg at {{formatTimeStamp
+                    day.sealevel_pressure.max.timestamp "HH:mm:ss"}}<br/>
+                    {{precision day.sealevel_pressure.min.value 5}} inHg at {{formatTimeStamp
+                    day.sealevel_pressure.min.timestamp "HH:mm:ss"}}
                 </td>
             </tr>
             <tr>
                 <td class='stats_label'>Today's Rain</td>
-                <td class='stats_data'>{{precision day.rain_rain.sum.value 3}}</td>
+                <td class='stats_data'>{{fixed day.rain_rain.sum.value 2}} in</td>
             </tr>
             <tr>
                 <td class='stats_label'>
                     High Wind
                 </td>
                 <td class='stats_data'>
-                    {{precision day.wind_speed.max.value 3}} at {{formatTimeStamp day.wind_speed.max.time}}
+                    {{fixed day.wind_speed.max.value 0}} mph at {{formatTimeStamp day.wind_speed.max.timestamp "HH:mm:ss"}}
                 </td>
             </tr>
             <tr>
@@ -145,7 +153,7 @@
                     Average Wind
                 </td>
                 <td class='stats_data'>
-                    {{precision day.wind_speed.avg.value 3}}
+                    {{fixed day.wind_speed.mean.value 1}} mph
                 </td>
             </tr>
             <tr>
@@ -154,8 +162,10 @@
                     Low Radiation
                 </td>
                 <td class='stats_data'>
-                    {{precision day.radiation.max.value 3}} at {{formatTimeStamp day.radiation.max.time}}<br/>
-                    {{precision day.radiation.min.value 3}} at {{formatTimeStamp day.radiation.min.time}}
+                    {{precision day.radiation_radiation.max.value 3}} W/m&sup2; at {{formatTimeStamp
+                    day.radiation_radiation.max.timestamp "HH:mm:ss"}}<br/>
+                    {{precision day.radiation_radiation.min.value 3}} W/m&sup2; at {{formatTimeStamp
+                    day.radiation_radiation.min.timestamp "HH:mm:ss"}}
                 </td>
             </tr>
             </tbody>
@@ -171,6 +181,7 @@
     <!-- Left hand side div -->
     <div id='stats_group'>
         <div id='wx-console-area'><!-- Current conditions will go here --></div>
+        <div id='wx-stats-area'><!-- Stats will go here --></div>
         <div id='windCompass' class='compass'><!-- Animated wind compass will go here --></div>
     </div>
 

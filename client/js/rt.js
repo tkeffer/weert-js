@@ -87,13 +87,19 @@ function readyTemplate(data_manager) {
         // The DOM has to be ready before we can select the SVG area.
         $(function () {
             // Compile the console template
-            let source           = $("#wx-console-template").html();
-            let console_template = new Handlebars.compile(source);
+            let console_source   = $("#wx-console-template").html();
+            let stats_source     = $("#wx-stats-template").html();
+            let console_template = new Handlebars.compile(console_source);
+            let stats_template   = new Handlebars.compile(stats_source);
 
             // Render the last packet if one is available
             let packet = data_manager.lastPacket();
             if (packet) {
                 $("#wx-console-area").html(console_template(packet));
+            }
+            // Render the stats if they are available
+            if (data_manager.stats) {
+                $("#wx-stats-area").html(stats_template(data_manager.stats));
             }
             // Set the callback for new packets
             data_manager.subscribe((event_type, new_packet) => {
@@ -102,7 +108,7 @@ function readyTemplate(data_manager) {
                     $("#wx-console-area").html(console_template(new_packet));
                 }
             });
-            resolve(console_template);
+            resolve([console_template, stats_template]);
         });
     });
 }
@@ -150,16 +156,19 @@ DataManager.createDataManager(recent_plot_group_spec.measurement,
            .then(rdmgr => {
                recent_data_manager = rdmgr;
                return Promise.all([
-                                      readyTemplate(recent_data_manager),
+                                      recent_data_manager.getStats(),
                                       readyWindCompass(recent_data_manager),
                                       PlotGroup.createPlotGroup(recent_data_manager, recent_plot_group_spec)
                                   ]);
-
            })
            .then((results) => {
                recent_plot_group = results[2];
                recent_plot_group.relayout({'xaxis.dtick': dticks["5"]});
+               return readyTemplate(recent_data_manager);
+           })
+           .then(() => {
                console.log("'Recent' data manager ready");
+
            });
 DataManager.createDataManager(day_plot_group_spec.measurement,
                               Object.assign({}, weert_config, {max_age: initial_day_max_age}))
@@ -172,8 +181,9 @@ DataManager.createDataManager(day_plot_group_spec.measurement,
                console.log("'Day' data manager ready");
            });
 
-Handlebars.registerHelper("formatTimeStamp", function (ts) {
-    return new Date(ts);
+Handlebars.registerHelper("formatTimeStamp", function (ts, options) {
+    let form = (!options || typeof options != 'string') ? undefined : options;
+    return moment(+ts).format(form);
 });
 
 Handlebars.registerHelper("precision", function (val, digits) {

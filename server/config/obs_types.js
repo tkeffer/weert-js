@@ -65,6 +65,12 @@ module.exports = [
         subsample: "last"
     },
     {
+        obs_type : "outside_humidity",
+        subsample: "avg",
+        stats    : ["min", "max"]
+
+    },
+    {
         obs_type : "outside_temperature",
         subsample: "avg",
         stats    : ["min", "max"]

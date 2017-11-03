@@ -3,25 +3,19 @@ SERVER
 CQ timer slowly advances forward in time. It needs to calculate the exact time to the
 next publishing event.
 
-Need to add timeshift to stats results.
-
 Need to publish new stats as they become available.
 
 Need to refactor CQ specs so they use the configuration file config/obs_type.js
 
-Need to record gust directions
+Need to record gust directions.
 
-Consider trafficing in milliseconds (instead of nanoseconds)
 
 
 CLIENT
 
-Should be able to extract the last packet out of the data manager, for use when initializing
-the templates and wind compass.
-
 Deal with unit systems.
 
-Add statistics for the day.
+Highlight changed values in the "since midnight" stats area.
 
 
 DATABASE
