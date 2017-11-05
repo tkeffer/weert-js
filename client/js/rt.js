@@ -26,8 +26,8 @@ const plot_group_list = [
             title: "Outside Temperature (°F)"
         },
         traces  : [
-            {obs_type: 'outside_temperature', label: 'Temperature'},
-            {obs_type: 'dewpoint_temperature', label: 'Dewpoint'}
+            {obs_type: 'out_temp', label: 'Temperature'},
+            {obs_type: 'dewpoint_temp', label: 'Dewpoint'}
         ]
     },
     {

@@ -35,15 +35,15 @@
             </tr>
             <tr>
                 <td class='stats_label'>Outside Temperature</td>
-                <td class='stats_data'>{{precision fields.outside_temperature 3}}&deg;F</td>
+                <td class='stats_data'>{{precision fields.out_temp 3}}&deg;F</td>
             </tr>
             <tr>
                 <td class='stats_label'>Inside Temperature</td>
-                <td class='stats_data'>{{precision fields.inside_temperature 3}}&deg;F</td>
+                <td class='stats_data'>{{precision fields.in_temp 3}}&deg;F</td>
             </tr>
             <tr>
                 <td class='stats_label'>Humidity</td>
-                <td class='stats_data'>{{precision fields.outside_humidity 2}}%</td>
+                <td class='stats_data'>{{precision fields.out_humidity 2}}%</td>
             </tr>
             <tr>
                 <td class='stats_label'>Barometer</td>
@@ -82,10 +82,10 @@
                     Low Temperature
                 </td>
                 <td class='stats_data'>
-                    {{precision day.outside_temperature.max.value 3}}&deg;F at {{formatTimeStamp
-                    day.outside_temperature.max.timestamp 'HH:mm:ss'}}<br/>
-                    {{precision day.outside_temperature.min.value 3}}&deg;F at {{formatTimeStamp
-                    day.outside_temperature.min.timestamp 'HH:mm:ss'}}
+                    {{precision day.out_temp.max.value 3}}&deg;F at {{formatTimeStamp
+                    day.out_temp.max.timestamp 'HH:mm:ss'}}<br/>
+                    {{precision day.out_temp.min.value 3}}&deg;F at {{formatTimeStamp
+                    day.out_temp.min.timestamp 'HH:mm:ss'}}
                 </td>
             </tr>
             <tr>
@@ -94,10 +94,10 @@
                     Low Wind Chill
                 </td>
                 <td class='stats_data'>
-                    {{precision day.heatindex_temperature.max.value 3}}&deg;F at {{formatTimeStamp
-                    day.heatindex_temperature.max.timestamp "HH:mm:ss"}}<br/>
-                    {{precision day.windchill_temperature.min.value 3}}&deg;F at {{formatTimeStamp
-                    day.windchill_temperature.min.timestamp "HH:mm:ss"}}
+                    {{precision day.heatindex_temp.max.value 3}}&deg;F at {{formatTimeStamp
+                    day.heatindex_temp.max.timestamp "HH:mm:ss"}}<br/>
+                    {{precision day.windchill_temp.min.value 3}}&deg;F at {{formatTimeStamp
+                    day.windchill_temp.min.timestamp "HH:mm:ss"}}
                 </td>
             </tr>
             <tr>
@@ -106,10 +106,10 @@
                     Low Humidity
                 </td>
                 <td class='stats_data'>
-                    {{fixed day.outside_humidity.max.value 0}}% at {{formatTimeStamp
-                    day.outside_humidity.max.timestamp "HH:mm:ss"}}<br/>
-                    {{fixed day.outside_humidity.min.value 0}}% at {{formatTimeStamp
-                    day.outside_humidity.min.timestamp "HH:mm:ss"}}
+                    {{fixed day.out_humidity.max.value 0}}% at {{formatTimeStamp
+                    day.out_humidity.max.timestamp "HH:mm:ss"}}<br/>
+                    {{fixed day.out_humidity.min.value 0}}% at {{formatTimeStamp
+                    day.out_humidity.min.timestamp "HH:mm:ss"}}
                 </td>
             </tr>
             <tr>
@@ -118,10 +118,10 @@
                     Low Dewpoint
                 </td>
                 <td class='stats_data'>
-                    {{precision day.dewpoint_temperature.max.value 3}}&deg;F at {{formatTimeStamp
-                    day.dewpoint_temperature.max.timestamp "HH:mm:ss"}}<br/>
-                    {{precision day.dewpoint_temperature.min.value 3}}&deg;F at {{formatTimeStamp
-                    day.dewpoint_temperature.min.timestamp "HH:mm:ss"}}
+                    {{precision day.dewpoint_temp.max.value 3}}&deg;F at {{formatTimeStamp
+                    day.dewpoint_temp.max.timestamp "HH:mm:ss"}}<br/>
+                    {{precision day.dewpoint_temp.min.value 3}}&deg;F at {{formatTimeStamp
+                    day.dewpoint_temp.min.timestamp "HH:mm:ss"}}
                 </td>
             </tr>
             <tr>
