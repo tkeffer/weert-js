@@ -2,8 +2,14 @@
 .project
 .pydevproject
 
+# JetBrains
+.idea
+
 # GFM viewers
 .*.md.html
+
+# Python
+*.pyc
 
 # Logs
 logs
