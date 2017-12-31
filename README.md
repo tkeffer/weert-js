@@ -78,7 +78,15 @@ not support the POST method used by the uploader.
 
 4. Run `weewxd`
 
-5. Open up a client at [http://localhost:3000](http://localhost:3000).
+## Running the browser client
+
+1. Build the client dependencies
+
+    ```shell
+    npm run build
+    ```
+
+2. After making sure the WeeRT server is still running, open up a client at [http://localhost:3000](http://localhost:3000).
 
 
 ## General architecture
