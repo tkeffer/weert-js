@@ -1,3 +1,8 @@
+CONFIGURATION
+
+Need to have entry points in package.json for development vs production builds.
+
+
 SERVER
 
 CQ timer slowly advances forward in time. It needs to calculate the exact time to the
