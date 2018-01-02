@@ -19,9 +19,11 @@
         "url": "https://github.com/tkeffer/weert-js"
     },
     "dependencies": {
+        "babel-polyfill": "^6.26.0",
         "basic-auth": "^2.0.0",
         "body-parser": "^1.18.2",
         "compression": "^1.7.1",
+        "cross-fetch": "^1.1.1",
         "debug": "^2.2.0",
         "express": "^4.13.3",
         "faye": "^1.2.4",
@@ -35,6 +37,8 @@
         "react-dom": "^16.2.0",
         "react-redux": "^5.0.6",
         "redux": "^3.7.2",
+        "redux-logger": "^3.0.6",
+        "redux-thunk": "^2.2.0",
         "url": "^0.11.0"
     },
     "devDependencies": {
