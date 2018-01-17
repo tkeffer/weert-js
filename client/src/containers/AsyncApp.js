@@ -1,54 +1,55 @@
-import React, { Component } from 'react'
-import PropTypes from 'prop-types'
-import { connect } from 'react-redux'
+import React, {Component} from 'react';
+import PropTypes from 'prop-types';
+import {connect} from 'react-redux';
 import {
-    selectSubreddit,
-    fetchPostsIfNeeded,
-    invalidateSubreddit
-} from '../actions'
-import Picker from '../components/Picker'
-import Posts from '../components/Posts'
+    selectSeries,
+    fetchSeriesIfNeeded,
+    invalidateSeries
+} from '../actions';
+import Picker from '../components/Picker';
+
+// import Posts from '../components/Posts';
 
 class AsyncApp extends Component {
     constructor(props) {
-        super(props)
-        this.handleChange = this.handleChange.bind(this)
-        this.handleRefreshClick = this.handleRefreshClick.bind(this)
+        super(props);
+        this.handleChange       = this.handleChange.bind(this);
+        this.handleRefreshClick = this.handleRefreshClick.bind(this);
     }
 
     componentDidMount() {
-        const { dispatch, selectedSubreddit } = this.props
-        dispatch(fetchPostsIfNeeded(selectedSubreddit))
+        const {dispatch, selectedSeries} = this.props;
+        dispatch(fetchSeriesIfNeeded(selectedSeries));
     }
 
     componentDidUpdate(prevProps) {
-        if (this.props.selectedSubreddit !== prevProps.selectedSubreddit) {
-            const { dispatch, selectedSubreddit } = this.props
-            dispatch(fetchPostsIfNeeded(selectedSubreddit))
+        if (this.props.selectedSeries !== prevProps.selectedSeries) {
+            const {dispatch, selectedSeries} = this.props;
+            dispatch(fetchSeriesIfNeeded(selectedSeries));
         }
     }
 
-    handleChange(nextSubreddit) {
-        this.props.dispatch(selectSubreddit(nextSubreddit))
-        this.props.dispatch(fetchPostsIfNeeded(nextSubreddit))
+    handleChange(nextSeries) {
+        this.props.dispatch(selectSeries(nextSeries));
+        this.props.dispatch(fetchSeriesIfNeeded(nextSeries));
     }
 
     handleRefreshClick(e) {
-        e.preventDefault()
+        e.preventDefault();
 
-        const { dispatch, selectedSubreddit } = this.props
-        dispatch(invalidateSubreddit(selectedSubreddit))
-        dispatch(fetchPostsIfNeeded(selectedSubreddit))
+        const {dispatch, selectedSeries} = this.props;
+        dispatch(invalidateSeries(selectedSeries));
+        dispatch(fetchSeriesIfNeeded(selectedSeries));
     }
 
     render() {
-        const { selectedSubreddit, posts, isFetching, lastUpdated } = this.props
+        const {selectedSeries, packets, isFetching, lastUpdated} = this.props;
         return (
             <div>
                 <Picker
-                    value={selectedSubreddit}
+                    value={selectedSeries}
                     onChange={this.handleChange}
-                    options={['reactjs', 'frontend']}
+                    options={['recent', 'last27']}
                 />
                 <p>
                     {lastUpdated &&
@@ -57,46 +58,49 @@ class AsyncApp extends Component {
                          {' '}
             </span>}
                     {!isFetching &&
-                     <a href="#" onClick={this.handleRefreshClick}>
+                     <a href='#' onClick={this.handleRefreshClick}>
                          Refresh
                      </a>}
                 </p>
-                {isFetching && posts.length === 0 && <h2>Loading...</h2>}
-                {!isFetching && posts.length === 0 && <h2>Empty.</h2>}
-                {posts.length > 0 &&
-                 <div style={{ opacity: isFetching ? 0.5 : 1 }}>
-                     <Posts posts={posts} />
+                {isFetching && packets.length === 0 && <h2>Loading...</h2>}
+                {!isFetching && packets.length === 0 && <h2>Empty.</h2>}
+                {packets.length > 0 &&
+                 <div style={{opacity: isFetching ? 0.5 : 1}}>
+                     <p>Packets = {packets.length}</p>
                  </div>}
             </div>
-        )
+        );
     }
 }
 
 AsyncApp.propTypes = {
-    selectedSubreddit: PropTypes.string.isRequired,
-    posts: PropTypes.array.isRequired,
-    isFetching: PropTypes.bool.isRequired,
-    lastUpdated: PropTypes.number,
-    dispatch: PropTypes.func.isRequired
-}
+    selectedSeries: PropTypes.string.isRequired,
+    packets       : PropTypes.array.isRequired,
+    isFetching    : PropTypes.bool.isRequired,
+    lastUpdated   : PropTypes.number,
+    dispatch      : PropTypes.func.isRequired
+};
+
 
 function mapStateToProps(state) {
-    const { selectedSubreddit, postsBySubreddit } = state
+    const {selectedSeries, packetsBySeriesName} = state;
+
     const {
+              seriesTags,
               isFetching,
+              maxAge,
+              packets,
               lastUpdated,
-              items: posts
-          } = postsBySubreddit[selectedSubreddit] || {
-        isFetching: true,
-        items: []
-    }
+          } = packetsBySeriesName[selectedSeries] || {isFetching: true, packets: []};
 
     return {
-        selectedSubreddit,
-        posts,
+        selectedSeries,
+        seriesTags,
         isFetching,
-        lastUpdated
-    }
+        maxAge,
+        packets,
+        lastUpdated,
+    };
 }
 
-export default connect(mapStateToProps)(AsyncApp)
+export default connect(mapStateToProps)(AsyncApp);

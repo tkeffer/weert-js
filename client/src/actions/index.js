@@ -1,64 +1,74 @@
-import fetch from 'cross-fetch'
+import api from '../Api';
 
-export const REQUEST_POSTS = 'REQUEST_POSTS'
-export const RECEIVE_POSTS = 'RECEIVE_POSTS'
-export const SELECT_SUBREDDIT = 'SELECT_SUBREDDIT'
-export const INVALIDATE_SUBREDDIT = 'INVALIDATE_SUBREDDIT'
+export const FETCH_SERIES_REQUEST = 'FETCH_SERIES_REQUEST';
+export const FETCH_SERIES_SUCCESS = 'FETCH_SERIES_SUCCESS';
+export const FETCH_SERIES_FAILURE = 'FETCH_SERIES_FAILURE';
+export const SELECT_SERIES        = 'SELECT_SERIES';
+export const INVALIDATE_SERIES    = 'INVALIDATE_SERIES';
 
-export function selectSubreddit(subreddit) {
+export function selectSeries(seriesName) {
     return {
-        type: SELECT_SUBREDDIT,
-        subreddit
-    }
+        type: SELECT_SERIES,
+        seriesName,
+    };
 }
 
-export function invalidateSubreddit(subreddit) {
+export function invalidateSeries(seriesName) {
     return {
-        type: INVALIDATE_SUBREDDIT,
-        subreddit
-    }
+        type: INVALIDATE_SERIES,
+        seriesName
+    };
 }
 
-function requestPosts(subreddit) {
+function requestingSeries(seriesName) {
     return {
-        type: REQUEST_POSTS,
-        subreddit
-    }
+        type: FETCH_SERIES_REQUEST,
+        seriesName,
+    };
 }
 
-function receivePosts(subreddit, json) {
+function receiveSeries(seriesName, seriesTags, maxAge, packets) {
     return {
-        type: RECEIVE_POSTS,
-        subreddit,
-        posts: json.data.children.map(child => child.data),
+        type      : FETCH_SERIES_SUCCESS,
+        seriesName,
+        seriesTags,
+        maxAge,
+        packets   : packets.map(packet => {
+            // Flatten the packets:
+            return {
+                timestamp: packet.timestamp,
+                ...packet.fields
+            };
+        }),
         receivedAt: Date.now()
-    }
+    };
 }
 
-function fetchPosts(subreddit) {
+function fetchSeries(seriesName, seriesTags, maxAge) {
     return dispatch => {
-        dispatch(requestPosts(subreddit))
-        return fetch(`https://www.reddit.com/r/${subreddit}.json`)
-            .then(response => response.json())
-            .then(json => dispatch(receivePosts(subreddit, json)))
-    }
+        dispatch(requestingSeries(seriesName));
+        return api.getPackets(seriesTags, maxAge)
+                  .then(packets => dispatch(receiveSeries(seriesName, seriesTags, maxAge, packets)));
+    };
 }
 
-function shouldFetchPosts(state, subreddit) {
-    const posts = state.postsBySubreddit[subreddit]
-    if (!posts) {
-        return true
-    } else if (posts.isFetching) {
-        return false
+function shouldFetchSeries(seriesState) {
+    if (!seriesState) {
+        return true;
+    } else if (seriesState.isFetching) {
+        return false;
+    } else if (!seriesState.packets || !seriesState.packets.length) {
+        return true;
     } else {
-        return posts.didInvalidate
+        return seriesState.didInvalidate;
     }
 }
 
-export function fetchPostsIfNeeded(subreddit) {
+export function fetchSeriesIfNeeded(seriesName) {
     return (dispatch, getState) => {
-        if (shouldFetchPosts(getState(), subreddit)) {
-            return dispatch(fetchPosts(subreddit))
+        const seriesState = getState().packetsBySeriesName[seriesName];
+        if (shouldFetchSeries(seriesState)) {
+            return dispatch(fetchSeries(seriesName, seriesState.seriesTags, seriesState.maxAge));
         }
-    }
+    };
 }

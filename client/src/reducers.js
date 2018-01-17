@@ -1,66 +1,92 @@
-import { combineReducers } from 'redux'
+import {combineReducers} from 'redux';
 import {
-    SELECT_SUBREDDIT,
-    INVALIDATE_SUBREDDIT,
-    REQUEST_POSTS,
-    RECEIVE_POSTS
-} from './actions'
+    FETCH_SERIES_REQUEST,
+    FETCH_SERIES_SUCCESS,
+    SELECT_SERIES,
+    INVALIDATE_SERIES,
+} from './actions';
 
-function selectedSubreddit(state = 'reactjs', action) {
-    switch (action.type) {
-        case SELECT_SUBREDDIT:
-            return action.subreddit
-        default:
-            return state
-    }
-}
-
-function posts(
-    state = {
-        isFetching: false,
+const initial_state = {
+    recent: {
+        seriesTags   : {
+            measurement: "wxpackets",
+            platform   : "default_platform",
+            stream     : "default_stream"
+        },
         didInvalidate: false,
-        items: []
+        isFetching   : false,
+        maxAge       : 300000,
+        packets      : []
     },
-    action
-) {
+    last27: {
+        seriesTags   : {
+            measurement: "wxrecords",
+            platform   : "default_platform",
+            stream     : "default_stream"
+        },
+        didInvalidate: false,
+        isFetching   : false,
+        maxAge       : 97200000,           // = 27 hours in milliseconds
+        packets      : []
+    }
+};
+
+function selectedSeries(state = "recent", action) {
     switch (action.type) {
-        case INVALIDATE_SUBREDDIT:
-            return Object.assign({}, state, {
-                didInvalidate: true
-            })
-        case REQUEST_POSTS:
-            return Object.assign({}, state, {
-                isFetching: true,
-                didInvalidate: false
-            })
-        case RECEIVE_POSTS:
-            return Object.assign({}, state, {
-                isFetching: false,
-                didInvalidate: false,
-                items: action.posts,
-                lastUpdated: action.receivedAt
-            })
+        case SELECT_SERIES:
+            return action.seriesName;
         default:
-            return state
+            return state;
     }
 }
 
-function postsBySubreddit(state = {}, action) {
+function reduceSeries(state = {}, action) {
+    const seriesName = action.seriesName;
+
     switch (action.type) {
-        case INVALIDATE_SUBREDDIT:
-        case RECEIVE_POSTS:
-        case REQUEST_POSTS:
-            return Object.assign({}, state, {
-                [action.subreddit]: posts(state[action.subreddit], action)
-            })
+        case INVALIDATE_SERIES:
+            return {
+                ...state,
+                didInvalidate: true
+            };
+        case FETCH_SERIES_REQUEST:
+            return {
+                ...state,
+                didInvalidate: false,
+                isFetching   : true
+            };
+        case FETCH_SERIES_SUCCESS:
+            return {
+                ...state,
+                seriesTags   : action.seriesTags,
+                didInvalidate: false,
+                isFetching   : false,
+                maxAge       : action.maxAge,
+                packets      : action.packets,
+                lastUpdated  : action.receivedAt
+            };
         default:
-            return state
+            return state;
+    }
+
+}
+
+function packetsBySeriesName(state = initial_state, action) {
+    switch (action.type) {
+        case INVALIDATE_SERIES:
+        case FETCH_SERIES_REQUEST:
+        case FETCH_SERIES_SUCCESS:
+            return Object.assign({}, state, {
+                [action.seriesName]: reduceSeries(state[action.seriesName], action)
+            });
+        default:
+            return state;
     }
 }
 
 const rootReducer = combineReducers({
-                                        postsBySubreddit,
-                                        selectedSubreddit
-                                    })
+                                        selectedSeries,
+                                        packetsBySeriesName
+                                    });
 
-export default rootReducer
+export default rootReducer;

@@ -2,6 +2,8 @@ CONFIGURATION
 
 Need to have entry points in package.json for development vs production builds.
 
+Instead of just importing D3, import the minimal set of D3 components, using NPM.
+
 
 SERVER
 
@@ -26,3 +28,8 @@ Highlight changed values in the "since midnight" stats area.
 DATABASE
 
 Need utility to load sqlite archived records into InfluxDB.
+
+
+DOCUMENTATION
+
+RESTful API examples don't specify a unit_system
