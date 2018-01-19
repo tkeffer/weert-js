@@ -1,9 +1,9 @@
-import React, { Component } from 'react'
-import PropTypes from 'prop-types'
+import React, {Component} from 'react';
+import PropTypes from 'prop-types';
 
 export default class Picker extends Component {
     render() {
-        const { value, onChange, options } = this.props
+        const {value, onChange, options} = this.props;
 
         return (
             <span>
@@ -16,12 +16,12 @@ export default class Picker extends Component {
           ))}
         </select>
       </span>
-        )
+        );
     }
 }
 
 Picker.propTypes = {
-    options: PropTypes.arrayOf(PropTypes.string.isRequired).isRequired,
-    value: PropTypes.string.isRequired,
+    options : PropTypes.arrayOf(PropTypes.string.isRequired).isRequired,
+    value   : PropTypes.string.isRequired,
     onChange: PropTypes.func.isRequired
-}
+};

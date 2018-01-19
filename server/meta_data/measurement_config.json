@@ -1,7 +1,7 @@
 {
     "wxpackets": {
         "database": "weert",
-        "rp"      : "24h",
+        "rp"      : "h24",
         "cqs"     : [
             {
                 "cq_destination": "wxrecords",

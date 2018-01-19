@@ -6,11 +6,11 @@
 
 /*
  * Set of default retention policies.
- * Right now, there is only one, '24h', but others could be added.
+ * Right now, there is only one, 'h24', but others could be added.
  */
 
 module.exports = {
-    "24h": {
+    "h24": {
         database   : 'weert',
         duration   : '24h',
         replication: 1

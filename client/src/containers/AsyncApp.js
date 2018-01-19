@@ -7,6 +7,7 @@ import {
     invalidateSeries
 } from '../actions';
 import Picker from '../components/Picker';
+import {PacketGroup} from '../components/Obs';
 
 // import Posts from '../components/Posts';
 
@@ -66,7 +67,7 @@ class AsyncApp extends Component {
                 {!isFetching && packets.length === 0 && <h2>Empty.</h2>}
                 {packets.length > 0 &&
                  <div style={{opacity: isFetching ? 0.5 : 1}}>
-                     <p>Packets = {packets.length}</p>
+                     <PacketGroup obsTypes={["timestamp", "out_temperature","in_temperature"]} packet={packets[0]}/>
                  </div>}
             </div>
         );

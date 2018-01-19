@@ -14,7 +14,7 @@ const groupMap = {
 
 export function getLabel(obsType) {
     if (obsType in unitConfig.obsLabels) {
-        return unitConfig.obsLabels[obsType];
+        return unitConfig.obsLabels[obsType] || obsType;
     } else {
         return obsType;
     }
@@ -23,23 +23,37 @@ export function getLabel(obsType) {
 export function getUnitGroup(obsType) {
     const last = obsType.split('_')
                         .slice(-1)[0];
-    return `group_{last}`;
+    return `group_${last}`;
 }
 
 export function getUnit(unitGroup, unitSystem) {
-    // TODO: Need some error handling
     const system = groupMap[unitSystem];
-    const unit   = system[unitGroup];
+    const unit   = system ? system[unitGroup] : undefined;
     return unit;
 }
 
-export function getFormat(unit) {
+export function getUnitFormat(obsType, unitSystem) {
+    const unitGroup = getUnitGroup(obsType);
+    const unit      = getUnit(unitGroup, unitSystem);
+    // If the unit system is unknown, or can't be found in the unitFormats object, return a generic format
+    const format    = unitConfig.unitFormats[unit] || "%s";
+    console.log("For obsType=", obsType, "unitSystem=", unitSystem, "unitGroup= ", unitGroup, " unit=", unit, " the format is", format);
+    return format;
 }
 
 
-export function getUnitLabel(obsType, unitSystem) {
+export function getUnitLabel(obsType, unitSystem, val) {
     const unitGroup = getUnitGroup(obsType);
     const unit      = getUnit(unitGroup, unitSystem);
     const unitLabel = unitConfig.unitLabels[unit];
+    // No label if we don't recognize the unit
+    if (unitLabel === undefined) return "";
+    // Check if this is a unit that has a singular / plural form
+    if (Array.isArray(unitLabel)) {
+        if (val === 1)
+            return unitLabel[0];
+        else
+            return unitLabel[1];
+    }
     return unitLabel;
 }

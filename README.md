@@ -160,7 +160,7 @@ for how to control its logging policies.
 
 WeeRT uses a different system to name observation types than WeeWx.
 For example, for outside temperature, WeeWX uses `outTemp`, while
-WeeRT uses `out_temp`. The general pattern is that the last
+WeeRT uses `out_temperature`. The general pattern is that the last
 part of the observation name, `temperature` in this example, denotes
 the unit group. In WeeWX the unit group must be looked up in a table;
 in WeeRT it can be inferred from the name.
@@ -222,7 +222,7 @@ weather station, or sensor. Like any InfluxDB tags, `platform` and
 `stream` are indexed. The default `platform` is `default_platform`;
 the default `stream` is `default_stream`.
 
-The observation values, such as `out_temp`, are stored as
+The observation values, such as `out_temperature`, are stored as
 InfluxDB *fields*.  They are not indexed. Because InfluxDB does not
 use a schema, new data types can be introduced into the data stream at
 any time and they will be stored in the database.
@@ -261,7 +261,7 @@ ecosystem. It's useful to be aware of the differences.
      "timestamp" : 1507432417000,
      "measurement" : "wxpackets"
      "tags" : {"platform" : "Red barn", "stream" : "Accurite"}
-     "fields" : {"out_temp" : 20.5, "out_humidity" : 65.0, "unit_system" : 16}
+     "fields" : {"out_temperature" : 20.5, "out_humidity_percent" : 65.0, "unit_system" : 16}
     }
   ```
     
@@ -277,8 +277,8 @@ ecosystem. It's useful to be aware of the differences.
      "measurement" : "wxpackets",
      "platform" : "Red barn",
      "stream" : "Accurite",
-     "out_temp" : 20.5,
-     "out_humidity" : 65.0,
+     "out_temperature" : 20.5,
+     "out_humidity_percent" : 65.0,
      "unit_system" : 16
     }
    ```
@@ -289,7 +289,7 @@ ecosystem. It's useful to be aware of the differences.
   explicitly used within WeeRT. It looks something like this:
  
    ```
-   wxpackets,platform="Red barn",stream="Accurite" out_temp=20.5,out_humidity=65.0,unit_system=16 1507432417000000000
+   wxpackets,platform="Red barn",stream="Accurite" out_temperature=20.5,out_humidity_percent=65.0,unit_system=16 1507432417000000000
    ```
 
 WeeRT tries to consistently traffic in "deep packets," and does any conversions
@@ -299,14 +299,14 @@ that might be necessary. Both incoming and outgoing data use this format.
 
 [//]: # (# The following commands will set up the database)
 [//]: # (curl -XPOST 'http://localhost:8086/query?db=weert' --data-urlencode 'q=DROP MEASUREMENT "examples"')
-[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=barn,stream=accurite out_temp=55.2,sealevel_pressure=29.812 1506713140000000000')
-[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=barn,stream=accurite out_temp=55.3,sealevel_pressure=29.839 1506713200000000000')
-[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=barn,stream=accurite out_temp=55.5,sealevel_pressure=29.840 1506713260000000000')
-[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=barn,stream=accurite out_temp=55.6,sealevel_pressure=29.838 1506713320000000000')
-[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=barn,stream=loft out_temp=61.2,sealevel_pressure=29.881 1506713140000000000')
-[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=barn,stream=loft out_temp=61.3,sealevel_pressure=29.901 1506713200000000000')
-[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=barn,stream=loft out_temp=61.6,sealevel_pressure=29.908 1506713260000000000')
-[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=barn,stream=loft out_temp=61.6,sealevel_pressure=29.910 1506713320000000000')
+[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=barn,stream=accurite out_temperature=55.2,sealevel_pressure=29.812 1506713140000000000')
+[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=barn,stream=accurite out_temperature=55.3,sealevel_pressure=29.839 1506713200000000000')
+[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=barn,stream=accurite out_temperature=55.5,sealevel_pressure=29.840 1506713260000000000')
+[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=barn,stream=accurite out_temperature=55.6,sealevel_pressure=29.838 1506713320000000000')
+[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=barn,stream=loft out_temperature=61.2,sealevel_pressure=29.881 1506713140000000000')
+[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=barn,stream=loft out_temperature=61.3,sealevel_pressure=29.901 1506713200000000000')
+[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=barn,stream=loft out_temperature=61.6,sealevel_pressure=29.908 1506713260000000000')
+[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=barn,stream=loft out_temperature=61.6,sealevel_pressure=29.910 1506713320000000000')
 
 
 
@@ -377,7 +377,7 @@ Connection: keep-alive
 [
     {
         "fields": {
-            "out_temp": 55.2,
+            "out_temperature": 55.2,
             "sealevel_pressure": 29.812
         },
         "tags": {
@@ -388,7 +388,7 @@ Connection: keep-alive
     },
     {
         "fields": {
-            "out_temp": 61.2,
+            "out_temperature": 61.2,
             "sealevel_pressure": 29.881
         },
         "tags": {
@@ -399,7 +399,7 @@ Connection: keep-alive
     },
     {
         "fields": {
-            "out_temp": 55.3,
+            "out_temperature": 55.3,
             "sealevel_pressure": 29.839
         },
         "tags": {
@@ -410,7 +410,7 @@ Connection: keep-alive
     },
     {
         "fields": {
-            "out_temp": 61.3,
+            "out_temperature": 61.3,
             "sealevel_pressure": 29.901
         },
         "tags": {
@@ -421,7 +421,7 @@ Connection: keep-alive
     },
     {
         "fields": {
-            "out_temp": 55.5,
+            "out_temperature": 55.5,
             "sealevel_pressure": 29.84
         },
         "tags": {
@@ -432,7 +432,7 @@ Connection: keep-alive
     },
     {
         "fields": {
-            "out_temp": 61.6,
+            "out_temperature": 61.6,
             "sealevel_pressure": 29.908
         },
         "tags": {
@@ -443,7 +443,7 @@ Connection: keep-alive
     },
     {
         "fields": {
-            "out_temp": 55.6,
+            "out_temperature": 55.6,
             "sealevel_pressure": 29.838
         },
         "tags": {
@@ -454,7 +454,7 @@ Connection: keep-alive
     },
     {
         "fields": {
-            "out_temp": 61.6,
+            "out_temperature": 61.6,
             "sealevel_pressure": 29.91
         },
         "tags": {
@@ -485,7 +485,7 @@ Connection: keep-alive
 [
     {
         "fields": {
-            "out_temp": 61.2,
+            "out_temperature": 61.2,
             "sealevel_pressure": 29.881
         },
         "tags": {
@@ -496,7 +496,7 @@ Connection: keep-alive
     },
     {
         "fields": {
-            "out_temp": 61.3,
+            "out_temperature": 61.3,
             "sealevel_pressure": 29.901
         },
         "tags": {
@@ -527,7 +527,7 @@ Connection: keep-alive
 [
     {
         "fields": {
-            "out_temp": 61.6,
+            "out_temperature": 61.6,
             "sealevel_pressure": 29.908
         },
         "tags": {
@@ -538,7 +538,7 @@ Connection: keep-alive
     },
     {
         "fields": {
-            "out_temp": 61.3,
+            "out_temperature": 61.3,
             "sealevel_pressure": 29.901
         },
         "tags": {
@@ -594,7 +594,7 @@ Connection: keep-alive
 [
     {
         "fields": {
-            "out_temp": 55.3,
+            "out_temperature": 55.3,
             "sealevel_pressure": 29.839
         },
         "tags": {
@@ -650,7 +650,7 @@ Add a new packet for the platform `barn` and stream `accurite`.
 $ curl -u weert:weert -i --silent -X POST -H Content-type:application/json -d  \
 >   '{"timestamp" : 1506713320000, \
 >   "tags" : {"platform":"barn", "stream":"accurite"}, \
->   "fields" : {"out_temp":56.1, "sealevel_pressure": 29.881}} ' \
+>   "fields" : {"out_temperature":56.1, "sealevel_pressure": 29.881}} ' \
 >   http://localhost:3000/api/v1/measurements/examples/packets
 
 HTTP/1.1 201 Created
@@ -842,7 +842,7 @@ Connection: keep-alive
             "value": null
         }
     },
-    "dewpoint_temp": {
+    "dewpoint_temperature": {
         "max": {
             "timestamp": null,
             "value": null
@@ -852,7 +852,7 @@ Connection: keep-alive
             "value": null
         }
     },
-    "extra1_humidity": {
+    "extra1_humidity_percent": {
         "max": {
             "timestamp": null,
             "value": null
@@ -862,7 +862,7 @@ Connection: keep-alive
             "value": null
         }
     },
-    "extra1_temp": {
+    "extra1_temperature": {
         "max": {
             "timestamp": null,
             "value": null
@@ -882,7 +882,7 @@ Connection: keep-alive
             "value": null
         }
     },
-    "heatindex_temp": {
+    "heatindex_temperature": {
         "max": {
             "timestamp": null,
             "value": null
@@ -892,7 +892,7 @@ Connection: keep-alive
             "value": null
         }
     },
-    "in_humidity": {
+    "in_humidity_percent": {
         "max": {
             "timestamp": null,
             "value": null
@@ -902,7 +902,7 @@ Connection: keep-alive
             "value": null
         }
     },
-    "in_temp": {
+    "in_temperature": {
         "max": {
             "timestamp": null,
             "value": null
@@ -912,7 +912,7 @@ Connection: keep-alive
             "value": null
         }
     },
-    "out_temp": {
+    "out_temperature": {
         "max": {
             "timestamp": 1506713260000,
             "value": 61.6
@@ -981,7 +981,7 @@ Connection: keep-alive
             "value": null
         }
     },
-    "windchill_temp": {
+    "windchill_temperature": {
         "max": {
             "timestamp": null,
             "value": null

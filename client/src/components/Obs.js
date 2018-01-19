@@ -7,16 +7,30 @@
 
 import React from 'react';
 import * as units from '../units';
+import {sprintf} from 'sprintf-js';
 
 class ObsLabel extends React.Component {
     render() {
-        return (<td class='stats_label'>{units.getLabel(this.props.obsType)}</td>);
+        return (<td className='stats_label'>{units.getLabel(this.props.obsType)}</td>);
     }
 }
 
 class ObsValue extends React.Component {
     render() {
-        return (<td class='stats_data'>{this.props.packet[this.props.obsType]}</td>);
+        const {packet, obsType} = this.props;
+        const val               = packet[obsType];
+        let str_val;
+        if (val === undefined) {
+            str_val = "N/A";
+        } else {
+            const format = units.getUnitFormat(obsType, packet['unit_system']);
+            const label  = units.getUnitLabel(obsType, packet['unit_system'], val);
+            str_val      = sprintf(format, val) + label;
+            console.log("packet=", packet);
+            console.log("format=", format, "; label=", label);
+        }
+        console.log("str_val=", str_val);
+        return (<td className='stats_data'>{str_val}</td>);
     }
 }
 
@@ -31,11 +45,10 @@ class ObsRow extends React.Component {
 }
 
 
-
 class Header extends React.Component {
     render() {
-        return (<div class='stats_header'>
-            Current Conditions
+        return (<div className='stats_header'>
+            Most Recent
         </div>);
     }
 
@@ -45,17 +58,18 @@ class Table extends React.Component {
     render() {
         return (<table>
             <tbody>
-            <ObsRow obsType={"timestamp"} value={props.timestamp}/>
+            {/* Include a key. See https://reactjs.org/docs/reconciliation.html#keys */}
+            {this.props.obsTypes.map((obsType, i) => <ObsRow key={i} obsType={obsType} packet={this.props.packet}/>)}
             </tbody>
         </table>);
     }
 }
 
-class CurrentGroup extends React.Component {
+export class PacketGroup extends React.Component {
     render() {
         return (<div>
-                <StatsHeader/>
-                <StatsTable/>
+                <Header/>
+                <Table obsTypes={this.props.obsTypes} packet={this.props.packet}/>
             </div>
         );
     }

@@ -21,19 +21,19 @@ module.exports = [
 
     },
     {
-        obs_type : "dewpoint_temp",
+        obs_type : "dewpoint_temperature",
         subsample: "avg",
         stats    : ["min", "max"]
 
     },
     {
-        obs_type : "extra1_humidity",
+        obs_type : "extra1_humidity_percent",
         subsample: "avg",
         stats    : ["min", "max"]
 
     },
     {
-        obs_type : "extra1_temp",
+        obs_type : "extra1_temperature",
         subsample: "avg",
         stats    : ["min", "max"]
 
@@ -45,38 +45,38 @@ module.exports = [
 
     },
     {
-        obs_type : "heatindex_temp",
+        obs_type : "heatindex_temperature",
         subsample: "avg",
         stats    : ["min", "max"]
     },
     {
-        obs_type : "in_humidity",
+        obs_type : "in_humidity_percent",
         subsample: "avg",
         stats    : ["min", "max"]
 
     },
     {
-        obs_type : "in_temp",
+        obs_type : "in_temperature",
         subsample: "avg",
         stats    : ["min", "max"]
     },
     {
-        obs_type : "in_temp_battery_status",
+        obs_type : "in_temperature_battery_status",
         subsample: "last"
     },
     {
-        obs_type : "out_humidity",
+        obs_type : "out_humidity_percent",
         subsample: "avg",
         stats    : ["min", "max"]
 
     },
     {
-        obs_type : "out_temp",
+        obs_type : "out_temperature",
         subsample: "avg",
         stats    : ["min", "max"]
     },
     {
-        obs_type : "out_temp_battery_status",
+        obs_type : "out_temperature_battery_status",
         subsample: "last"
     },
     {
@@ -118,7 +118,7 @@ module.exports = [
 
     },
     {
-        obs_type : "windchill_temp",
+        obs_type : "windchill_temperature",
         subsample: "avg",
         stats    : ["min", "max"]
 
