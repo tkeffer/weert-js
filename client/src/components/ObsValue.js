@@ -31,7 +31,7 @@ export default class ObsValue extends React.Component {
             return (<TimeValue timestamp={val} {...props}/>);
         }
 
-        const {componentClass: Component} = props;
+        const {componentClass: Component, ...newprops} = props;
 
         let str_val;
         if (val === undefined) {
@@ -41,7 +41,7 @@ export default class ObsValue extends React.Component {
             const label  = units.getUnitLabel(obsType, packet['unit_system'], val);
             str_val      = sprintf(format, val) + label;
         }
-        return (<Component>{str_val}</Component>);
+        return (<Component {...newprops}>{str_val}</Component>);
     }
 }
 

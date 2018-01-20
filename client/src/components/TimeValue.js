@@ -10,8 +10,6 @@ import React from 'react';
 import moment from 'moment/moment';
 import PropTypes from 'prop-types';
 
-import ObsValue from './ObsValue';
-
 const propTypes = {
     timestamp: PropTypes.number.isRequired,
     format   : PropTypes.string
@@ -24,8 +22,8 @@ const defaultProps = {
 
 export default class TimeValue extends React.Component {
     render() {
-        const {timestamp, format, componentClass: Component} = this.props;
-        return (<Component>{moment(timestamp).format(format)}</Component>);
+        const {timestamp, format, componentClass: Component, ...props} = this.props;
+        return (<Component {...props}>{moment(timestamp).format(format)}</Component>);
     }
 }
 

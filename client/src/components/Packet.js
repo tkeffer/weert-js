@@ -20,32 +20,28 @@ class ObsRow extends React.Component {
     }
 }
 
-class Header extends React.Component {
-    render() {
-        return (<div>
-            Most Recent
-        </div>);
-    }
-}
-
-class Table extends React.Component {
-    render() {
-        const {obsTypes, ...props} = this.props;
-        return (<table>
-            <tbody>
-            {/* Include a key. See https://reactjs.org/docs/reconciliation.html#keys */}
-            {obsTypes.map((obsType, i) => <ObsRow key={i} obsType={obsType} {...props}/>)}
-            </tbody>
-        </table>);
-    }
-}
-
 export default class PacketGroup extends React.Component {
     render() {
-        return (<div>
-                <Header/>
-                <Table {...this.props}/>
+        const {obsTypes, header, ...props} = this.props;
+        return (
+            <div>
+                {header}
+                <table>
+                    <tbody>
+                    {/* Include a key. See https://reactjs.org/docs/reconciliation.html#keys */}
+                    {obsTypes.map((obsType, i) => <ObsRow key={i} obsType={obsType} {...props}/>)}
+                    </tbody>
+                </table>
             </div>
         );
     }
 }
+
+PacketGroup.propTypes = {
+    header  : PropTypes.string,
+    obsTypes: PropTypes.arrayOf(PropTypes.string).isRequired
+};
+
+PacketGroup.defaultProps = {
+    header: "Current Values"
+};

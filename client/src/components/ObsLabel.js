@@ -20,8 +20,10 @@ const defaultProps = {
 export default class ObsLabel extends React.Component {
 
     render() {
-        const {componentClass: Component, obsType} = this.props;
-        return (<Component>{units.getLabel(obsType)}</Component>);
+        // Destructure the props, assigning componentClass to the variable Component...
+        const {componentClass: Component, obsType, ...props} = this.props;
+        // ... then use Component as the element type
+        return (<Component {...props}>{units.getLabel(obsType)}</Component>);
     }
 }
 

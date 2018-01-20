@@ -36,9 +36,7 @@ export function getUnitFormat(obsType, unitSystem) {
     const unitGroup = getUnitGroup(obsType);
     const unit      = getUnit(unitGroup, unitSystem);
     // If the unit system is unknown, or can't be found in the unitFormats object, return a generic format
-    const format    = unitConfig.unitFormats[unit] || "%s";
-    console.log("For obsType=", obsType, "unitSystem=", unitSystem, "unitGroup= ", unitGroup, " unit=", unit, " the format is", format);
-    return format;
+    return unitConfig.unitFormats[unit] || "%s";
 }
 
 
