@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2017 Tom Keffer <tkeffer@gmail.com>
+ *
+ *  See the file LICENSE for your full rights.
+ *
+ */
+
 import {combineReducers} from 'redux';
 import {
     FETCH_SERIES_REQUEST,

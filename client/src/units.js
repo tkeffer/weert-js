@@ -4,6 +4,7 @@
  *  See the file LICENSE for your full rights.
  *
  */
+
 import * as unitConfig from '../config/unitConfig';
 
 const groupMap = {

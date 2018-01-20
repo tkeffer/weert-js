@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2017 Tom Keffer <tkeffer@gmail.com>
+ *
+ *  See the file LICENSE for your full rights.
+ *
+ */
+
 module.exports = {
     getPackets: function (seriesTags, maxAge) {
 

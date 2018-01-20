@@ -71,7 +71,8 @@ class AsyncApp extends Component {
                 {!isFetching && packets.length === 0 && <h2>Empty.</h2>}
                 {packets.length > 0 &&
                  <div style={{opacity: isFetching ? 0.5 : 1}}>
-                     <Packet obsTypes={["timestamp", "out_temperature", "in_temperature"]} packet={packets[0]}/>
+                     <Packet obsTypes={["timestamp", "sealevel_pressure", "out_temperature", "in_temperature"]}
+                             packet={packets[0]}/>
                  </div>}
             </div>
         );
