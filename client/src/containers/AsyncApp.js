@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017-2018 Tom Keffer <tkeffer@gmail.com>
+ *
+ *  See the file LICENSE for your full rights.
+ *
+ */
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
@@ -7,9 +13,7 @@ import {
     invalidateSeries
 } from '../actions';
 import Picker from '../components/Picker';
-import {PacketGroup} from '../components/Obs';
-
-// import Posts from '../components/Posts';
+import Packet from '../components/Packet';
 
 class AsyncApp extends Component {
     constructor(props) {
@@ -67,7 +71,7 @@ class AsyncApp extends Component {
                 {!isFetching && packets.length === 0 && <h2>Empty.</h2>}
                 {packets.length > 0 &&
                  <div style={{opacity: isFetching ? 0.5 : 1}}>
-                     <PacketGroup obsTypes={["timestamp", "out_temperature","in_temperature"]} packet={packets[0]}/>
+                     <Packet obsTypes={["timestamp", "out_temperature", "in_temperature"]} packet={packets[0]}/>
                  </div>}
             </div>
         );

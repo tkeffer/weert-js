@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017-2018 Tom Keffer <tkeffer@gmail.com>
+ *
+ *  See the file LICENSE for your full rights.
+ *
+ */
 export const unitSystem_US = {
     "group_altitude"   : "foot",
     "group_amp"        : "amp",
