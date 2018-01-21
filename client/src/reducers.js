@@ -78,7 +78,7 @@ function reduceSeries(state = {}, action) {
 
 }
 
-function packetsBySeriesName(state = initial_state, action) {
+function seriesBySeriesName(state = initial_state, action) {
     switch (action.type) {
         case INVALIDATE_SERIES:
         case FETCH_SERIES_REQUEST:
@@ -93,7 +93,7 @@ function packetsBySeriesName(state = initial_state, action) {
 
 const rootReducer = combineReducers({
                                         selectedSeries,
-                                        packetsBySeriesName
+                                        seriesBySeriesName
                                     });
 
 export default rootReducer;

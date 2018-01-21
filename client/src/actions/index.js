@@ -66,7 +66,7 @@ function shouldFetchSeries(seriesState) {
 
 export function fetchSeriesIfNeeded(seriesName) {
     return (dispatch, getState) => {
-        const seriesState = getState().packetsBySeriesName[seriesName];
+        const seriesState = getState().seriesBySeriesName[seriesName];
         if (shouldFetchSeries(seriesState)) {
             return dispatch(fetchSeries(seriesName, seriesState.seriesTags, seriesState.maxAge));
         }

@@ -4,9 +4,10 @@
  *  See the file LICENSE for your full rights.
  *
  */
-import React, {Component} from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
+
 import {
     selectSeries,
     fetchSeriesIfNeeded,
@@ -15,7 +16,7 @@ import {
 import Picker from '../components/Picker';
 import Packet from '../components/Packet';
 
-class AsyncApp extends Component {
+class DisplaySeries extends React.Component {
     constructor(props) {
         super(props);
         this.handleChange       = this.handleChange.bind(this);
@@ -79,7 +80,7 @@ class AsyncApp extends Component {
     }
 }
 
-AsyncApp.propTypes = {
+DisplaySeries.propTypes = {
     selectedSeries: PropTypes.string.isRequired,
     packets       : PropTypes.array.isRequired,
     isFetching    : PropTypes.bool.isRequired,
@@ -88,25 +89,19 @@ AsyncApp.propTypes = {
 };
 
 
+class AsyncApp extends React.Component {
+
+    render() {
+        const {selectedSeries, seriesBySeriesName, ...props} = this.props;
+
+        // Pass on only the state associated with the selected series to DisplaySeries
+        const series = seriesBySeriesName[selectedSeries];
+        return (<DisplaySeries selectedSeries={selectedSeries} {...series} {...props}/>);
+    }
+}
+
 function mapStateToProps(state) {
-    const {selectedSeries, packetsBySeriesName} = state;
-
-    const {
-              seriesTags,
-              isFetching,
-              maxAge,
-              packets,
-              lastUpdated,
-          } = packetsBySeriesName[selectedSeries] || {isFetching: true, packets: []};
-
-    return {
-        selectedSeries,
-        seriesTags,
-        isFetching,
-        maxAge,
-        packets,
-        lastUpdated,
-    };
+    return state;
 }
 
 export default connect(mapStateToProps)(AsyncApp);
