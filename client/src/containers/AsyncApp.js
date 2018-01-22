@@ -22,25 +22,29 @@ class DisplaySeries extends React.Component {
         super(props);
         this.handleChange       = this.handleChange.bind(this);
         this.handleRefreshClick = this.handleRefreshClick.bind(this);
-        this.state              = {subscription: undefined};
+        this.state              = {subscriptions: {}};
     }
 
     componentDidMount() {
         const {dispatch, selectedSeries, seriesTags} = this.props;
         dispatch(fetchSeriesIfNeeded(selectedSeries));
-        this.setState({subscription: dispatch(subscribeSeries(selectedSeries, seriesTags))});
+        this.subscribeIfNeeded(selectedSeries)
     }
 
     componentWillUnmount() {
-        const s = this.state.subscription;
-        this.setState({subscription: undefined});
-        s.cancel();
+        // Cancel all subscriptions
+        for (let subscription of Object.values(this.state.subscriptions)) {
+            subscription.cancel();
+        }
+        // Reset the collection of subscriptions.
+        this.setState({subscriptions: {}});
     }
 
     componentDidUpdate(prevProps) {
         if (this.props.selectedSeries !== prevProps.selectedSeries) {
             const {dispatch, selectedSeries} = this.props;
             dispatch(fetchSeriesIfNeeded(selectedSeries));
+            this.subscribeIfNeeded(selectedSeries)
         }
     }
 
@@ -55,6 +59,17 @@ class DisplaySeries extends React.Component {
         const {dispatch, selectedSeries} = this.props;
         dispatch(invalidateSeries(selectedSeries));
         dispatch(fetchSeriesIfNeeded(selectedSeries));
+    }
+
+    subscribeIfNeeded(selectedSeries) {
+        // Before subscribing, check to see if we already have a subscription for this series
+        if (!this.state.subscriptions[selectedSeries]) {
+            const {dispatch, seriesTags} = this.props;
+            // Subscribe to any new packets coming from the given series
+            const subscription = dispatch(subscribeSeries(selectedSeries, seriesTags));
+            // Save the new subscription object. It will be needed to cancel the subscription.
+            this.setState({...this.state.subscriptions, [selectedSeries]: subscription});
+        }
     }
 
     render() {
