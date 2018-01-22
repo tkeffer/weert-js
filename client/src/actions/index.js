@@ -5,6 +5,7 @@ export const FETCH_SERIES_SUCCESS = 'FETCH_SERIES_SUCCESS';
 export const FETCH_SERIES_FAILURE = 'FETCH_SERIES_FAILURE';
 export const SELECT_SERIES        = 'SELECT_SERIES';
 export const INVALIDATE_SERIES    = 'INVALIDATE_SERIES';
+export const NEW_PACKET           = 'NEW_PACKET';
 
 export function selectSeries(seriesName) {
     return {
@@ -72,3 +73,25 @@ export function fetchSeriesIfNeeded(seriesName) {
         }
     };
 }
+
+function newPacket(seriesName, packet) {
+    return {
+        type  : NEW_PACKET,
+        seriesName,
+        packet: {
+            timestamp: packet.timestamp,
+            ...packet.fields
+        }
+    };
+}
+
+export function subscribeSeries(seriesName, seriesTags) {
+    return (dispatch, getState) => {
+        api.subscribe(seriesTags, packet => {
+            const seriesState = getState().seriesBySeriesName[seriesName];
+            return dispatch(newPacket(seriesName, packet));
+        });
+    };
+};
+
+

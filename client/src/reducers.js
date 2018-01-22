@@ -11,6 +11,7 @@ import {
     FETCH_SERIES_SUCCESS,
     SELECT_SERIES,
     INVALIDATE_SERIES,
+    NEW_PACKET
 } from './actions';
 
 const initial_state = {
@@ -37,6 +38,30 @@ const initial_state = {
         packets      : []
     }
 };
+
+function pushPacket(packets, packet, maxAge) {
+    let firstGood;
+
+    // First, find the first packet less than maxAge old
+    if (packets.length) {
+        const trimTime    = Date.now() - maxAge;
+        const firstRecent = packets.findIndex((packet) => {
+            return packet.timestamp >= trimTime;
+        });
+
+        // If there was no good packet, skip them all. Otherwise, just
+        // up to the first good packet
+        firstGood = firstRecent === -1 ? packets.length : firstRecent;
+    } else {
+        firstGood = 0;
+    }
+
+    // Make a copy of the packets we are going to keep, then tack on the new packet at the end.
+    return [
+        ...packets.slice(firstGood),
+        packet
+    ];
+}
 
 function selectedSeries(state = "recent", action) {
     switch (action.type) {
@@ -72,6 +97,11 @@ function reduceSeries(state = {}, action) {
                 packets      : action.packets,
                 lastUpdated  : action.receivedAt
             };
+        case NEW_PACKET:
+            return {
+                ...state,
+                packets: pushPacket(state.packets, action.packet, state.maxAge)
+            };
         default:
             return state;
     }
@@ -83,6 +113,7 @@ function seriesBySeriesName(state = initial_state, action) {
         case INVALIDATE_SERIES:
         case FETCH_SERIES_REQUEST:
         case FETCH_SERIES_SUCCESS:
+        case NEW_PACKET:
             return Object.assign({}, state, {
                 [action.seriesName]: reduceSeries(state[action.seriesName], action)
             });

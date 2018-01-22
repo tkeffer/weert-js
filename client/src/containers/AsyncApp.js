@@ -11,7 +11,8 @@ import {connect} from 'react-redux';
 import {
     selectSeries,
     fetchSeriesIfNeeded,
-    invalidateSeries
+    invalidateSeries,
+    subscribeSeries
 } from '../actions';
 import Picker from '../components/Picker';
 import Packet from '../components/Packet';
@@ -21,11 +22,19 @@ class DisplaySeries extends React.Component {
         super(props);
         this.handleChange       = this.handleChange.bind(this);
         this.handleRefreshClick = this.handleRefreshClick.bind(this);
+        this.state              = {subscription: undefined};
     }
 
     componentDidMount() {
-        const {dispatch, selectedSeries} = this.props;
+        const {dispatch, selectedSeries, seriesTags} = this.props;
         dispatch(fetchSeriesIfNeeded(selectedSeries));
+        this.setState({subscription: dispatch(subscribeSeries(selectedSeries, seriesTags))});
+    }
+
+    componentWillUnmount() {
+        const s = this.state.subscription;
+        this.setState({subscription: undefined});
+        s.cancel();
     }
 
     componentDidUpdate(prevProps) {
@@ -73,7 +82,7 @@ class DisplaySeries extends React.Component {
                 {packets.length > 0 &&
                  <div style={{opacity: isFetching ? 0.5 : 1}}>
                      <Packet obsTypes={["timestamp", "sealevel_pressure", "out_temperature", "in_temperature"]}
-                             packet={packets[0]}/>
+                             packet={packets[packets.length - 1]}/>
                  </div>}
             </div>
         );
