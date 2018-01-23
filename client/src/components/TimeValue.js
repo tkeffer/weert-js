@@ -11,19 +11,20 @@ import moment from 'moment/moment';
 import PropTypes from 'prop-types';
 
 const propTypes = {
-    timestamp: PropTypes.number.isRequired,
-    format   : PropTypes.string
+    timestamp     : PropTypes.number.isRequired,
+    format        : PropTypes.string,
+    componentClass: PropTypes.string
 };
 
 const defaultProps = {
+    format        : undefined,
     componentClass: 'span',
-    format        : undefined
 };
 
 export default class TimeValue extends React.PureComponent {
     render() {
-        const {timestamp, format, componentClass: Component, ...props} = this.props;
-        return (<Component {...props}>{moment(timestamp).format(format)}</Component>);
+        const {timestamp, format, componentClass: Component} = this.props;
+        return (<Component>{moment(timestamp).format(format)}</Component>);
     }
 }
 

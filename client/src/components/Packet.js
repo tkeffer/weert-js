@@ -14,8 +14,8 @@ import ObsValue from './ObsValue';
 class ObsRow extends React.PureComponent {
     render() {
         return (<tr>
-            <ObsLabel componentClass={'td'} {...this.props}/>
-            <ObsValue componentClass={'td'} {...this.props}/>
+            <ObsLabel componentClass={'td'} obsType={this.props.obsType} />
+            <ObsValue componentClass={'td'} obsType={this.props.obsType} packet={this.props.packet}/>
         </tr>);
     }
 }

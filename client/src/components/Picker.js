@@ -1,6 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+const propTypes = {
+    options : PropTypes.arrayOf(PropTypes.string.isRequired).isRequired,
+    value   : PropTypes.string.isRequired,
+    onChange: PropTypes.func.isRequired
+};
+
 export default class Picker extends React.PureComponent {
     render() {
         const {value, onChange, options} = this.props;
@@ -20,8 +26,4 @@ export default class Picker extends React.PureComponent {
     }
 }
 
-Picker.propTypes = {
-    options : PropTypes.arrayOf(PropTypes.string.isRequired).isRequired,
-    value   : PropTypes.string.isRequired,
-    onChange: PropTypes.func.isRequired
-};
+Picker.propTypes = propTypes;

@@ -10,7 +10,8 @@ import PropTypes from 'prop-types';
 import * as units from '../units';
 
 const propTypes = {
-    obsType: PropTypes.string.isRequired
+    obsType       : PropTypes.string.isRequired,
+    componentClass: PropTypes.string
 };
 
 const defaultProps = {
@@ -19,16 +20,16 @@ const defaultProps = {
 
 export default class ObsLabel extends React.PureComponent {
 
-    componentWillUpdate(nextProp){
-        console.log("In ObsLabel.componentWillUpdate", nextProp)
+    componentWillUpdate(nextProp) {
+        console.log("In ObsLabel.componentWillUpdate", nextProp);
     }
 
     render() {
-        console.log("In ObsLabel.render")
+        console.log("In ObsLabel.render");
         // Destructure the props, assigning componentClass to the variable Component...
-        const {componentClass: Component, obsType, ...props} = this.props;
+        const {componentClass: Component, obsType} = this.props;
         // ... then use Component as the element type
-        return (<Component {...props}>{units.getLabel(obsType)}</Component>);
+        return (<Component>{units.getLabel(obsType)}</Component>);
     }
 }
 

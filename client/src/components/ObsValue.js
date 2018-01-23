@@ -12,8 +12,10 @@ import * as units from '../units';
 import TimeValue from './TimeValue';
 
 const propTypes = {
-    packet : PropTypes.object.isRequired,
-    obsType: PropTypes.string.isRequired
+    packet        : PropTypes.object.isRequired,
+    obsType       : PropTypes.string.isRequired,
+    format        : PropTypes.string,
+    componentClass: PropTypes.string,
 };
 
 const defaultProps = {
@@ -23,25 +25,23 @@ const defaultProps = {
 export default class ObsValue extends React.PureComponent {
     render() {
 
-        const {packet, obsType, ...props} = this.props;
+        const {packet, obsType, componentClass: Component, format} = this.props;
 
         const val = packet[obsType];
 
         if (obsType === 'timestamp') {
-            return (<TimeValue timestamp={val} {...props}/>);
+            return (<TimeValue timestamp={val} componentClass={Component} format={format}/>);
         }
-
-        const {componentClass: Component, ...newprops} = props;
 
         let str_val;
         if (val === undefined) {
             str_val = "N/A";
         } else {
-            const format = units.getUnitFormat(obsType, packet['unit_system']);
-            const label  = units.getUnitLabel(obsType, packet['unit_system'], val);
-            str_val      = sprintf(format, val) + label;
+            const label      = units.getUnitLabel(obsType, packet['unit_system'], val);
+            const unitFormat = format || units.getUnitFormat(obsType, packet['unit_system']);
+            str_val          = sprintf(unitFormat, val) + label;
         }
-        return (<Component {...newprops}>{str_val}</Component>);
+        return (<Component>{str_val}</Component>);
     }
 }
 
