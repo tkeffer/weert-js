@@ -17,7 +17,7 @@ import {
 import Picker from '../components/Picker';
 import Packet from '../components/Packet';
 
-class DisplaySeries extends React.Component {
+class DisplaySeries extends React.PureComponent {
     constructor(props) {
         super(props);
         this.handleChange       = this.handleChange.bind(this);
@@ -113,7 +113,7 @@ DisplaySeries.propTypes = {
 };
 
 
-class AsyncApp extends React.Component {
+class AsyncApp extends React.PureComponent {
 
     render() {
         const {selectedSeries, seriesBySeriesName, ...props} = this.props;

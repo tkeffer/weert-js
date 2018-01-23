@@ -20,7 +20,7 @@ const defaultProps = {
     componentClass: 'span'
 };
 
-export default class ObsValue extends React.Component {
+export default class ObsValue extends React.PureComponent {
     render() {
 
         const {packet, obsType, ...props} = this.props;

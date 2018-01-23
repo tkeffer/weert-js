@@ -20,7 +20,7 @@ const defaultProps = {
     format        : undefined
 };
 
-export default class TimeValue extends React.Component {
+export default class TimeValue extends React.PureComponent {
     render() {
         const {timestamp, format, componentClass: Component, ...props} = this.props;
         return (<Component {...props}>{moment(timestamp).format(format)}</Component>);

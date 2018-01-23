@@ -11,7 +11,7 @@ import PropTypes from 'prop-types';
 import ObsLabel from './ObsLabel';
 import ObsValue from './ObsValue';
 
-class ObsRow extends React.Component {
+class ObsRow extends React.PureComponent {
     render() {
         return (<tr>
             <ObsLabel componentClass={'td'} {...this.props}/>
@@ -20,7 +20,7 @@ class ObsRow extends React.Component {
     }
 }
 
-export default class PacketGroup extends React.Component {
+export default class PacketGroup extends React.PureComponent {
     render() {
         const {obsTypes, header, ...props} = this.props;
         return (

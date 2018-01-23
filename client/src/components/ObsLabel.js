@@ -17,9 +17,14 @@ const defaultProps = {
     componentClass: 'span'
 };
 
-export default class ObsLabel extends React.Component {
+export default class ObsLabel extends React.PureComponent {
+
+    componentWillUpdate(nextProp){
+        console.log("In ObsLabel.componentWillUpdate", nextProp)
+    }
 
     render() {
+        console.log("In ObsLabel.render")
         // Destructure the props, assigning componentClass to the variable Component...
         const {componentClass: Component, obsType, ...props} = this.props;
         // ... then use Component as the element type

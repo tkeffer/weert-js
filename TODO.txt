@@ -8,7 +8,7 @@ Instead of just importing D3, import the minimal set of D3 components, using NPM
 SERVER
 
 CQ timer slowly advances forward in time. It needs to calculate the exact time to the
-next publishing event.
+next publishing event. Plus, it fails if the server is suspended (as on a laptop).
 
 Need to publish new stats as they become available.
 
@@ -24,6 +24,7 @@ Deal with unit systems.
 
 Highlight changed values in the "since midnight" stats area.
 
+Switch to React.PureComponent
 
 DATABASE
 

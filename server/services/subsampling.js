@@ -91,6 +91,7 @@ function notice(ms, callback) {
 }
 
 function setup_all_notices(measurement_manager, pub_sub, measurement_configs) {
+    // TODO: This strategy fails if the server is suspended (as on a laptop) for some reason.
     // Iterate over all measurement names in the config file
     for (let measurement in measurement_configs) {
 
