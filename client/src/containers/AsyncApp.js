@@ -66,7 +66,7 @@ class DisplaySeries extends React.PureComponent {
         if (!this.state.subscriptions[selectedSeries]) {
             const {dispatch, seriesTags} = this.props;
             // Subscribe to any new packets coming from the given series
-            const subscription = dispatch(subscribeSeries(selectedSeries, seriesTags));
+            const subscription           = dispatch(subscribeSeries(selectedSeries, seriesTags));
             // Save the new subscription object. It will be needed to cancel the subscription.
             this.setState({...this.state.subscriptions, [selectedSeries]: subscription});
         }
