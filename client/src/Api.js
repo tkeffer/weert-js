@@ -9,34 +9,53 @@ import * as faye from 'faye';
 
 const fayeEndpoint = '/api/v1/faye';
 
-module.exports = {
+export function getPackets(seriesTags, maxAge) {
 
-    getPackets: function (seriesTags, maxAge) {
+    const {measurement, platform, stream} = seriesTags;
 
-        const since = Date.now() - maxAge;
+    const since = Date.now() - maxAge;
+    const url   = `http://${window.location.host}/api/v1/measurements/${measurement}/packets`;
+    let params  = `?start=${since}`;
+    if (platform) params += `&platform=${platform}`;
+    if (stream) params += `&stream=${stream}`;
 
-        const url      = `http://${window.location.host}/api/v1/measurements/${seriesTags.measurement}/packets`;
-        // TODO: Should cover the case where platform and stream are undefined.
-        const params   = `?platform=${seriesTags.platform}&stream=${seriesTags.stream}&start=${since}`;
-        const full_url = url + params;
+    const fullUrl = url + params;
 
-        // TODO: Should probably add a timeout
-        return fetch(full_url)
-            .then(response => {
-                if (!response.ok)
-                    return Promise.reject(new Error(response.statusText));
-                return response.json();
-            });
-    },
+    // TODO: Should probably add a timeout
+    return fetch(fullUrl)
+        .then(response => {
+            if (!response.ok)
+                return Promise.reject(new Error(response.statusText));
+            return response.json();
+        });
+}
 
-    subscribe: function (seriesTags, callback) {
-        // TODO: this puts all platforms and streams in the same channel. They should be separated.
-        const faye_client = new faye.Client("http://" + window.location.host + fayeEndpoint);
-        return faye_client.subscribe("/" + seriesTags.measurement, callback);
-    },
+export function getStats(seriesTags, span) {
 
-    unsubscribe: function (subscription) {
-        subscription.cancel();
-    }
+    const {measurement, platform, stream} = seriesTags;
 
-};
+    const url   = `http://${window.location.host}/api/v1/measurements/${measurement}/stats`;
+    let params  = `?span=${span}`;
+    if (platform) params += `&platform=${platform}`;
+    if (stream) params += `&stream=${stream}`;
+
+    const fullUrl = url + params;
+
+    return fetch(fullUrl)
+        .then(response => {
+            if (!response.ok)
+                return Promise.reject(new Error(response.statusText));
+            return response.json();
+        });
+}
+
+
+export function subscribe(seriesTags, callback) {
+    // TODO: this puts all platforms and streams in the same channel. They should be separated.
+    const faye_client = new faye.Client("http://" + window.location.host + fayeEndpoint);
+    return faye_client.subscribe("/" + seriesTags.measurement, callback);
+}
+
+export function unsubscribe(subscription) {
+    subscription.cancel();
+}
