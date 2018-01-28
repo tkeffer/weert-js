@@ -1,83 +1,88 @@
-import api from '../Api';
+import * as api from '../Api';
 
-export const FETCH_SERIES_REQUEST = 'FETCH_SERIES_REQUEST';
-export const FETCH_SERIES_SUCCESS = 'FETCH_SERIES_SUCCESS';
-export const FETCH_SERIES_FAILURE = 'FETCH_SERIES_FAILURE';
-export const SELECT_SERIES        = 'SELECT_SERIES';
-export const INVALIDATE_SERIES    = 'INVALIDATE_SERIES';
-export const NEW_PACKET           = 'NEW_PACKET';
+export const SELECT_TIME_SCALE         = 'SELECT_TIME_SCALE';
+export const SELECT_TIME_DETAIL        = 'SELECT_TIME_DETAIL';
+export const FETCH_MEASUREMENT_REQUEST = 'FETCH_MEASUREMENT_REQUEST';
+export const FETCH_MEASUREMENT_SUCCESS = 'FETCH_MEASUREMENT_SUCCESS';
+export const FETCH_MEASUREMENT_FAILURE = 'FETCH_MEASUREMENT_FAILURE';
+export const FETCH_STATS_REQUEST       = 'FETCH_STATS_REQUEST';
+export const FETCH_STATS_SUCCESS       = 'FETCH_STATS_SUCCESS';
+export const FETCH_STATS_FAILURE       = 'FETCH_STATS_FAILURE';
+export const NEW_PACKET                = 'NEW_PACKET';
 
-export function selectSeries(seriesName) {
+
+export function selectTimeScale(timeScale) {
     return {
-        type: SELECT_SERIES,
-        seriesName,
+        type: SELECT_TIME_SCALE,
+        timeScale
     };
 }
 
-export function invalidateSeries(seriesName) {
+export function selectTimeDetail(timeDetail) {
     return {
-        type: INVALIDATE_SERIES,
-        seriesName
+        type: SELECT_TIME_DETAIL,
+        timeDetail
     };
 }
 
-function requestingSeries(seriesName) {
+function requestingMeasurement(measurement) {
     return {
-        type: FETCH_SERIES_REQUEST,
-        seriesName,
+        type: FETCH_MEASUREMENT_REQUEST,
+        measurement,
     };
 }
 
-function receiveSeries(seriesName, seriesTags, maxAge, packets) {
+function receiveMeasurement(measurement, tags, maxAge, aggregation, packets) {
     return {
-        type      : FETCH_SERIES_SUCCESS,
-        seriesName,
-        seriesTags,
+        type   : FETCH_MEASUREMENT_SUCCESS,
+        measurement,
+        tags,
         maxAge,
-        packets   : packets.map(packet => {
+        aggregation,
+        packets: packets.map(packet => {
             // Flatten the packets:
             return {
                 timestamp: packet.timestamp,
                 ...packet.fields
             };
         }),
-        receivedAt: Date.now()
     };
 }
 
-function fetchSeries(seriesName, seriesTags, maxAge) {
+function fetchMeasurement(measurement, tags, maxAge, aggregation) {
     return dispatch => {
-        dispatch(requestingSeries(seriesName));
-        return api.getPackets(seriesTags, maxAge)
-                  .then(packets => dispatch(receiveSeries(seriesName, seriesTags, maxAge, packets)));
+        dispatch(requestingMeasurement(measurement));
+        return api.getPackets(measurement, tags, maxAge, aggregation)
+                  .then(packets => dispatch(receiveMeasurement(measurement, tags, maxAge, aggregation, packets)));
     };
 }
 
-function shouldFetchSeries(seriesState) {
-    if (!seriesState) {
-        return true;
-    } else if (seriesState.isFetching) {
+function shouldFetchMeasurement(measurementState) {
+    if (measurementState.isFetching) {
         return false;
-    } else if (!seriesState.packets || !seriesState.packets.length) {
-        return true;
-    } else {
-        return seriesState.didInvalidate;
     }
+    return measurementState.packets && measurementState.packets.length;
 }
 
-export function fetchSeriesIfNeeded(seriesName) {
+export function fetchMeasurementIfNeeded(measurement) {
     return (dispatch, getState) => {
-        const seriesState = getState().seriesBySeriesName[seriesName];
-        if (shouldFetchSeries(seriesState)) {
-            return dispatch(fetchSeries(seriesName, seriesState.seriesTags, seriesState.maxAge));
+        const state            = getState();
+        const {selectedTags}   = state;
+        const measurementState = state.measurements[measurement];
+        if (shouldFetchMeasurement(measurementState)) {
+            const {maxAge, aggregation} = measurementState;
+            return dispatch(fetchMeasurement(measurement,
+                                             selectedTags,
+                                             maxAge,
+                                             aggregation));
         }
     };
 }
 
-function newPacket(seriesName, packet) {
+function newPacket(measurement, packet) {
     return {
         type  : NEW_PACKET,
-        seriesName,
+        measurement,
         packet: {
             timestamp: packet.timestamp,
             ...packet.fields
@@ -85,13 +90,10 @@ function newPacket(seriesName, packet) {
     };
 }
 
-export function subscribeSeries(seriesName, seriesTags) {
+export function subscribeMeasurement(measurement, tags) {
     return (dispatch, getState) => {
-        api.subscribe(seriesTags, packet => {
-            const seriesState = getState().seriesBySeriesName[seriesName];
-            return dispatch(newPacket(seriesName, packet));
+        api.subscribe(measurement, tags, packet => {
+            return dispatch(newPacket(measurement, packet));
         });
     };
 };
-
-

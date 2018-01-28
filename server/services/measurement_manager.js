@@ -225,7 +225,7 @@ class MeasurementManager {
                            // Simplify what follows by extracting this particular result
                            // out of the result set
                            let result = result_set.results[i];
-                           // Was their a result for this observation and aggregation type?
+                           // Was there a result for this observation and aggregation type?
                            // If so, process it.
                            if (result.series) {
                                // The raw query returns results as a column of names, and an

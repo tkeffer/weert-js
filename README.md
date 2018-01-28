@@ -1065,6 +1065,6 @@ Connection: keep-alive
 
 # License & Copyright
 
-Copyright (c) 2015-2017 Tom Keffer <tkeffer@gmail.com>
+Copyright (c) 2015-2018 Tom Keffer <tkeffer@gmail.com>
 
   See the file LICENSE for your full rights.

@@ -15,7 +15,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    componentClass: 'span'
+    componentClass: 'div'
 };
 
 export default class ObsLabel extends React.PureComponent {

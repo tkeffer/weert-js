@@ -7,37 +7,104 @@
 
 import {combineReducers} from 'redux';
 import {
-    FETCH_SERIES_REQUEST,
-    FETCH_SERIES_SUCCESS,
-    SELECT_SERIES,
-    INVALIDATE_SERIES,
+    SELECT_TIME_SCALE,
+    SELECT_TIME_DETAIL,
+    FETCH_MEASUREMENT_REQUEST,
+    FETCH_MEASUREMENT_SUCCESS,
+    FETCH_MEASUREMENT_FAILURE,
+    FETCH_STATS_REQUEST,
+    FETCH_STATS_SUCCESS,
+    FETCH_STATS_FAILURE,
     NEW_PACKET
 } from './actions';
 
-const initial_state = {
-    recent: {
-        seriesTags   : {
-            measurement: "wxpackets",
-            platform   : "default_platform",
-            stream     : "default_stream"
-        },
-        didInvalidate: false,
-        isFetching   : false,
-        maxAge       : 300000,
-        packets      : []
+const initialTimeScale = 'day';
+
+const initialTimeDetail = 5;
+
+const initialTags = {
+    platform: "default_platform",
+    stream  : "default_stream"
+};
+
+const initialPacketState = {
+    wxpackets: {
+        isFetching : false,
+        maxAge     : 300000,
+        aggregation: undefined,
+        packets    : [],
+        stats      : {}
     },
-    last27: {
-        seriesTags   : {
-            measurement: "wxrecords",
-            platform   : "default_platform",
-            stream     : "default_stream"
-        },
-        didInvalidate: false,
-        isFetching   : false,
-        maxAge       : 97200000,           // = 27 hours in milliseconds
-        packets      : []
+    wxrecords: {
+        isFetching : false,
+        maxAge     : 97200000,           // = 27 hours in milliseconds
+        aggregation: undefined,
+        packets    : [],
+        stats      : {}
     }
 };
+
+
+function selectedTimeScale(state = initialTimeScale, action) {
+    switch (action.type) {
+        case SELECT_TIME_SCALE:
+            return action.timeScale;
+        default:
+            return state;
+    }
+}
+
+function selectedTimeDetail(state = initialTimeDetail, action) {
+    switch (action.type) {
+        case SELECT_TIME_DETAIL:
+            return action.timeDetail;
+        default:
+            return state;
+    }
+}
+
+function selectedTags(state = initialTags, action) {
+    return state;
+}
+
+function reduceMeasurement(state, action) {
+    switch (action.type) {
+        case FETCH_MEASUREMENT_REQUEST:
+            return {
+                ...state,
+                isFetching   : true
+            };
+        case FETCH_MEASUREMENT_SUCCESS:
+            return {
+                ...state,
+                isFetching   : false,
+                maxAge       : action.maxAge,
+                aggregation  : action.aggregation,
+                packets      : action.packets,
+            };
+        case NEW_PACKET:
+            return {
+                ...state,
+                packets: pushPacket(state.packets, action.packet, state.maxAge)
+            };
+        default:
+            return state;
+    }
+
+}
+
+function measurements(state = initialPacketState, action) {
+    switch (action.type) {
+        case FETCH_MEASUREMENT_REQUEST:
+        case FETCH_MEASUREMENT_SUCCESS:
+        case NEW_PACKET:
+            return Object.assign({}, state, {
+                [action.measurement]: reduceMeasurement(state[action.measurement], action)
+            });
+        default:
+            return state;
+    }
+}
 
 function pushPacket(packets, packet, maxAge) {
     let firstGood;
@@ -63,68 +130,12 @@ function pushPacket(packets, packet, maxAge) {
     ];
 }
 
-function selectedSeries(state = "recent", action) {
-    switch (action.type) {
-        case SELECT_SERIES:
-            return action.seriesName;
-        default:
-            return state;
-    }
-}
-
-function reduceSeries(state = {}, action) {
-    const seriesName = action.seriesName;
-
-    switch (action.type) {
-        case INVALIDATE_SERIES:
-            return {
-                ...state,
-                didInvalidate: true
-            };
-        case FETCH_SERIES_REQUEST:
-            return {
-                ...state,
-                didInvalidate: false,
-                isFetching   : true
-            };
-        case FETCH_SERIES_SUCCESS:
-            return {
-                ...state,
-                seriesTags   : action.seriesTags,
-                didInvalidate: false,
-                isFetching   : false,
-                maxAge       : action.maxAge,
-                packets      : action.packets,
-                lastUpdated  : action.receivedAt
-            };
-        case NEW_PACKET:
-            return {
-                ...state,
-                packets: pushPacket(state.packets, action.packet, state.maxAge)
-            };
-        default:
-            return state;
-    }
-
-}
-
-function seriesBySeriesName(state = initial_state, action) {
-    switch (action.type) {
-        case INVALIDATE_SERIES:
-        case FETCH_SERIES_REQUEST:
-        case FETCH_SERIES_SUCCESS:
-        case NEW_PACKET:
-            return Object.assign({}, state, {
-                [action.seriesName]: reduceSeries(state[action.seriesName], action)
-            });
-        default:
-            return state;
-    }
-}
-
 const rootReducer = combineReducers({
-                                        selectedSeries,
-                                        seriesBySeriesName
+                                        selectedTimeScale,
+                                        selectedTimeDetail,
+                                        selectedTags,
+                                        measurements,
                                     });
 
 export default rootReducer;
+

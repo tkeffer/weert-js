@@ -20,6 +20,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    format        : undefined,
     componentClass: 'div'
 };
 

@@ -9,9 +9,10 @@ import * as faye from 'faye';
 
 const fayeEndpoint = '/api/v1/faye';
 
-export function getPackets(seriesTags, maxAge) {
+export function getPackets(measurement, tags, maxAge, aggregation) {
 
-    const {measurement, platform, stream} = seriesTags;
+    // TODO: aggregation is unimplemented.
+    const {platform, stream} = tags;
 
     const since = Date.now() - maxAge;
     const url   = `http://${window.location.host}/api/v1/measurements/${measurement}/packets`;
@@ -30,9 +31,9 @@ export function getPackets(seriesTags, maxAge) {
         });
 }
 
-export function getStats(seriesTags, span) {
+export function getStats(measurement, tags, span) {
 
-    const {measurement, platform, stream} = seriesTags;
+    const {platform, stream} = tags;
 
     const url   = `http://${window.location.host}/api/v1/measurements/${measurement}/stats`;
     let params  = `?span=${span}`;
@@ -49,11 +50,10 @@ export function getStats(seriesTags, span) {
         });
 }
 
-
-export function subscribe(seriesTags, callback) {
+export function subscribe(measurement, tags, callback) {
     // TODO: this puts all platforms and streams in the same channel. They should be separated.
     const faye_client = new faye.Client("http://" + window.location.host + fayeEndpoint);
-    return faye_client.subscribe("/" + seriesTags.measurement, callback);
+    return faye_client.subscribe("/" + measurement, callback);
 }
 
 export function unsubscribe(subscription) {
