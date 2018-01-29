@@ -6,7 +6,8 @@ const path                 = require('path');
 const webpack              = require('webpack');
 const CleanWebpackPlugin   = require('clean-webpack-plugin');
 const HtmlWebpackPlugin    = require('html-webpack-plugin');
-const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
+
+// const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
 const src_dir  = path.resolve(__dirname, 'client/src');
 const dist_dir = path.resolve(__dirname, 'client/dist');

@@ -7,12 +7,14 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 const propTypes = {
-    wind_speed    : PropTypes.number.isRequired,
-    wind_dir      : PropTypes.number.isRequired,
+    packet        : PropTypes.object,
+    isFetching    : PropTypes.bool,
     componentClass: PropTypes.string
 };
 
 const defaultProps = {
+    packet        : undefined,
+    isFetching    : false,
     componentClass: 'div'
 };
 
@@ -21,12 +23,17 @@ const defaultProps = {
  */
 export default class WindCompass extends React.PureComponent {
     render() {
-        const {componentClass: Component, wind_speed, wind_dir} = this.props;
+        const {componentClass: Component, packet, isFetching} = this.props;
         return (
             <Component>
                 <p></p>
-                <p>Place holder for the Wind Compass</p>
-                <p>Wind Speed: {wind_speed} at direction {wind_dir}</p>
+                {isFetching && !packet && <h3>Loading...</h3>}
+                {!isFetching && !packet && <h3>Empty.</h3>}
+                {packet &&
+                 <div style={{opacity: isFetching ? 0.5 : 1}}>
+                     <p>Place holder for the Wind Compass</p>
+                     <p>Wind Speed: {packet['wind_speed']} at direction {packet['wind_dir']}</p>
+                 </div>}
             </Component>
         );
     }

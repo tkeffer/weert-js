@@ -9,7 +9,8 @@ import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
 
 import {selectTimeScale, fetchMeasurementIfNeeded, subscribeMeasurement} from '../actions';
-import PacketGroup from '../components/PacketGroup';
+import PacketTable from '../components/PacketTable';
+import WindCompass from '../components/WindCompass';
 import TimeGroup from '../components/TimeGroup';
 import Picker from '../components/Picker';
 
@@ -56,7 +57,7 @@ class AppContainer extends React.PureComponent {
     }
 
     fetchAndSubscribeIfNeeded(timeScale) {
-        const measurement      = timeScale === 'day' ? 'wxpackets' : 'wxrecords';
+        const measurement              = timeScale === 'day' ? 'wxpackets' : 'wxrecords';
         const {dispatch, selectedTags} = this.props;
         dispatch(fetchMeasurementIfNeeded(measurement));
         // Before subscribing, check to see if we already have a subscription for this series
@@ -69,8 +70,19 @@ class AppContainer extends React.PureComponent {
     }
 
     render() {
-        const {selectedTimeScale, aggregation} = this.props;
-        const selectedMeasurement              = selectedTimeScale === 'day' ? 'wxpackets' : 'wxrecords';
+        const currentPacket           = this.props.measurements['wxpackets'].packets[this.props.measurements['wxpackets'].packets.length - 1];
+        const isFetchingCurrentPacket = this.props.measurements['wxpackets'].isFetching;
+
+        const {
+                  selectedTimeScale,
+                  packetTableProps,
+                  windCompassProps
+              }                   = this.props;
+        const selectedMeasurement = selectedTimeScale === 'day' ? 'wxpackets' : 'wxrecords';
+        const {
+                  isFetchingMeasurement
+              }                   = this.props.measurements[selectedMeasurement];
+
         return (
             <div>
                 <div>
@@ -80,15 +92,17 @@ class AppContainer extends React.PureComponent {
                         options={['day', 'week', 'month', 'year']}
                     />
                 </div>
-                <div>
-                    <PacketGroup
-                        packet={this.props.measurements['wxpackets'].packets[this.props.measurements['wxpackets'].packets.length - 1]}
-                        isFetching={this.props.measurements['wxpackets'].isFetching}/>
+                <div style={{width: '50%'}}>
+                    <PacketTable {...packetTableProps}
+                                 packet={currentPacket}
+                                 isFetching={isFetchingCurrentPacket}/>
+                    <WindCompass {...windCompassProps}
+                                 packet={currentPacket}
+                                 isFetching={isFetchingCurrentPacket}/>
                 </div>
                 <div>
                     <TimeGroup
                         selectedTimeScale={selectedTimeScale}
-                        aggregation={aggregation}
                         {...this.props.measurements[selectedMeasurement]} />
                 </div>
             </div>
