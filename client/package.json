@@ -1,0 +1,44 @@
+{
+  "name": "weert-client",
+  "version": "0.1.0",
+  "description": "The client to go along with the WeeRT server",
+  "scripts": {
+    "build": "webpack --progress -p --config=./webpack.prod.js",
+    "watch": "webpack --progress --watch",
+    "clean": "rm -r dist"
+  },
+  "author": {
+    "name": "Tom Keffer",
+    "email": "tkeffer@gmail.com"
+  },
+  "dependencies": {
+    "babel-polyfill": "^6.26.0",
+    "classnames": "^2.2.5",
+    "faye": "^1.2.4",
+    "moment": "^2.19.1",
+    "prop-types": "^15.6.0",
+    "react": "^16.2.0",
+    "react-bootstrap": "^0.32.1",
+    "react-dom": "^16.2.0",
+    "react-redux": "^5.0.6",
+    "redux": "^3.7.2",
+    "redux-logger": "^3.0.6",
+    "redux-thunk": "^2.2.0",
+    "sprintf-js": "^1.1.1"
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.2",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
+    "babel-preset-react": "^6.24.1",
+    "clean-webpack-plugin": "^0.1.17",
+    "css-loader": "^0.28.7",
+    "html-webpack-plugin": "^2.30.1",
+    "redux-devtools": "^3.4.1",
+    "style-loader": "^0.19.1",
+    "uglifyjs-webpack-plugin": "^1.1.5",
+    "webpack": "^3.10.0",
+    "webpack-merge": "^4.1.1"
+  }
+}
