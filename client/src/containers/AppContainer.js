@@ -108,6 +108,7 @@ class AppContainer extends React.PureComponent {
                                 isFetching={selectedState.isFetching}/>
                 </div>
                 <div>
+                    // TODO: Should pass in a header, rather than the selectedTimeScale and aggregation
                     <PlotGroup {...plotGroupProps}
                                selectedTimeScale={selectedTimeScale}
                                packets={selectedState.packets}
