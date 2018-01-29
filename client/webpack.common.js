@@ -9,12 +9,12 @@ const HtmlWebpackPlugin    = require('html-webpack-plugin');
 
 // const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
-const src_dir  = path.resolve(__dirname, 'client/src');
-const dist_dir = path.resolve(__dirname, 'client/dist');
+const src_dir  = path.resolve(__dirname, 'src');
+const dist_dir = path.resolve(__dirname, 'dist');
 
 module.exports = {
     entry  : [
-        './client/src/index.js'
+        './src/index.js'
     ],
     output : {
         path    : dist_dir,
@@ -29,7 +29,7 @@ module.exports = {
     },
     plugins: [
         // This will clean (delete) the destination directory before the build
-        new CleanWebpackPlugin(['client/dist']),
+        new CleanWebpackPlugin(['dist']),
         // This will inject the necessary <script> tag, with a link to the bundle, into the index.html file
         new HtmlWebpackPlugin({
                                   template: path.resolve(src_dir, 'index.html'),
