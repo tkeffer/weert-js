@@ -28,18 +28,18 @@ const defaultProps = {
 export default class PacketGroup extends React.PureComponent {
 
     render() {
-        const {isFetching, packet, PacketTableProps, WindCompassProps} = this.props;
+        const {componentClass: Component, isFetching, packet, PacketTableProps, WindCompassProps} = this.props;
         return (
-            <div>
-                {isFetching && !packet && <h2>Loading...</h2>}
-                {!isFetching && !packet && <h2>Empty.</h2>}
+            <Component style={{width: '50%'}}>
+                {isFetching && !packet && <h3>Loading...</h3>}
+                {!isFetching && !packet && <h3>Empty.</h3>}
                 {packet &&
                  <div style={{opacity: isFetching ? 0.5 : 1}}>
                      <PacketTable {...PacketTableProps} packet={packet}/>
                      <WindCompass {...WindCompassProps} wind_speed={packet['wind_speed']}
                                   wind_dir={packet['wind_dir']}/>
                  </div>}
-            </div>
+            </Component>
         );
     }
 }

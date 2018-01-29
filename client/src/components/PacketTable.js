@@ -7,6 +7,7 @@
 // Render and format a packet
 import React from 'react';
 import PropTypes from 'prop-types';
+import { Table } from 'react-bootstrap';
 
 import ObsRow from './ObsRow';
 
@@ -28,13 +29,13 @@ export default class PacketTable extends React.PureComponent {
         const {componentClass: Component, obsTypes, header, packet} = this.props;
         return (
             <Component>
-                {header}
-                <table>
+                <Table bordered hover>
+                    <caption>{header}</caption>
                     <tbody>
                     {/* Include a key. See https://reactjs.org/docs/reconciliation.html#keys */}
                     {obsTypes.map((obsType, i) => <ObsRow obsType={obsType} packet={packet} key={i}/>)}
                     </tbody>
-                </table>
+                </Table>
             </Component>
         );
     }

@@ -4,7 +4,7 @@
     "private": true,
     "description": "Logging for real-time data streams",
     "scripts": {
-        "build": "webpack --progress -p",
+        "build": "webpack --progress -p --config=./webpack.prod.js",
         "watch": "webpack --progress --watch",
         "start": "node ./server/server",
         "test": "jasmine",
@@ -36,6 +36,7 @@
         "path": "^0.12.7",
         "prop-types": "^15.6.0",
         "react": "^16.2.0",
+        "react-bootstrap": "^0.32.1",
         "react-dom": "^16.2.0",
         "react-redux": "^5.0.6",
         "redux": "^3.7.2",
