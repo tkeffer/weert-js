@@ -11,7 +11,8 @@ import PropTypes from 'prop-types';
 import {selectTimeScale, fetchMeasurementIfNeeded, subscribeMeasurement} from '../actions';
 import PacketTable from '../components/PacketTable';
 import WindCompass from '../components/WindCompass';
-import TimeGroup from '../components/TimeGroup';
+import StatsTable from '../components/StatsTable';
+import PlotGroup from '../components/PlotGroup';
 import Picker from '../components/Picker';
 
 const propTypes = {
@@ -76,12 +77,12 @@ class AppContainer extends React.PureComponent {
         const {
                   selectedTimeScale,
                   packetTableProps,
-                  windCompassProps
+                  windCompassProps,
+                  statsTableProps,
+                  plotGroupProps
               }                   = this.props;
         const selectedMeasurement = selectedTimeScale === 'day' ? 'wxpackets' : 'wxrecords';
-        const {
-                  isFetchingMeasurement
-              }                   = this.props.measurements[selectedMeasurement];
+        const selectedState = this.props.measurements[selectedMeasurement];
 
         return (
             <div>
@@ -100,11 +101,21 @@ class AppContainer extends React.PureComponent {
                                  packet={currentPacket}
                                  isFetching={isFetchingCurrentPacket}/>
                 </div>
+
                 <div>
-                    <TimeGroup
-                        selectedTimeScale={selectedTimeScale}
-                        {...this.props.measurements[selectedMeasurement]} />
+                    <StatsTable {...statsTableProps}
+                                stats={selectedState.stats}
+                                isFetching={selectedState.isFetching}/>
                 </div>
+                <div>
+                    <PlotGroup {...plotGroupProps}
+                               selectedTimeScale={selectedTimeScale}
+                               packets={selectedState.packets}
+                               aggregation={selectedState.aggregation}
+                               isFetching={selectedState.isFetching}
+                    />
+                </div>
+
             </div>
         );
     }

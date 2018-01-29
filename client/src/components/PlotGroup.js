@@ -9,15 +9,17 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 const propTypes = {
+    selectedTimeScale: PropTypes.string.isRequired,
     packets          : PropTypes.arrayOf(PropTypes.object).isRequired,
     obsTypes         : PropTypes.arrayOf(PropTypes.string),
-    selectedTimeScale: PropTypes.string.isRequired,
     aggregation      : PropTypes.number,
+    isFetching       : PropTypes.bool,
     componentClass   : PropTypes.string,
 };
 
 const defaultProps = {
     obsTypes      : ["wind_speed", "sealevel_pressure", "out_temperature", "in_temperature"],
+    isFetching    : false,
     componentClass: 'div',
 };
 
@@ -33,18 +35,27 @@ export default class PlotGroup extends React.PureComponent {
     }
 
     render() {
-        const {componentClass: Component, obsTypes, header, aggregation, selectedTimeScale, packets} = this.props;
+        const {
+                  selectedTimeScale, packets, obsTypes,
+                  aggregation, isFetching, componentClass: Component
+              } = this.props;
         // TODO: Need buttons to change detail
         return (
             <Component>
-                <h3>{selectedTimeScale} plots </h3>
-                {aggregation && <h4>({aggregation} minute aggregation)</h4>}
+                {isFetching && !packets && <h3>Loading...</h3>}
+                {!isFetching && !packets && <h3>Empty.</h3>}
+                {packets &&
+                 <div style={{opacity: isFetching ? 0.5 : 1}}>
 
-                <h4> Selected detail: {this.state.selectedDetail}</h4>
-                {/* Include a key. See https://reactjs.org/docs/reconciliation.html#keys */}
-                {obsTypes.map((obsType, i) => {
-                    return (<p key={i}>Place holder for a plot of {obsType} </p>);
-                })}
+                     <h3>{selectedTimeScale} plots </h3>
+                     {aggregation && <h4>({aggregation} minute aggregation)</h4>}
+
+                     <h4> Selected detail: {this.state.selectedDetail}</h4>
+                     {/* Include a key. See https://reactjs.org/docs/reconciliation.html#keys */}
+                     {obsTypes.map((obsType, i) => {
+                         return (<p key={i}>Plot of {obsType}; length {packets.length} </p>);
+                     })}
+                 </div>}
             </Component>
         );
     }
