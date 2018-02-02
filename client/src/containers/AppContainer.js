@@ -82,7 +82,7 @@ class AppContainer extends React.PureComponent {
                   plotGroupProps
               }                   = this.props;
         const selectedMeasurement = selectedTimeScale === 'day' ? 'wxpackets' : 'wxrecords';
-        const selectedState = this.props.measurements[selectedMeasurement];
+        const selectedState       = this.props.measurements[selectedMeasurement];
 
         return (
             <div>
@@ -97,9 +97,12 @@ class AppContainer extends React.PureComponent {
                     <PacketTable {...packetTableProps}
                                  packet={currentPacket}
                                  isFetching={isFetchingCurrentPacket}/>
-                    <WindCompass {...windCompassProps}
-                                 packet={currentPacket}
-                                 isFetching={isFetchingCurrentPacket}/>
+                    <div style={{width: "250px", height: "250px"}}>
+                        <WindCompass {...windCompassProps}
+                                     windSpeed={currentPacket ? currentPacket['wind_speed'] : undefined}
+                                     windDirection={currentPacket ? currentPacket['wind_dir'] : undefined}
+                                     isFetching={isFetchingCurrentPacket}/>
+                    </div>
                 </div>
 
                 <div>

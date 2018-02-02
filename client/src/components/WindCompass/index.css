@@ -1,0 +1,58 @@
+/*
+* Copyright (c) 2017-2018 Tom Keffer <tkeffer@gmail.com> and Peter Finley
+*
+*  See the file LICENSE for your full rights.
+*
+* A re-implementation of Peter Finley's "WindCompass" using React.
+*/
+
+.WindCompass {
+}
+
+.WindCompass svg {
+  font-family: Verdana, Geneva, sans-serif;
+  color: #616161;
+  fill: #616161;
+}
+
+.WindCompass .tick {
+  stroke: #bdbdbd;
+  stroke-width: 1;
+}
+
+.WindCompass .tick45 {
+  stroke-width: 2;
+}
+
+.WindCompass .tick90 {
+  stroke-width: 4;
+}
+
+.WindCompass .currDir {
+  stroke-width: 1;
+}
+
+.WindCompass .prevDir {
+  stroke-width: 1;
+  color: #bfbfbf;
+  fill: #bfbfbf;
+}
+
+.WindCompass .speedDisplay {
+  font-weight: bold;
+  font-size: 3em;
+  kerning: .03em;
+  alignment-baseline: central;
+  text-anchor: middle;
+}
+
+.WindCompass .speedSuffix {
+  font-size: .3em;
+}
+
+.WindCompass .ordinalDisplay {
+  font-size: 1.5em;
+  font-weight: bold;
+  text-anchor: middle;
+  baseline-shift: 10%;
+}
