@@ -1,8 +1,6 @@
 CONFIGURATION
 
-Need to have entry points in package.json for development vs production builds.
-
-Instead of just importing D3, import the minimal set of D3 components, using NPM.
+Update README install instructions to reflect separate client and server installs.
 
 
 SERVER
@@ -25,6 +23,11 @@ Deal with unit systems.
 Highlight changed values in the "since midnight" stats area.
 
 Switch to React.PureComponent
+
+Take advantage of isFetching in WindCompass
+
+Better styling
+
 
 DATABASE
 
