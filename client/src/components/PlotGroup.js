@@ -7,6 +7,8 @@
 // Render and format a packet
 import React from 'react';
 import PropTypes from 'prop-types';
+import {LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend} from 'recharts';
+import d3 from './d3';
 
 const propTypes = {
     selectedTimeScale: PropTypes.string.isRequired,
@@ -39,6 +41,8 @@ export default class PlotGroup extends React.PureComponent {
                   selectedTimeScale, packets, obsTypes,
                   aggregation, isFetching, componentClass: Component
               } = this.props;
+        const timeFormatter = (tick) => {return d3.timeFormat('%H:%M:%S')(new Date(tick))};
+
         // TODO: Need buttons to change detail
         return (
             <Component>
@@ -53,7 +57,17 @@ export default class PlotGroup extends React.PureComponent {
                      <h4> Selected detail: {this.state.selectedDetail}</h4>
                      {/* Include a key. See https://reactjs.org/docs/reconciliation.html#keys */}
                      {obsTypes.map((obsType, i) => {
-                         return (<p key={i}>Plot of {obsType}; length {packets.length} </p>);
+                         return (
+                             <LineChart width={600} height={300} data={packets}
+                                        margin={{top: 5, right: 30, left: 20, bottom: 5}}>
+                                 <XAxis dataKey="timestamp" scale="time" tickFormatter={timeFormatter}/>
+                                 <YAxis/>
+                                 <CartesianGrid strokeDasharray='3 3' />
+                                 <Tooltip labelFormatter={timeFormatter}/>
+                                 <Legend/>
+                                 <Line type="monotone" dataKey={obsType} stroke="#8884d8" activeDot={{r: 8}}/>
+                             </LineChart>
+                         );
                      })}
                  </div>}
             </Component>

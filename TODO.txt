@@ -18,15 +18,23 @@ Need to record gust directions.
 
 CLIENT
 
+Why are no packets being downloaded on start?
+
+Take advantage of react-bootstrap. Include a grid layout.
+
+Add "stats" section.
+
+Improve tool-tips when hovering over plots.
+
 Deal with unit systems.
 
 Highlight changed values in the "since midnight" stats area.
 
-Switch to React.PureComponent
-
 Take advantage of isFetching in WindCompass
 
 Better styling
+
+Use d3-time-format to format times instead of moment. Should be much smaller.
 
 
 DATABASE

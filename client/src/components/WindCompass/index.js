@@ -11,7 +11,8 @@ import PropTypes from "prop-types";
 import classnames from "classnames";
 import ContainerDimensions from "react-container-dimensions";
 
-import d3 from "./d3";
+// D3 is used, but only for transitions. All DOM manipulations are done through React.
+import d3 from "../d3";
 
 import "./index.css";
 
