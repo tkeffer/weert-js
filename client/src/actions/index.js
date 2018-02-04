@@ -61,7 +61,7 @@ function shouldFetchMeasurement(measurementState) {
     if (measurementState.isFetching) {
         return false;
     }
-    return measurementState.packets && measurementState.packets.length;
+    return !(measurementState.packets && measurementState.packets.length);
 }
 
 export function fetchMeasurementIfNeeded(measurement) {

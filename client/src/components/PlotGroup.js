@@ -59,7 +59,7 @@ export default class PlotGroup extends React.PureComponent {
                      {obsTypes.map((obsType, i) => {
                          return (
                              <LineChart width={600} height={300} data={packets}
-                                        margin={{top: 5, right: 30, left: 20, bottom: 5}}>
+                                        margin={{top: 5, right: 30, left: 20, bottom: 5}} key={obsType}>
                                  <XAxis dataKey="timestamp" scale="time" tickFormatter={timeFormatter}/>
                                  <YAxis/>
                                  <CartesianGrid strokeDasharray='3 3' />

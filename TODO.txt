@@ -18,6 +18,8 @@ Need to record gust directions.
 
 CLIENT
 
+Plot line in charts extends beyond axes.
+
 Why are no packets being downloaded on start?
 
 Take advantage of react-bootstrap. Include a grid layout.

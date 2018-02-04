@@ -7,7 +7,6 @@ import * as selection from "d3-selection";
 import * as ease from "d3-ease";
 import {timeFormat} from "d3-time-format";
 
-console.log("selection=", selection);
 export default {
     ...interpolate,
     ...transition,
