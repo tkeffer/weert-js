@@ -20,13 +20,12 @@ CLIENT
 
 Plot line in charts extends beyond axes.
 
-Why are no packets being downloaded on start?
-
 Take advantage of react-bootstrap. Include a grid layout.
 
 Add "stats" section.
 
-Improve tool-tips when hovering over plots.
+Look into using react-smooth or react-transition-group instead of d3 to do WindCompass
+transition.
 
 Deal with unit systems.
 
