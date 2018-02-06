@@ -45,7 +45,7 @@ const initialPacketState = {
 };
 
 
-function selectedTimeScale(state = initialTimeScale, action) {
+function reduceTimeScale(state = initialTimeScale, action) {
     switch (action.type) {
         case SELECT_TIME_SCALE:
             return action.timeScale;
@@ -54,7 +54,7 @@ function selectedTimeScale(state = initialTimeScale, action) {
     }
 }
 
-function selectedTimeDetail(state = initialTimeDetail, action) {
+function reduceTimeDetail(state = initialTimeDetail, action) {
     switch (action.type) {
         case SELECT_TIME_DETAIL:
             return action.timeDetail;
@@ -63,7 +63,7 @@ function selectedTimeDetail(state = initialTimeDetail, action) {
     }
 }
 
-function selectedTags(state = initialTags, action) {
+function reduceTags(state = initialTags, action) {
     return state;
 }
 
@@ -72,15 +72,15 @@ function reduceMeasurement(state, action) {
         case FETCH_MEASUREMENT_REQUEST:
             return {
                 ...state,
-                isFetching   : true
+                isFetching: true
             };
         case FETCH_MEASUREMENT_SUCCESS:
             return {
                 ...state,
-                isFetching   : false,
-                maxAge       : action.maxAge,
-                aggregation  : action.aggregation,
-                packets      : action.packets,
+                isFetching : false,
+                maxAge     : action.maxAge,
+                aggregation: action.aggregation,
+                packets    : action.packets,
             };
         case NEW_PACKET:
             return {
@@ -93,7 +93,7 @@ function reduceMeasurement(state, action) {
 
 }
 
-function measurements(state = initialPacketState, action) {
+function reduceMeasurements(state = initialPacketState, action) {
     switch (action.type) {
         case FETCH_MEASUREMENT_REQUEST:
         case FETCH_MEASUREMENT_SUCCESS:
@@ -131,10 +131,10 @@ function pushPacket(packets, packet, maxAge) {
 }
 
 const rootReducer = combineReducers({
-                                        selectedTimeScale,
-                                        selectedTimeDetail,
-                                        selectedTags,
-                                        measurements,
+                                        selectedTimeScale : reduceTimeScale,
+                                        selectedTimeDetail: reduceTimeDetail,
+                                        selectedTags      : reduceTags,
+                                        measurements      : reduceMeasurements,
                                     });
 
 export default rootReducer;
