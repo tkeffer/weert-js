@@ -92,7 +92,7 @@ function newPacket(measurement, packet) {
 
 export function subscribeMeasurement(measurement, tags) {
     return (dispatch, getState) => {
-        api.subscribe(measurement, tags, packet => {
+        return api.subscribe(measurement, tags, packet => {
             return dispatch(newPacket(measurement, packet));
         });
     };
