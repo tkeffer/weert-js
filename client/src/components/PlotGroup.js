@@ -78,10 +78,10 @@ export default class PlotGroup extends React.PureComponent {
                      <h4> Selected detail: {this.state.selectedDetail}</h4>
                      {obsTypes.map((obsType, i) => {
                          return (
-                             <div>
-                                 <h4>{obsType}</h4>
+                             <div key={obsType}>
+                                 <h4>{obsType} of length {packets.length}</h4>
                                  <LineChart width={600} height={300} data={packets}
-                                            margin={margin} key={obsType}>
+                                            margin={margin}>
                                      <XAxis dataKey='timestamp' scale='time' tickFormatter={timeFormatter}/>
                                      <YAxis/>
                                      <CartesianGrid strokeDasharray='3 3'/>

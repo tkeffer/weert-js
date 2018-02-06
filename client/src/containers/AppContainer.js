@@ -7,6 +7,9 @@
 import React from 'react';
 import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
+import Grid from 'react-bootstrap/lib/Grid';
+import Row from 'react-bootstrap/lib/Row';
+import Col from 'react-bootstrap/lib/Col';
 
 import {selectTimeScale, fetchMeasurementIfNeeded, subscribeMeasurement} from '../actions';
 import PacketTable from '../components/PacketTable';
@@ -54,7 +57,6 @@ class AppContainer extends React.PureComponent {
 
     handleChange(nextTimeScale) {
         this.props.dispatch(selectTimeScale(nextTimeScale));
-        this.fetchAndSubscribeIfNeeded(nextTimeScale);
     }
 
     fetchAndSubscribeIfNeeded(timeScale) {
@@ -85,42 +87,45 @@ class AppContainer extends React.PureComponent {
         const selectedState       = this.props.measurements[selectedMeasurement];
 
         return (
-            <div>
-                <div>
-                    <Picker
-                        value={selectedTimeScale}
-                        onChange={this.handleChange}
-                        options={['day', 'week', 'month', 'year']}
-                    />
-                </div>
-                <div style={{width: '50%'}}>
-                    <PacketTable {...packetTableProps}
-                                 packet={currentPacket}
-                                 isFetching={isFetchingCurrentPacket}/>
-                    <div style={{width: "250px", height: "250px"}}>
-                        <WindCompass {...windCompassProps}
-                                     windSpeed={currentPacket ? currentPacket['wind_speed'] : undefined}
-                                     windDirection={currentPacket ? currentPacket['wind_dir'] : undefined}
+            <Grid>
+                <Col>
+                    <Row>
+                        <Picker
+                            value={selectedTimeScale}
+                            onChange={this.handleChange}
+                            options={['day', 'week', 'month', 'year']}
+                        />
+                    </Row>
+                    <Row style={{width: '50%'}}>
+                        <PacketTable {...packetTableProps}
+                                     packet={currentPacket}
                                      isFetching={isFetchingCurrentPacket}/>
-                    </div>
-                </div>
+                        <div style={{width: "250px", height: "250px"}}>
+                            <WindCompass {...windCompassProps}
+                                         windSpeed={currentPacket ? currentPacket['wind_speed'] : undefined}
+                                         windDirection={currentPacket ? currentPacket['wind_dir'] : undefined}
+                                         isFetching={isFetchingCurrentPacket}/>
+                        </div>
+                    </Row>
 
-                <div>
-                    <StatsTable {...statsTableProps}
-                                stats={selectedState.stats}
-                                isFetching={selectedState.isFetching}/>
-                </div>
-                <div>
+                    <Row>
+                        <StatsTable {...statsTableProps}
+                                    stats={selectedState.stats}
+                                    isFetching={selectedState.isFetching}/>
+                    </Row>
+                </Col>
+                <Col>
                     // TODO: Should pass in a header, rather than the selectedTimeScale and aggregation
                     <PlotGroup {...plotGroupProps}
                                selectedTimeScale={selectedTimeScale}
                                packets={selectedState.packets}
                                aggregation={selectedState.aggregation}
                                isFetching={selectedState.isFetching}
+                               rowClass="Row"
                     />
-                </div>
+                </Col>
 
-            </div>
+            </Grid>
         );
     }
 }
