@@ -9,7 +9,6 @@
 import React from "react";
 import PropTypes from "prop-types";
 import classnames from "classnames";
-import ContainerDimensions from "react-container-dimensions";
 
 // D3 is used, but only for transitions. All DOM manipulations are done through React.
 import d3 from "../d3";
@@ -30,8 +29,8 @@ const propTypes = {
     windSpeedUnitLabel: PropTypes.string,
     ordinalText       : PropTypes.arrayOf(PropTypes.string),
     maxPrevDirs       : PropTypes.number,
-    wedgeLength       : PropTypes.number
-
+    wedgeLength       : PropTypes.number,
+    viewBoxSize       : PropTypes.number,
 };
 
 const defaultProps = {
@@ -48,20 +47,21 @@ const defaultProps = {
         "W", "WNW", "NW", "NNW"
     ],
     maxPrevDirs       : 10,
-    wedgeLength       : 9
+    wedgeLength       : 5,
+    viewBoxSize       : 250
 };
-
 
 
 /**
  * Draw a single tick mark
  * @param {number} angle The angle at which to draw the mark. 0=N, 90=E, etc.
- * @param {number} radius The outside radius of the marks
- * @param {number} tickLength The length of the tick mark in pixels
+ * @param {number} radius The outside radius of the marks in SVG viewBox units
+ * @param {number} tickLength The length of the tick mark in SVG viewBox units
  * @constructor
  */
 const Tick = ({angle, radius, tickLength}) => {
 
+    // This assumes that the origin is in the center of the circle of ticks. Y increases downwards.
     return (<path className={classnames("tick", {tick45: angle % 45 === 0}, {tick90: angle % 90 === 0})}
                   d={`M0  ${-radius} L0 ${-radius + tickLength}`}
                   transform={`rotate(${angle})`}
@@ -71,8 +71,8 @@ const Tick = ({angle, radius, tickLength}) => {
 /**
  * Draw a single "wedge," used to show the direction of the wind. Animate it if the direction changes.
  * @param {number} angle The direction of the wind. 0=N, 90=E, etc.
- * @param {number} radius The inside radius of the wedge.
- * @param {number} wedgeLength The size of the wedge in pixels
+ * @param {number} radius The inside radius of the wedge in SVG viewBox units
+ * @param {number} wedgeLength The size of the wedge in SVG viewBox units
  */
 class Wedge extends React.PureComponent {
     constructor(props) {
@@ -84,17 +84,19 @@ class Wedge extends React.PureComponent {
     componentWillReceiveProps(nextProps) {
         // Get the starting and ending angles
         let startAngle = this.props.angle;
-        let endAngle = nextProps.angle;
+        let endAngle   = nextProps.angle;
 
         // To do a transition, both angles must be defined, and not equal to each other.
         // Otherwise, just jump to the ending angle.
-        if (startAngle===undefined || endAngle===undefined || startAngle === endAngle){
-            this.setState({angle:endAngle})
+        if (startAngle === undefined || endAngle === undefined || startAngle === endAngle) {
+            this.setState({angle: endAngle});
         }
         else {
             // Need to do a transition
             const transitionDuration = this.props.transitionDuration || 1000;
             // Use d3 to select the wedge, then calculate a linear transition.
+            // TODO: Not sure why the select is even necessary.
+            // TODO: Should we be using react-transition-group instead??
             d3.select(this)
               .transition()
               .duration(transitionDuration)
@@ -113,7 +115,7 @@ class Wedge extends React.PureComponent {
     render() {
         const {radius, wedgeLength, ...rest} = this.props;
         // Get the angle from state
-        const {angle} = this.state;
+        const {angle}                        = this.state;
         // If the wind direction is undefined, render nothing
         if (angle === undefined)
             return null;
@@ -126,23 +128,7 @@ class Wedge extends React.PureComponent {
     }
 };
 
-/**
- * WindCompassContainer - A container that holds the WindCompass component proper,
- * so the dimensions can be extracted out of the parent container. The size of the parent
- * will be passed into WindCompass as properties "width" and "height".
- */
-export default class WindCompassContainer extends React.PureComponent {
-
-    render() {
-        return (
-            <ContainerDimensions>
-                <WindCompass {...this.props}/>
-            </ContainerDimensions>
-        );
-    }
-}
-
-class WindCompass extends React.PureComponent {
+export default class WindCompass extends React.PureComponent {
 
     constructor(props) {
         super(props);
@@ -183,9 +169,9 @@ class WindCompass extends React.PureComponent {
             text = this.props.windSpeed.toFixed(this.props.decimalDigits);
         }
         return (
-            <text className="speedDisplay" dx={"50%"} dy={"50%"}>
-                <tspan className="speedReadout">{text}</tspan>
-                <tspan className="speedSuffix">{this.props.windSpeedUnitLabel}</tspan>
+            <text className='speedDisplay' dx={"50%"} dy={"50%"}>
+                <tspan className='speedReadout'>{text}</tspan>
+                <tspan className='speedSuffix'>{this.props.windSpeedUnitLabel}</tspan>
             </text>
         );
     }
@@ -198,7 +184,7 @@ class WindCompass extends React.PureComponent {
             text = this.windDirToCardinalConverter(this.props.windDirection);
         }
         return (
-            <text className="ordinalDisplay" dx="50%" dy="75%">{text}</text>
+            <text className='ordinalDisplay' dx='50%' dy='65%'>{text}</text>
         );
     }
 
@@ -211,14 +197,14 @@ class WindCompass extends React.PureComponent {
                 {this.state.prevDirs.map(([angle, key], i) => <Wedge angle={angle}
                                                                      radius={radius}
                                                                      wedgeLength={this.props.wedgeLength}
-                                                                     className="prevDir"
+                                                                     className='prevDir'
                                                                      opacity={(i + 1) / this.state.prevDirs.length}
                                                                      key={key}/>)}
                 {/* Then the current direction */}
                 <Wedge angle={this.props.windDirection}
                        radius={radius}
                        wedgeLength={this.props.wedgeLength}
-                       className="currDir"/>
+                       className='currDir'/>
             </g>
         );
     }
@@ -230,13 +216,14 @@ class WindCompass extends React.PureComponent {
     }
 
     render() {
-        const centerX = this.props.width / 2;
-        const centerY = this.props.height / 2;
-        const radius = Math.min(this.props.height, this.props.width) / 2 - this.props.padding;
+        const {viewBoxSize} = this.props;
+        const centerX = viewBoxSize / 2;
+        const centerY = viewBoxSize / 2;
+        const radius = viewBoxSize / 2 - this.props.padding;
 
         return (
-            <div className="WindCompass">
-                <svg width={this.props.width} height={this.props.height}>
+            <div className='WindCompass'>
+                <svg viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`} preserveAspectRatio='xMidYMid meet'>
                     {this.generateTicks(centerX, centerY, radius)}
                     {this.generateSpeedDisplay()}
                     {this.generateOrdinalDisplay()}
@@ -246,11 +233,11 @@ class WindCompass extends React.PureComponent {
     }
 }
 
-WindCompass.propTypes = propTypes;
+WindCompass.propTypes    = propTypes;
 WindCompass.defaultProps = defaultProps;
 
 function generateTickPositions(ticksPerQuad) {
-    let angles = [];
+    let angles         = [];
     const tickInterval = 360 / 4 / ticksPerQuad;
     for (let q = 0; q < 360; q += tickInterval) {
         angles.push(q);
@@ -275,12 +262,12 @@ function interpolateDegrees(a, b) {
             let ax, bx, shift;
             if (a > b) {
                 shift = 360 - a;
-                ax = 0;
-                bx = b + shift;
+                ax    = 0;
+                bx    = b + shift;
             } else {
                 shift = 360 - b;
-                bx = 0;
-                ax = a + shift;
+                bx    = 0;
+                ax    = a + shift;
             }
             let v = d3.interpolateNumber(ax, bx)(t) - shift;
             if (v < 0) v += 360;
