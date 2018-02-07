@@ -18,11 +18,13 @@ Need to record gust directions.
 
 CLIENT
 
-Plot line in charts extends beyond axes.
-
-Take advantage of react-bootstrap. Include a grid layout.
+Use tabs to switch between time scale.
 
 Add "stats" section.
+
+Live update of "stats" section.
+
+Plot line in charts extends beyond axes.
 
 Look into using react-smooth or react-transition-group instead of d3 to do WindCompass
 transition.
@@ -34,6 +36,8 @@ Highlight changed values in the "since midnight" stats area.
 Take advantage of isFetching in WindCompass
 
 Better styling
+
+The <caption> in PacketTable does not seem to work consistently. Just use a heading instead.
 
 Use d3-time-format to format times instead of moment. Should be much smaller.
 
