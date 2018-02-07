@@ -10,6 +10,7 @@ import PropTypes from 'prop-types';
 import Grid from 'react-bootstrap/lib/Grid';
 import Row from 'react-bootstrap/lib/Row';
 import Col from 'react-bootstrap/lib/Col';
+import Jumbotron from 'react-bootstrap/lib/Jumbotron';
 
 import {selectTimeScale, fetchMeasurementIfNeeded, subscribeMeasurement} from '../actions';
 import PacketTable from '../components/PacketTable';
@@ -87,25 +88,27 @@ class AppContainer extends React.PureComponent {
         const selectedState       = this.props.measurements[selectedMeasurement];
 
         return (
-            <Grid>
-                <Col>
+            <Grid fluid={true}>
+                <Jumbotron>
+                    <h2>Welcome to WeeRT</h2>
+                </Jumbotron>
+                <Col xs={12} md={3}>
                     <Row>
                         <Picker
                             value={selectedTimeScale}
                             onChange={this.handleChange}
-                            options={['day', 'week', 'month', 'year']}
-                        />
+                            options={['day', 'week', 'month', 'year']}/>
                     </Row>
-                    <Row style={{width: '50%'}}>
+                    <Row>
                         <PacketTable {...packetTableProps}
                                      packet={currentPacket}
                                      isFetching={isFetchingCurrentPacket}/>
-                        <div style={{width: "250px", height: "250px"}}>
-                            <WindCompass {...windCompassProps}
-                                         windSpeed={currentPacket ? currentPacket['wind_speed'] : undefined}
-                                         windDirection={currentPacket ? currentPacket['wind_dir'] : undefined}
-                                         isFetching={isFetchingCurrentPacket}/>
-                        </div>
+                    </Row>
+                    <Row>
+                        <WindCompass {...windCompassProps}
+                                     windSpeed={currentPacket ? currentPacket['wind_speed'] : undefined}
+                                     windDirection={currentPacket ? currentPacket['wind_dir'] : undefined}
+                                     isFetching={isFetchingCurrentPacket}/>
                     </Row>
 
                     <Row>
@@ -114,17 +117,15 @@ class AppContainer extends React.PureComponent {
                                     isFetching={selectedState.isFetching}/>
                     </Row>
                 </Col>
-                <Col>
+                <Col xs={12} md={9}>
                     // TODO: Should pass in a header, rather than the selectedTimeScale and aggregation
                     <PlotGroup {...plotGroupProps}
                                selectedTimeScale={selectedTimeScale}
                                packets={selectedState.packets}
                                aggregation={selectedState.aggregation}
                                isFetching={selectedState.isFetching}
-                               rowClass="Row"
-                    />
+                               rowClass='Row'/>
                 </Col>
-
             </Grid>
         );
     }

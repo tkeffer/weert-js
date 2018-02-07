@@ -7,7 +7,7 @@
 // Render and format a packet
 import React from 'react';
 import PropTypes from 'prop-types';
-import {LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend} from 'recharts';
+import {LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer} from 'recharts';
 import d3 from './d3';
 
 const propTypes = {
@@ -18,6 +18,8 @@ const propTypes = {
     isFetching       : PropTypes.bool,
     animationDuration: PropTypes.number,
     dot              : PropTypes.bool,
+    width            : PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    height           : PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     margin           : PropTypes.shape({
                                            top   : PropTypes.number,
                                            right : PropTypes.number,
@@ -25,6 +27,7 @@ const propTypes = {
                                            bottom: PropTypes.number
                                        }),
     stroke           : PropTypes.string,
+    debounce         : PropTypes.number,
     componentClass   : PropTypes.string,
 };
 
@@ -33,8 +36,11 @@ const defaultProps = {
     isFetching       : false,
     animationDuration: 500,
     dot              : false,
-    margin           : {top: 5, right: 30, left: 20, bottom: 5},
+    width            : "100%",
+    height           : 200,
+    margin           : {top: 5, right: 10, left: 10, bottom: 5},
     stroke           : '#8884d8',
+    debounce         : 200,
     componentClass   : 'div',
 };
 
@@ -58,8 +64,11 @@ export default class PlotGroup extends React.PureComponent {
                   isFetching,
                   animationDuration,
                   dot,
+                  width,
+                  height,
                   margin,
                   stroke,
+                  debounce,
                   componentClass: Component
               }             = this.props;
         const timeFormatter = (tick) => {return d3.timeFormat('%H:%M:%S')(new Date(tick));};
@@ -80,19 +89,21 @@ export default class PlotGroup extends React.PureComponent {
                          return (
                              <div key={obsType}>
                                  <h4>{obsType} of length {packets.length}</h4>
-                                 <LineChart width={600} height={300} data={packets}
-                                            margin={margin}>
-                                     <XAxis dataKey='timestamp' scale='time' tickFormatter={timeFormatter}/>
-                                     <YAxis/>
-                                     <CartesianGrid strokeDasharray='3 3'/>
-                                     <Tooltip labelFormatter={timeFormatter}/>
-                                     <Line type='linear'
-                                           dataKey={obsType}
-                                           stroke={stroke}
-                                           animationDuration={animationDuration}
-                                           dot={dot}
-                                           animationEasing='linear'/>
-                                 </LineChart>
+                                 <ResponsiveContainer width={width} height={height} debounce={debounce}>
+                                     <LineChart data={packets}
+                                                margin={margin}>
+                                         <XAxis dataKey='timestamp' scale='time' tickFormatter={timeFormatter}/>
+                                         <YAxis/>
+                                         <CartesianGrid strokeDasharray='3 3'/>
+                                         <Tooltip labelFormatter={timeFormatter}/>
+                                         <Line type='linear'
+                                               dataKey={obsType}
+                                               stroke={stroke}
+                                               animationDuration={animationDuration}
+                                               dot={dot}
+                                               animationEasing='linear'/>
+                                     </LineChart>
+                                 </ResponsiveContainer>
                              </div>
                          );
                      })}
