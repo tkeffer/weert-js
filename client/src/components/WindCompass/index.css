@@ -13,6 +13,8 @@
   font-family: Verdana, Geneva, sans-serif;
   color: #616161;
   fill: #616161;
+  min-width: 200px;     /* Necessary to make Chrome on Android work. */
+  max-height: 300px;    /* To prevent enormous WindCompasses when size is just above a bootstrap break */
 }
 
 .WindCompass .tick {

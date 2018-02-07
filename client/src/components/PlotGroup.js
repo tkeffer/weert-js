@@ -99,8 +99,8 @@ export default class PlotGroup extends React.PureComponent {
                                          <Line type='linear'
                                                dataKey={obsType}
                                                stroke={stroke}
-                                               animationDuration={animationDuration}
                                                dot={dot}
+                                               animationDuration={animationDuration}
                                                animationEasing='linear'/>
                                      </LineChart>
                                  </ResponsiveContainer>
