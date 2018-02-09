@@ -2,10 +2,10 @@
  * Webpack configuration options common to both production and development versions.
  */
 
-const path                 = require('path');
-const webpack              = require('webpack');
-const CleanWebpackPlugin   = require('clean-webpack-plugin');
-const HtmlWebpackPlugin    = require('html-webpack-plugin');
+const path               = require('path');
+const webpack            = require('webpack');
+const CleanWebpackPlugin = require('clean-webpack-plugin');
+const HtmlWebpackPlugin  = require('html-webpack-plugin');
 
 // const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
@@ -23,8 +23,18 @@ module.exports = {
     module : {
         // NB: Before Webpack 2, "rules" was called "modules".
         rules: [
-            {test: /\.js$/, include: src_dir, loader: "babel-loader"},
-            {test: /\.css$/, include: src_dir, use: ['style-loader', 'css-loader']}
+            {
+                test   : /\.js$/,
+                include: src_dir,
+                // use    : ["babel-loader"]
+                // The source-map-loader does not seem to be working. Perhaps it needs to be used in the libraries as well?
+                use    : ["source-map-loader", "babel-loader"]
+            },
+            {
+                test   : /\.css$/,
+                include: src_dir,
+                use    : ['style-loader', 'css-loader']
+            }
         ]
     },
     plugins: [

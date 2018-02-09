@@ -18,6 +18,8 @@ Need to record gust directions.
 
 CLIENT
 
+Repeated switching between day and week time scales causes the x-axis scaling to get messed up.
+
 Use tabs to switch between time scale.
 
 Add "stats" section.
