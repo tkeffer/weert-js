@@ -36,7 +36,7 @@ const defaultProps = {
     isFetching       : false,
     animationDuration: 500,
     dot              : false,
-    width            : "100%",
+    width            : "95%",
     height           : 200,
     margin           : {top: 5, right: 10, left: 10, bottom: 5},
     stroke           : '#8884d8',
@@ -73,7 +73,7 @@ export default class PlotGroup extends React.PureComponent {
               }             = this.props;
         const timeFormatter = (tick) => {return d3.timeFormat('%H:%M:%S')(new Date(tick));};
 
-        // TODO: Need buttons to change detail
+        // TODO: Need tabs to change detail
         return (
             <Component>
                 {isFetching && !packets && <h3>Loading...</h3>}
@@ -90,18 +90,30 @@ export default class PlotGroup extends React.PureComponent {
                              <div key={obsType}>
                                  <h4>{obsType} of length {packets.length}</h4>
                                  <ResponsiveContainer width={width} height={height} debounce={debounce}>
-                                     <LineChart data={packets}
-                                                margin={margin}>
-                                         <XAxis dataKey='timestamp' scale='time' tickFormatter={timeFormatter}/>
+                                     <LineChart
+                                         data={packets}
+                                         margin={margin}>
+                                         <XAxis
+                                             dataKey='timestamp'
+                                             domain={['auto', 'auto']}
+                                             scale='time'
+                                             type='number'
+                                             tickFormatter={timeFormatter}
+                                         />
                                          <YAxis/>
-                                         <CartesianGrid strokeDasharray='3 3'/>
-                                         <Tooltip labelFormatter={timeFormatter}/>
+                                         <CartesianGrid
+                                             strokeDasharray='3 3'
+                                         />
+                                         <Tooltip
+                                             labelFormatter={timeFormatter}
+                                         />
                                          <Line type='linear'
                                                dataKey={obsType}
                                                stroke={stroke}
                                                dot={dot}
                                                animationDuration={animationDuration}
-                                               animationEasing='linear'/>
+                                               animationEasing='linear'
+                                         />
                                      </LineChart>
                                  </ResponsiveContainer>
                              </div>
