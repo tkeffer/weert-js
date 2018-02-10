@@ -18,7 +18,7 @@ Need to record gust directions.
 
 CLIENT
 
-All items are stacked on most screens, instead of forming 2 columns.
+Introduce a system of style classes.
 
 Use tabs to switch between time scale.
 
@@ -26,7 +26,7 @@ Add "stats" section.
 
 Live update of "stats" section.
 
-Plot line in charts extends beyond axes.
+Browser window hangs if it is not the focus for a long period of time.
 
 Look into using react-smooth or react-transition-group instead of d3 to do WindCompass
 transition.

@@ -92,40 +92,49 @@ class AppContainer extends React.PureComponent {
                 <Jumbotron>
                     <h2>Welcome to WeeRT</h2>
                 </Jumbotron>
-                <Col xs={12} md={3}>
-                    <Row>
-                        <Picker
-                            value={selectedTimeScale}
-                            onChange={this.handleChange}
-                            options={['day', 'week', 'month', 'year']}/>
-                    </Row>
-                    <Row>
-                        <PacketTable {...packetTableProps}
-                                     packet={currentPacket}
-                                     isFetching={isFetchingCurrentPacket}/>
-                    </Row>
-                    <Row>
-                        <WindCompass {...windCompassProps}
-                                     windSpeed={currentPacket ? currentPacket['wind_speed'] : undefined}
-                                     windDirection={currentPacket ? currentPacket['wind_dir'] : undefined}
-                                     isFetching={isFetchingCurrentPacket}/>
-                    </Row>
+                <Row>
+                    <Col xs={12} lg={3}>
+                        <div>
+                            <Picker
+                                value={selectedTimeScale}
+                                onChange={this.handleChange}
+                                options={['day', 'week', 'month', 'year']}
+                            />
+                        </div>
 
-                    <Row>
-                        <StatsTable {...statsTableProps}
-                                    stats={selectedState.stats}
-                                    isFetching={selectedState.isFetching}/>
-                    </Row>
-                </Col>
-                <Col xs={12} md={9}>
-                    // TODO: Should pass in a header, rather than the selectedTimeScale and aggregation
-                    <PlotGroup {...plotGroupProps}
-                               selectedTimeScale={selectedTimeScale}
-                               packets={selectedState.packets}
-                               aggregation={selectedState.aggregation}
-                               isFetching={selectedState.isFetching}
-                               rowClass='Row'/>
-                </Col>
+                        <div>
+                            <PacketTable {...packetTableProps}
+                                         packet={currentPacket}
+                                         isFetching={isFetchingCurrentPacket}
+                            />
+                        </div>
+
+                        <div>
+                            <WindCompass {...windCompassProps}
+                                         windSpeed={currentPacket ? currentPacket['wind_speed'] : undefined}
+                                         windDirection={currentPacket ? currentPacket['wind_dir'] : undefined}
+                                         isFetching={isFetchingCurrentPacket}
+                            />
+                        </div>
+
+                        <div>
+                            <StatsTable {...statsTableProps}
+                                        stats={selectedState.stats}
+                                        isFetching={selectedState.isFetching}
+                            />
+                        </div>
+                    </Col>
+
+                    <Col xs={12} lg={9}>
+                        // TODO: Should pass in a header, rather than the selectedTimeScale and aggregation
+                        <PlotGroup {...plotGroupProps}
+                                   selectedTimeScale={selectedTimeScale}
+                                   packets={selectedState.packets}
+                                   aggregation={selectedState.aggregation}
+                                   isFetching={selectedState.isFetching}
+                        />
+                    </Col>
+                </Row>
             </Grid>
         );
     }
