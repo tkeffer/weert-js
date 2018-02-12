@@ -9,14 +9,14 @@ import * as faye from 'faye';
 
 const fayeEndpoint = '/api/v1/faye';
 
-export function getPackets(measurement, tags, maxAge, aggregation) {
+export function getPackets(measurement, tags, start, stop, aggregation) {
 
-    // TODO: aggregation is unimplemented.
     const {platform, stream} = tags;
 
-    const since = Date.now() - maxAge;
     const url   = `http://${window.location.host}/api/v1/measurements/${measurement}/packets`;
-    let params  = `?start=${since}`;
+    let params  = `?start=${start}`;
+    if (stop) params += `&stop=${stop}`;
+    if (aggregation) params += `&aggregation=${aggregation}`
     if (platform) params += `&platform=${platform}`;
     if (stream) params += `&stream=${stream}`;
 

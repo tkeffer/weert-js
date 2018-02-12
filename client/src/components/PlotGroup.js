@@ -11,11 +11,10 @@ import {LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContain
 import d3 from './d3';
 
 const propTypes = {
-    selectedTimeScale: PropTypes.string.isRequired,
+    isFetching       : PropTypes.bool.isRequired,
     packets          : PropTypes.arrayOf(PropTypes.object).isRequired,
+    header           : PropTypes.string,
     obsTypes         : PropTypes.arrayOf(PropTypes.string),
-    aggregation      : PropTypes.number,
-    isFetching       : PropTypes.bool,
     animationDuration: PropTypes.number,
     dot              : PropTypes.bool,
     width            : PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
@@ -32,8 +31,8 @@ const propTypes = {
 };
 
 const defaultProps = {
+    header           : "Need a header!",
     obsTypes         : ["wind_speed", "sealevel_pressure", "out_temperature", "in_temperature"],
-    isFetching       : false,
     animationDuration: 500,
     dot              : false,
     width            : "95%",
@@ -57,11 +56,10 @@ export default class PlotGroup extends React.PureComponent {
 
     render() {
         const {
-                  selectedTimeScale,
-                  packets,
-                  obsTypes,
-                  aggregation,
                   isFetching,
+                  packets,
+                  header,
+                  obsTypes,
                   animationDuration,
                   dot,
                   width,
@@ -81,10 +79,8 @@ export default class PlotGroup extends React.PureComponent {
                 {packets &&
                  <div style={{opacity: isFetching ? 0.5 : 1}}>
 
-                     <h3>{selectedTimeScale} plots </h3>
-                     {aggregation && <h4>({aggregation} minute aggregation)</h4>}
+                     <h3>{header}</h3>
 
-                     <h4> Selected detail: {this.state.selectedDetail}</h4>
                      {obsTypes.map((obsType, i) => {
                          return (
                              <div key={obsType}>

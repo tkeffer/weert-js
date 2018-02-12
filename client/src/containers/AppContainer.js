@@ -12,7 +12,11 @@ import Row from 'react-bootstrap/lib/Row';
 import Col from 'react-bootstrap/lib/Col';
 import Jumbotron from 'react-bootstrap/lib/Jumbotron';
 
-import {selectTimeScale, fetchMeasurementIfNeeded, subscribeMeasurement} from '../actions';
+import {
+    selectTags, selectTimeSpan, selectNewStartTime,
+    selectTimeDetail, startNewTimeSpan, fetchRecentIfNeeded, fetchTimeSpanIfNeeded,
+    subscribeMeasurement
+} from '../actions';
 import PacketTable from '../components/PacketTable';
 import WindCompass from '../components/WindCompass';
 import StatsTable from '../components/StatsTable';
@@ -20,8 +24,22 @@ import PlotGroup from '../components/PlotGroup';
 import Picker from '../components/Picker';
 
 const propTypes = {
-    selectedTimeScale: PropTypes.string.isRequired,
-    dispatch         : PropTypes.func.isRequired
+    selectedTags    : PropTypes.shape({
+                                          platform: PropTypes.string,
+                                          stream  : PropTypes.string
+                                      }).isRequired,
+    selectedTimeSpan: PropTypes.oneOfType([PropTypes.string,
+                                              PropTypes.number]).isRequired,
+    recent          : PropTypes.shape({
+                                          isFetching        : PropTypes.boolean,
+                                          measurement       : PropTypes.string,
+                                          maxAge            : PropTypes.number,
+                                          selectedTimeDetail: PropTypes.oneOfType([PropTypes.string,
+                                                                                      PropTypes.number]),
+                                          packets           : PropTypes.array
+                                      }).isRequired,
+    timeSpans       : PropTypes.object.isRequired,
+    dispatch        : PropTypes.func.isRequired
 };
 
 class AppContainer extends React.PureComponent {
@@ -32,13 +50,11 @@ class AppContainer extends React.PureComponent {
     }
 
     componentDidMount() {
-        const {selectedTimeScale} = this.props;
-        // We always need the most recent packets:
-        this.fetchAndSubscribeIfNeeded('day');
-        // We may also need wxrecords:
-        if (selectedTimeScale !== 'day') {
-            this.fetchAndSubscribeIfNeeded(selectedTimeScale);
-        }
+        const {selectedTimeSpan} = this.props;
+        // We always need 'recent' (for the real-time packet display)
+        this.fetchAndSubscribeIfNeeded('recent');
+        if (selectedTimeSpan !== 'recent')
+            this.fetchAndSubscribeIfNeeded(selectedTimeSpan);
     }
 
     componentWillUnmount() {
@@ -51,19 +67,26 @@ class AppContainer extends React.PureComponent {
     }
 
     componentDidUpdate(prevProps) {
-        if (this.props.selectedTimeScale !== prevProps.selectedTimeScale) {
-            this.fetchAndSubscribeIfNeeded(this.props.selectedTimeScale);
+        if (this.props.selectedTimeSpan !== prevProps.selectedTimeSpan) {
+            this.fetchAndSubscribeIfNeeded(this.props.selectedTimeSpan);
         }
     }
 
     handleChange(nextTimeScale) {
-        this.props.dispatch(selectTimeScale(nextTimeScale));
+        this.props.dispatch(selectTimeSpan(nextTimeScale));
     }
 
-    fetchAndSubscribeIfNeeded(timeScale) {
-        const measurement              = timeScale === 'day' ? 'wxpackets' : 'wxrecords';
+    fetchAndSubscribeIfNeeded(timeSpan) {
+        let measurement;
         const {dispatch, selectedTags} = this.props;
-        dispatch(fetchMeasurementIfNeeded(measurement));
+        if (timeSpan === 'recent') {
+            measurement = this.props.recent.measurement;
+            dispatch(fetchRecentIfNeeded(this.props.recent.maxAge));
+        } else {
+            const timeSpanState = this.props.timeSpans[timeSpan];
+            measurement         = timeSpanState.measurement;
+            dispatch(fetchTimeSpanIfNeeded(timeSpan, timeSpanState.start, timeSpanState.aggregation));
+        }
         // Before subscribing, check to see if we already have a subscription for this series
         if (!this.state.subscriptions[measurement]) {
             // Subscribe to any new packets coming from the given series
@@ -74,19 +97,29 @@ class AppContainer extends React.PureComponent {
     }
 
     render() {
-        const currentPacket           = this.props.measurements['wxpackets'].packets[this.props.measurements['wxpackets'].packets.length - 1];
-        const isFetchingCurrentPacket = this.props.measurements['wxpackets'].isFetching;
+        const currentPacket           = this.props.recent.packets[this.props.recent.packets.length - 1];
+        const isFetchingCurrentPacket = this.props.recent.isFetching;
 
         const {
-                  selectedTimeScale,
+                  selectedTimeSpan,
                   packetTableProps,
                   windCompassProps,
                   statsTableProps,
                   plotGroupProps
-              }                   = this.props;
-        const selectedMeasurement = selectedTimeScale === 'day' ? 'wxpackets' : 'wxrecords';
-        const selectedState       = this.props.measurements[selectedMeasurement];
-
+              } = this.props;
+        let selectedState, selectedStats, header;
+        if (selectedTimeSpan === 'recent') {
+            selectedState = this.props.recent;
+            selectedStats = this.props.timeSpans['day'];
+            header        = `Last ${this.props.recent.selectedTimeDetail} minutes`;
+        } else {
+            selectedState = this.props.timeSpans[selectedTimeSpan];
+            selectedStats = this.props.stats[selectedTimeSpan];
+            header        = `This ${selectedTimeSpan}`;
+            if (selectedState.aggregation) {
+                header += ` (${selectedState.aggregation / 60000} minute aggregation)`;
+            }
+        }
         return (
             <Grid fluid={true}>
                 <Jumbotron>
@@ -96,9 +129,9 @@ class AppContainer extends React.PureComponent {
                     <Col xs={12} lg={3}>
                         <div>
                             <Picker
-                                value={selectedTimeScale}
+                                value={selectedTimeSpan}
                                 onChange={this.handleChange}
-                                options={['day', 'week', 'month', 'year']}
+                                options={['recent', 'day', 'week', 'month', 'year']}
                             />
                         </div>
 
@@ -119,19 +152,17 @@ class AppContainer extends React.PureComponent {
 
                         <div>
                             <StatsTable {...statsTableProps}
-                                        stats={selectedState.stats}
-                                        isFetching={selectedState.isFetching}
+                                        stats={selectedStats}
+                                        isFetching={selectedStats.isFetching}
                             />
                         </div>
                     </Col>
 
                     <Col xs={12} lg={9}>
-                        // TODO: Should pass in a header, rather than the selectedTimeScale and aggregation
                         <PlotGroup {...plotGroupProps}
-                                   selectedTimeScale={selectedTimeScale}
-                                   packets={selectedState.packets}
-                                   aggregation={selectedState.aggregation}
                                    isFetching={selectedState.isFetching}
+                                   packets={selectedState.packets}
+                                   header={header}
                         />
                     </Col>
                 </Row>

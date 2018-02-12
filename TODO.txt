@@ -18,11 +18,11 @@ Need to record gust directions.
 
 CLIENT
 
+Add "stats" section. This will require changing the state data structure.
+
 Introduce a system of style classes.
 
 Use tabs to switch between time scale.
-
-Add "stats" section.
 
 Live update of "stats" section.
 

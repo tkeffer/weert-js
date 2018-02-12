@@ -5,108 +5,192 @@
  *
  */
 
+import moment from 'moment/moment';
 import {combineReducers} from 'redux';
+
 import {
-    SELECT_TIME_SCALE,
+    SELECT_TAGS,
+    SELECT_TIME_SPAN,
+    SELECT_NEW_START_TIME,
     SELECT_TIME_DETAIL,
-    FETCH_MEASUREMENT_REQUEST,
-    FETCH_MEASUREMENT_SUCCESS,
-    FETCH_MEASUREMENT_FAILURE,
+    START_NEW_TIMESPAN,
+    FETCH_RECENT_IN_PROGRESS,
+    FETCH_RECENT_SUCCESS,
+    FETCH_RECENT_FAILURE,
+    FETCH_TIMESPAN_IN_PROGRESS,
+    FETCH_TIMESPAN_SUCCESS,
+    FETCH_TIMESPAN_FAILURE,
     FETCH_STATS_REQUEST,
     FETCH_STATS_SUCCESS,
     FETCH_STATS_FAILURE,
-    NEW_PACKET
+    NEW_PACKET,
 } from './actions';
-
-const initialTimeScale = 'day';
-
-const initialTimeDetail = 5;
 
 const initialTags = {
     platform: "default_platform",
     stream  : "default_stream"
 };
 
-const initialPacketState = {
-    wxpackets: {
-        isFetching : false,
-        maxAge     : 300000,
-        aggregation: undefined,
-        packets    : [],
-        stats      : {}
-    },
-    wxrecords: {
-        isFetching : false,
-        maxAge     : 97200000,           // = 27 hours in milliseconds
-        aggregation: undefined,
-        packets    : [],
-        stats      : {}
-    }
+const initialTimeSpan = 'recent';
+
+const initialRecentState = {
+    isFetching        : false,
+    measurement       : "wxpackets",
+    maxAge            : 3600000,        // = 1 hour in milliseconds
+    selectedTimeDetail: 5,              // 5 | 10 | 20 | 60
+    packets           : [],
 };
 
+const initialTimeSpanState = {
+    day  : {
+        isFetching : false,
+        measurement: "wxpackets",
+        start      : moment().startOf('day').valueOf(),
+        aggregation: undefined,
+        packets    : [],
+    },
+    week : {
+        isFetching : false,
+        measurement: "wxrecords",
+        start      : moment().startOf('week').valueOf(),
+        aggregation: 3600000,      // = 1 hours in milliseconds
+        packets    : []
+    },
+    month: {
+        isFetching : false,
+        measurement: "wxrecords",
+        start      : moment().startOf('month').valueOf(),
+        aggregation: 3600000,      // = 3 hours in milliseconds
+        packets    : []
+    },
+    year : {
+        isFetching : false,
+        measurement: "wxrecords",
+        start      : moment().startOf('year').valueOf(),
+        aggregation: 21600000,      // = 6 hours in milliseconds
+        packets    : []
+    },
+};
 
-function reduceTimeScale(state = initialTimeScale, action) {
-    switch (action.type) {
-        case SELECT_TIME_SCALE:
-            return action.timeScale;
-        default:
-            return state;
-    }
-}
-
-function reduceTimeDetail(state = initialTimeDetail, action) {
-    switch (action.type) {
-        case SELECT_TIME_DETAIL:
-            return action.timeDetail;
-        default:
-            return state;
-    }
-}
+const initialStatsState = {
+    day  : {
+        isFetching : false,
+        measurement: "wxpackets",
+        data       : {}
+    },
+    week : {
+        isFetching : false,
+        measurement: "wxrecords",
+        data       : {}
+    },
+    month: {
+        isFetching : false,
+        measurement: "wxrecords",
+        data       : {}
+    },
+    year : {
+        isFetching : false,
+        measurement: "wxrecords",
+        data       : {}
+    },
+};
 
 function reduceTags(state = initialTags, action) {
-    return state;
+    switch (action.type) {
+        case SELECT_TAGS:
+            return action.tags;
+        default:
+            return state;
+    }
 }
 
-function reduceMeasurement(state, action) {
+function reduceSelectedTimeSpan(state = initialTimeSpan, action) {
     switch (action.type) {
-        case FETCH_MEASUREMENT_REQUEST:
+        case SELECT_TIME_SPAN:
+            return action.timeSpan;
+        default:
+            return state;
+    }
+}
+
+function reduceRecent(state = initialRecentState, action) {
+    switch (action.type) {
+        case SELECT_TIME_DETAIL:
+            return {
+                ...state,
+                selectedTimeDetail: action.timeDetail
+            };
+        case FETCH_RECENT_IN_PROGRESS:
             return {
                 ...state,
                 isFetching: true
             };
-        case FETCH_MEASUREMENT_SUCCESS:
+        case FETCH_RECENT_SUCCESS:
             return {
                 ...state,
-                isFetching : false,
-                maxAge     : action.maxAge,
-                aggregation: action.aggregation,
-                packets    : action.packets,
+                isFetching: false,
+                packets   : action.packets
             };
         case NEW_PACKET:
-            return {
-                ...state,
-                packets: pushPacket(state.packets, action.packet, state.maxAge)
-            };
+            // Ignore any new packets that aren't associated with us
+            if (action.measurement === state.measurement) {
+                return {
+                    ...state,
+                    packets: pushPacketOnRecent(state.packets, action.packet, state.maxAge)
+                };
+            } else {
+                return state;
+            }
         default:
             return state;
     }
-
 }
 
-function reduceMeasurements(state = initialPacketState, action) {
+function reduceTimeSpans(state = initialTimeSpanState, action) {
     switch (action.type) {
-        case FETCH_MEASUREMENT_REQUEST:
-        case FETCH_MEASUREMENT_SUCCESS:
+        case FETCH_TIMESPAN_IN_PROGRESS:
+            return {
+                ...state,
+                [action.timeSpan]: {
+                    ...state[action.timeSpan],
+                    isFetching: true
+                }
+            };
+        case FETCH_TIMESPAN_SUCCESS:
+            return {
+                ...state,
+                [action.timeSpan]: {
+                    ...state[action.timeSpan],
+                    isFetching: false,
+                    packets   : action.packets,
+                }
+            };
         case NEW_PACKET:
-            return Object.assign({}, state, {
-                [action.measurement]: reduceMeasurement(state[action.measurement], action)
-            });
+            return pushPacketOnTimeSpans(state, action);
         default:
             return state;
     }
 }
 
-function pushPacket(packets, packet, maxAge) {
+function reduceStats(state = initialStatsState, action) {
+    return state;
+}
+
+const rootReducer = combineReducers({
+                                        selectedTags    : reduceTags,
+                                        selectedTimeSpan: reduceSelectedTimeSpan,
+                                        recent          : reduceRecent,
+                                        timeSpans       : reduceTimeSpans,
+                                        stats           : reduceStats,
+                                    });
+
+export default rootReducer;
+
+/*
+ * Utility functions
+ */
+
+function pushPacketOnRecent(packets, packet, maxAge) {
     let firstGood;
 
     // First, find the first packet less than maxAge old
@@ -130,12 +214,28 @@ function pushPacket(packets, packet, maxAge) {
     ];
 }
 
-const rootReducer = combineReducers({
-                                        selectedTimeScale : reduceTimeScale,
-                                        selectedTimeDetail: reduceTimeDetail,
-                                        selectedTags      : reduceTags,
-                                        measurements      : reduceMeasurements,
-                                    });
+function pushPacketOnTimeSpans(state, action) {
+    const {measurement, packet} = action;
 
-export default rootReducer;
-
+    // We don't want to mutate state. So, build a new copy.
+    let newState = {};
+    // Iterate over all the time spans
+    for (let timeSpan of Object.keys(state)) {
+        // Does this time span use the incoming measurement?
+        if (state[timeSpan].measurement === measurement) {
+            // It does. Make a copy, replacing the old array of packets with a new one
+            // that has the new packet tacked on to the end
+            newState[timeSpan] = {
+                ...state[timeSpan],
+                packets: [
+                    ...state[timeSpan].packets,
+                    packet
+                ]
+            };
+        } else {
+            // This time span does not use the measurement. Just use the old state.
+            newState[timeSpan] = state[timeSpan];
+        }
+    }
+    return newState;
+}
