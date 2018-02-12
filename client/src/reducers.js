@@ -44,7 +44,7 @@ const initialRecentState = {
 const initialTimeSpanState = {
     day  : {
         isFetching : false,
-        measurement: "wxpackets",
+        measurement: "wxrecords",
         start      : moment().startOf('day').valueOf(),
         aggregation: undefined,
         packets    : [],

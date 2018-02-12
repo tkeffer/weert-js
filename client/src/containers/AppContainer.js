@@ -42,11 +42,32 @@ const propTypes = {
     dispatch        : PropTypes.func.isRequired
 };
 
+const initialPlotGroupState = {
+    recent: {
+        tickFormat: "%H:%M:%S"
+    },
+    day   : {
+        tickFormat: "%H:%M:%S"
+    },
+    week  : {
+        tickFormat: "%m/%d/%y %H%M"
+    },
+    month : {
+        tickFormat: "%m/%d/%y %H%M"
+    },
+    year  : {
+        tickFormat: "%m/%d/%y %H%M"
+    }
+};
+
 class AppContainer extends React.PureComponent {
     constructor(props) {
         super(props);
         this.handleChange = this.handleChange.bind(this);
-        this.state        = {subscriptions: {}};
+        this.state        = {
+            subscriptions : {},
+            plotGroupState: initialPlotGroupState,
+        };
     }
 
     componentDidMount() {
@@ -96,29 +117,46 @@ class AppContainer extends React.PureComponent {
         }
     }
 
+    renderPlotGroup() {
+        const {selectedTimeSpan} = this.props;
+        const {plotGroupState}   = this.state;
+        let selectedState, header;
+        if (selectedTimeSpan === 'recent') {
+            selectedState = this.props.recent;
+            header        = `Last ${this.props.recent.selectedTimeDetail} minutes`;
+        } else {
+            selectedState = this.props.timeSpans[selectedTimeSpan];
+            header        = `This ${selectedTimeSpan}`;
+            if (selectedState.aggregation) {
+                header += ` (${selectedState.aggregation / 60000} minute aggregation)`;
+            }
+        }
+        return (
+            <PlotGroup {...plotGroupState}
+                       isFetching={selectedState.isFetching}
+                       packets={selectedState.packets}
+                       header={header}
+            />
+        );
+    }
+
     render() {
         const currentPacket           = this.props.recent.packets[this.props.recent.packets.length - 1];
         const isFetchingCurrentPacket = this.props.recent.isFetching;
 
         const {
                   selectedTimeSpan,
-                  packetTableProps,
-                  windCompassProps,
-                  statsTableProps,
-                  plotGroupProps
               } = this.props;
-        let selectedState, selectedStats, header;
+        const {
+                  packetTableState,
+                  windCompassState,
+                  statsTableState,
+              } = this.state;
+        let selectedStats;
         if (selectedTimeSpan === 'recent') {
-            selectedState = this.props.recent;
             selectedStats = this.props.timeSpans['day'];
-            header        = `Last ${this.props.recent.selectedTimeDetail} minutes`;
         } else {
-            selectedState = this.props.timeSpans[selectedTimeSpan];
             selectedStats = this.props.stats[selectedTimeSpan];
-            header        = `This ${selectedTimeSpan}`;
-            if (selectedState.aggregation) {
-                header += ` (${selectedState.aggregation / 60000} minute aggregation)`;
-            }
         }
         return (
             <Grid fluid={true}>
@@ -136,14 +174,14 @@ class AppContainer extends React.PureComponent {
                         </div>
 
                         <div>
-                            <PacketTable {...packetTableProps}
+                            <PacketTable {...packetTableState}
                                          packet={currentPacket}
                                          isFetching={isFetchingCurrentPacket}
                             />
                         </div>
 
                         <div>
-                            <WindCompass {...windCompassProps}
+                            <WindCompass {...windCompassState}
                                          windSpeed={currentPacket ? currentPacket['wind_speed'] : undefined}
                                          windDirection={currentPacket ? currentPacket['wind_dir'] : undefined}
                                          isFetching={isFetchingCurrentPacket}
@@ -151,7 +189,7 @@ class AppContainer extends React.PureComponent {
                         </div>
 
                         <div>
-                            <StatsTable {...statsTableProps}
+                            <StatsTable {...statsTableState}
                                         stats={selectedStats}
                                         isFetching={selectedStats.isFetching}
                             />
@@ -159,11 +197,7 @@ class AppContainer extends React.PureComponent {
                     </Col>
 
                     <Col xs={12} lg={9}>
-                        <PlotGroup {...plotGroupProps}
-                                   isFetching={selectedState.isFetching}
-                                   packets={selectedState.packets}
-                                   header={header}
-                        />
+                        {this.renderPlotGroup()}
                     </Col>
                 </Row>
             </Grid>

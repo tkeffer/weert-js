@@ -18,7 +18,11 @@ Need to record gust directions.
 
 CLIENT
 
-Add "stats" section. This will require changing the state data structure.
+Add "stats" section.
+
+Plots:
+ o Need to clip data as necessary for "recent" plots
+ o Need to change tick labels for longer (week, etc.) plots
 
 Introduce a system of style classes.
 
@@ -36,8 +40,6 @@ Deal with unit systems.
 Highlight changed values in the "since midnight" stats area.
 
 Take advantage of isFetching in WindCompass
-
-Better styling
 
 The <caption> in PacketTable does not seem to work consistently. Just use a heading instead.
 
