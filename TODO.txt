@@ -22,7 +22,6 @@ Add "stats" section.
 
 Plots:
  o Need to clip data as necessary for "recent" plots
- o Need to change tick labels for longer (week, etc.) plots
 
 Introduce a system of style classes.
 

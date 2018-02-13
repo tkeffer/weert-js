@@ -5,6 +5,7 @@ import * as interpolate from "d3-interpolate";
 import * as transition from "d3-transition";
 import * as selection from "d3-selection";
 import * as ease from "d3-ease";
+import * as scale from "d3-scale";
 import {timeFormat} from "d3-time-format";
 
 export default {
@@ -12,5 +13,6 @@ export default {
     ...transition,
     ...selection,
     ...ease,
+    ...scale,
     timeFormat
 };

@@ -7,8 +7,10 @@
 // Render and format a packet
 import React from 'react';
 import PropTypes from 'prop-types';
-import {LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer} from 'recharts';
 import moment from 'moment/moment';
+import d3 from './d3';
+
+import {LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer} from 'recharts';
 
 const propTypes = {
     isFetching       : PropTypes.bool.isRequired,
@@ -73,6 +75,23 @@ export default class PlotGroup extends React.PureComponent {
                   componentClass: Component
               } = this.props;
 
+        let domain, ticks;
+        if (packets.length) {
+            const tMin   = packets[0].timestamp;
+            const tMax   = packets[packets.length - 1].timestamp;
+            // Use d3 to pick a nice domain function.
+            const domainFn = d3.scaleTime().domain([new Date(tMin), new Date(tMax)]).nice();
+            // Use the function to pick sensible tick marks
+            ticks  = domainFn.ticks();
+            // And get the domain array from the function. This will be as two strings.
+            const domainStr = domainFn.domain();
+            // Convert the strings to numbers, which is what react-charts expect
+            domain = [new Date(domainStr[0]).getTime(), new Date(domainStr[1]).getTime()];
+        } else{
+            domain = ['auto', 'auto'];
+            ticks = [];
+        }
+
         const timeFormatter = (tick) => {return moment(tick).format(tickFormat);};
 
         // TODO: Need tabs to change detail
@@ -95,9 +114,10 @@ export default class PlotGroup extends React.PureComponent {
                                          margin={margin}>
                                          <XAxis
                                              dataKey='timestamp'
-                                             domain={['auto', 'auto']}
+                                             domain={domain}
                                              scale='time'
                                              type='number'
+                                             ticks = {ticks}
                                              tickFormatter={timeFormatter}
                                          />
                                          <YAxis/>
