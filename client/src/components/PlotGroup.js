@@ -17,6 +17,7 @@ const propTypes = {
     packets          : PropTypes.arrayOf(PropTypes.object).isRequired,
     header           : PropTypes.string,
     tickFormat       : PropTypes.string,
+    nTicks           : PropTypes.number,
     obsTypes         : PropTypes.arrayOf(PropTypes.string),
     animationDuration: PropTypes.number,
     dot              : PropTypes.bool,
@@ -36,6 +37,7 @@ const propTypes = {
 const defaultProps = {
     header           : "Need a header!",
     tickFormat       : 'lll',
+    nTicks           : 5,
     obsTypes         : ["wind_speed", "sealevel_pressure", "out_temperature", "in_temperature"],
     animationDuration: 500,
     dot              : false,
@@ -64,6 +66,7 @@ export default class PlotGroup extends React.PureComponent {
                   packets,
                   header,
                   tickFormat,
+                  nTicks,
                   obsTypes,
                   animationDuration,
                   dot,
@@ -77,19 +80,19 @@ export default class PlotGroup extends React.PureComponent {
 
         let domain, ticks;
         if (packets.length) {
-            const tMin   = packets[0].timestamp;
-            const tMax   = packets[packets.length - 1].timestamp;
+            const tMin      = packets[0].timestamp;
+            const tMax      = packets[packets.length - 1].timestamp;
             // Use d3 to pick a nice domain function.
-            const domainFn = d3.scaleTime().domain([new Date(tMin), new Date(tMax)]).nice();
+            const domainFn  = d3.scaleTime().domain([new Date(tMin), new Date(tMax)]).nice(nTicks);
             // Use the function to pick sensible tick marks
-            ticks  = domainFn.ticks();
+            ticks           = domainFn.ticks(nTicks);
             // And get the domain array from the function. This will be as two strings.
             const domainStr = domainFn.domain();
             // Convert the strings to numbers, which is what react-charts expect
-            domain = [new Date(domainStr[0]).getTime(), new Date(domainStr[1]).getTime()];
-        } else{
+            domain          = [new Date(domainStr[0]).getTime(), new Date(domainStr[1]).getTime()];
+        } else {
             domain = ['auto', 'auto'];
-            ticks = [];
+            ticks  = [];
         }
 
         const timeFormatter = (tick) => {return moment(tick).format(tickFormat);};
@@ -117,7 +120,7 @@ export default class PlotGroup extends React.PureComponent {
                                              domain={domain}
                                              scale='time'
                                              type='number'
-                                             ticks = {ticks}
+                                             ticks={ticks}
                                              tickFormatter={timeFormatter}
                                          />
                                          <YAxis/>

@@ -120,12 +120,27 @@ class AppContainer extends React.PureComponent {
     renderPlotGroup() {
         const {selectedTimeSpan} = this.props;
         const {plotGroupState}   = this.state;
-        let selectedState, header;
+        let selectedState, header, packets;
         if (selectedTimeSpan === 'recent') {
-            selectedState = this.props.recent;
+            let firstGood;
             header        = `Last ${this.props.recent.selectedTimeDetail} minutes`;
+            selectedState = this.props.recent;
+            if (selectedState.packets.length) {
+                const trimTime    = Date.now() - selectedState.selectedTimeDetail * 60000;
+                const firstRecent = selectedState.packets.findIndex((packet) => {
+                    return packet.timestamp >= trimTime;
+                });
+
+                // If there was no good packet, skip them all. Otherwise, just
+                // up to the first good packet
+                firstGood = firstRecent === -1 ? selectedState.packets.length : firstRecent;
+            } else {
+                firstGood = 0;
+            }
+            packets = selectedState.packets.slice(firstGood);
         } else {
             selectedState = this.props.timeSpans[selectedTimeSpan];
+            packets = selectedState.packets;
             header        = `This ${selectedTimeSpan}`;
             if (selectedState.aggregation) {
                 header += ` (${selectedState.aggregation / 60000} minute aggregation)`;
@@ -134,7 +149,7 @@ class AppContainer extends React.PureComponent {
         return (
             <PlotGroup {...plotGroupState[selectedTimeSpan]}
                        isFetching={selectedState.isFetching}
-                       packets={selectedState.packets}
+                       packets={packets}
                        header={header}
             />
         );
