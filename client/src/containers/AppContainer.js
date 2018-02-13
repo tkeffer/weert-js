@@ -44,19 +44,19 @@ const propTypes = {
 
 const initialPlotGroupState = {
     recent: {
-        tickFormat: "%H:%M:%S"
+        tickFormat: "LTS"
     },
     day   : {
-        tickFormat: "%H:%M:%S"
+        tickFormat: "LTS"
     },
     week  : {
-        tickFormat: "%m/%d/%y %H%M"
+        tickFormat: "L"
     },
     month : {
-        tickFormat: "%m/%d/%y %H%M"
+        tickFormat: "L"
     },
     year  : {
-        tickFormat: "%m/%d/%y %H%M"
+        tickFormat: "L"
     }
 };
 
@@ -132,7 +132,7 @@ class AppContainer extends React.PureComponent {
             }
         }
         return (
-            <PlotGroup {...plotGroupState}
+            <PlotGroup {...plotGroupState[selectedTimeSpan]}
                        isFetching={selectedState.isFetching}
                        packets={selectedState.packets}
                        header={header}

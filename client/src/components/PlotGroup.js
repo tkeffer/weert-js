@@ -8,12 +8,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer} from 'recharts';
-import d3 from './d3';
+import moment from 'moment/moment';
 
 const propTypes = {
     isFetching       : PropTypes.bool.isRequired,
     packets          : PropTypes.arrayOf(PropTypes.object).isRequired,
     header           : PropTypes.string,
+    tickFormat       : PropTypes.string,
     obsTypes         : PropTypes.arrayOf(PropTypes.string),
     animationDuration: PropTypes.number,
     dot              : PropTypes.bool,
@@ -32,6 +33,7 @@ const propTypes = {
 
 const defaultProps = {
     header           : "Need a header!",
+    tickFormat       : 'lll',
     obsTypes         : ["wind_speed", "sealevel_pressure", "out_temperature", "in_temperature"],
     animationDuration: 500,
     dot              : false,
@@ -59,6 +61,7 @@ export default class PlotGroup extends React.PureComponent {
                   isFetching,
                   packets,
                   header,
+                  tickFormat,
                   obsTypes,
                   animationDuration,
                   dot,
@@ -68,8 +71,9 @@ export default class PlotGroup extends React.PureComponent {
                   stroke,
                   debounce,
                   componentClass: Component
-              }             = this.props;
-        const timeFormatter = (tick) => {return d3.timeFormat('%H:%M:%S')(new Date(tick));};
+              } = this.props;
+
+        const timeFormatter = (tick) => {return moment(tick).format(tickFormat);};
 
         // TODO: Need tabs to change detail
         return (

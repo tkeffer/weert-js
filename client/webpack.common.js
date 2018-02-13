@@ -48,7 +48,7 @@ module.exports = {
                               }),
 
         // Comment out to include moment locales, uncomment to exclude them.
-        new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
+        // new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
 
         // Very useful to profile the size of included modules:
         // new BundleAnalyzerPlugin(),
