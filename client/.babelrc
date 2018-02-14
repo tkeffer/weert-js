@@ -1,4 +1,11 @@
 {
-    "presets":["env", "react"],
+    "presets": [
+        "react",
+        ["env", {
+            "targets": {
+                "browsers": ["last 2 versions", "safari >= 9"]
+            }
+        }]
+    ],
     "plugins": ["transform-object-rest-spread", "recharts"]
 }

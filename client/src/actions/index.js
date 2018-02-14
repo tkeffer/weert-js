@@ -11,7 +11,7 @@ export const START_NEW_TIMESPAN         = 'START_NEW_TIMESPAN';
 export const FETCH_TIMESPAN_IN_PROGRESS = 'FETCH_TIMESPAN_IN_PROGRESS';
 export const FETCH_TIMESPAN_SUCCESS     = 'FETCH_TIMESPAN_SUCCESS';
 export const FETCH_TIMESPAN_FAILURE     = 'FETCH_TIMESPAN_FAILURE';
-export const FETCH_STATS_REQUEST        = 'FETCH_STATS_REQUEST';
+export const FETCH_STATS_IN_PROGRESS    = 'FETCH_STATS_IN_PROGRESS';
 export const FETCH_STATS_SUCCESS        = 'FETCH_STATS_SUCCESS';
 export const FETCH_STATS_FAILURE        = 'FETCH_STATS_FAILURE';
 export const NEW_PACKET                 = 'NEW_PACKET';
@@ -87,6 +87,7 @@ function receiveTimeSpan(timeSpan, packets) {
 function fetchTimeSpan(measurement, tags, timeSpan, options) {
     return dispatch => {
         let start, stop;
+        // Let the world know that a fetch is in progress
         dispatch(fetchTimeSpanInProgress(timeSpan));
         if (timeSpan === 'recent') {
             start = Date.now() - options.maxAge;
@@ -151,6 +152,52 @@ export function subscribeMeasurement(measurement, tags) {
         });
     };
 };
+
+// Issued when there is a fetch in progress for some statistics
+function fetchStatsInProgress(timeSpan) {
+    return {
+        type: FETCH_STATS_IN_PROGRESS,
+        timeSpan,
+    };
+}
+
+function receiveStats(timeSpan, stats) {
+    return {
+        type: FETCH_STATS_SUCCESS,
+        timeSpan,
+        stats,
+    };
+}
+
+function fetchStats(measurement, tags, timeSpan) {
+    return dispatch => {
+        // Let the world know that a fetch is in progress
+        dispatch(fetchStatsInProgress(timeSpan));
+        return api.getStats(measurement, tags, timeSpan)
+                  .then(stats => dispatch(receiveStats(timeSpan, stats)));
+    };
+}
+
+function shouldFetchStats(statsState) {
+    if (statsState.isFetching)
+        return false;
+    return (!!Object.keys(statsState.data));
+}
+
+export function fetchStatsIfNeeded(timeSpan) {
+    return (dispatch, getState) => {
+        const state      = getState();
+        const statsState = state.stats[timeSpan];
+
+        if (shouldFetchStats(statsState)) {
+            const {selectedTags} = state;
+            const {measurement}  = statsState;
+            return dispatch(fetchStats(measurement,
+                                       selectedTags,
+                                       timeSpan));
+        }
+    };
+}
 
 /*
  * Utility functions

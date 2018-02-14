@@ -7,7 +7,7 @@
 
 import moment from 'moment/moment';
 import {combineReducers} from 'redux';
-import {findFirstGood} from './utility';
+import {findFirstGood, isDevelopment} from './utility';
 
 import {
     SELECT_TAGS,
@@ -18,7 +18,7 @@ import {
     FETCH_TIMESPAN_IN_PROGRESS,
     FETCH_TIMESPAN_SUCCESS,
     FETCH_TIMESPAN_FAILURE,
-    FETCH_STATS_REQUEST,
+    FETCH_STATS_IN_PROGRESS,
     FETCH_STATS_SUCCESS,
     FETCH_STATS_FAILURE,
     NEW_PACKET,
@@ -123,11 +123,18 @@ function reduceSelectedTimeSpan(state = initialTimeSpan, action) {
 function reduceTimeSpans(state = initialTimeSpanState, action) {
     switch (action.type) {
         case SELECT_TIME_DETAIL:
+            if (isDevelopment()) {
+                if (action.timeSpan !== 'recent') {
+                    throw new Error(`Attempt to change time detail for time `
+                                    + `span (${action.timeSpan}) other than recent`);
+                }
+            }
             return {
-                [action.timeSpan]: {
-                    ...state[action.timeSpan],
+                ...state,
+                recent: {
+                    ...state.recent,
                     options: {
-                        ...state[action.timeSpan]['options'],
+                        ...state.recent.options,
                         selectedTimeDetail: action.timeDetail
                     }
                 }
@@ -137,10 +144,7 @@ function reduceTimeSpans(state = initialTimeSpanState, action) {
                 ...state,
                 [action.timeSpan]: {
                     ...state[action.timeSpan],
-                    options: {
-                        ...state[action.timeSpan]['options'],
-                        isFetching: true
-                    }
+                    isFetching: true,
                 }
             };
         case FETCH_TIMESPAN_SUCCESS:
@@ -148,11 +152,8 @@ function reduceTimeSpans(state = initialTimeSpanState, action) {
                 ...state,
                 [action.timeSpan]: {
                     ...state[action.timeSpan],
-                    packets: action.packets,
-                    options: {
-                        ...state[action.timeSpan]['options'],
-                        isFetching: false
-                    }
+                    isFetching: false,
+                    packets   : action.packets,
                 }
             };
         case NEW_PACKET:
@@ -163,7 +164,28 @@ function reduceTimeSpans(state = initialTimeSpanState, action) {
 }
 
 function reduceStats(state = initialStatsState, action) {
-    return state;
+    switch (action.type) {
+        case FETCH_STATS_IN_PROGRESS:
+            return {
+                ...state,
+                [action.timeSpan]: {
+                    ...state[action.timeSpan],
+                    isFetching: true,
+                }
+            };
+        case FETCH_STATS_SUCCESS:
+            return {
+                ...state,
+                [action.timeSpan]: {
+                    ...state[action.timeSpan],
+                    isFetching: false,
+                    data      : action.stats,
+                }
+            };
+        case FETCH_STATS_FAILURE:
+        default:
+            return state;
+    }
 }
 
 // Combine all the reducers into one big reducer. The final state will be a composite, with keys

@@ -16,7 +16,7 @@ import Jumbotron from 'react-bootstrap/lib/Jumbotron';
 import {
     selectTags, selectTimeSpan, selectNewStartTime,
     selectTimeDetail, startNewTimeSpan, fetchTimeSpanIfNeeded,
-    subscribeMeasurement
+    subscribeMeasurement, fetchStatsIfNeeded
 } from '../actions';
 import {findFirstGood} from '../utility';
 import d3 from '../components/d3';
@@ -49,11 +49,18 @@ class AppContainer extends React.PureComponent {
     }
 
     componentDidMount() {
-        const {selectedTimeSpan} = this.props;
+        const {dispatch, selectedTimeSpan} = this.props;
+
         // We always need 'recent' (for the real-time packet display)
         this.fetchAndSubscribeIfNeeded('recent');
-        if (selectedTimeSpan !== 'recent')
+        if (selectedTimeSpan !== 'recent') {
             this.fetchAndSubscribeIfNeeded(selectedTimeSpan);
+        }
+
+        // Get statistics appropriate for the selected time span. Time span 'recent' always shows
+        // the day's statistics.
+        const selectedStats = selectedTimeSpan === 'recent' ? 'day' : selectedTimeSpan;
+        dispatch(fetchStatsIfNeeded(selectedStats));
     }
 
     componentWillUnmount() {
@@ -68,6 +75,7 @@ class AppContainer extends React.PureComponent {
     componentDidUpdate(prevProps) {
         if (this.props.selectedTimeSpan !== prevProps.selectedTimeSpan) {
             this.fetchAndSubscribeIfNeeded(this.props.selectedTimeSpan);
+            fetchStatsIfNeeded(this.props.selectedTimeSpan)
         }
     }
 
@@ -76,10 +84,9 @@ class AppContainer extends React.PureComponent {
     }
 
     fetchAndSubscribeIfNeeded(timeSpan) {
-        let measurement;
         const {dispatch, selectedTags} = this.props;
         const timeSpanState            = this.props.timeSpans[timeSpan];
-        measurement                    = timeSpanState.measurement;
+        const measurement              = timeSpanState.measurement;
         dispatch(fetchTimeSpanIfNeeded(timeSpan, timeSpanState.options));
         // Before subscribing, check to see if we already have a subscription for this series
         if (!this.state.subscriptions[measurement]) {
