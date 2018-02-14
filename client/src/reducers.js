@@ -7,6 +7,7 @@
 
 import moment from 'moment/moment';
 import {combineReducers} from 'redux';
+import {findFirstGood} from './utility';
 
 import {
     SELECT_TAGS,
@@ -191,22 +192,7 @@ export default rootReducer;
  */
 
 function pushPacketOnRecent(packets, packet, maxAge) {
-    let firstGood;
-
-    // First, find the first packet less than maxAge old
-    if (packets.length) {
-        const trimTime    = Date.now() - maxAge;
-        const firstRecent = packets.findIndex((packet) => {
-            return packet.timestamp >= trimTime;
-        });
-
-        // If there was no good packet, skip them all. Otherwise, just
-        // up to the first good packet
-        firstGood = firstRecent === -1 ? packets.length : firstRecent;
-    } else {
-        firstGood = 0;
-    }
-
+    const firstGood = findFirstGood(packets, maxAge);
     // Make a copy of the packets we are going to keep, then tack on the new packet at the end.
     return [
         ...packets.slice(firstGood),

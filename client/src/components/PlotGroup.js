@@ -8,17 +8,17 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import moment from 'moment/moment';
-import d3 from './d3';
 
 import {LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer} from 'recharts';
 
 const propTypes = {
     isFetching       : PropTypes.bool.isRequired,
     packets          : PropTypes.arrayOf(PropTypes.object).isRequired,
-    header           : PropTypes.string,
-    tickFormat       : PropTypes.string,
-    nTicks           : PropTypes.number,
     obsTypes         : PropTypes.arrayOf(PropTypes.string),
+    header           : PropTypes.string,
+    xDomain          : PropTypes.array,
+    xTicks           : PropTypes.arrayOf(PropTypes.number),
+    xTickFormat      : PropTypes.string,
     animationDuration: PropTypes.number,
     dot              : PropTypes.bool,
     width            : PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
@@ -35,10 +35,10 @@ const propTypes = {
 };
 
 const defaultProps = {
-    header           : "Need a header!",
-    tickFormat       : 'lll',
-    nTicks           : 5,
     obsTypes         : ["wind_speed", "sealevel_pressure", "out_temperature", "in_temperature"],
+    header           : "Need a header!",
+    xDomain          : ['auto', 'auto'],
+    xTickFormat      : 'lll',
     animationDuration: 500,
     dot              : false,
     width            : "95%",
@@ -64,10 +64,11 @@ export default class PlotGroup extends React.PureComponent {
         const {
                   isFetching,
                   packets,
-                  header,
-                  tickFormat,
-                  nTicks,
                   obsTypes,
+                  header,
+                  xDomain,
+                  xTicks,
+                  xTickFormat,
                   animationDuration,
                   dot,
                   width,
@@ -78,24 +79,8 @@ export default class PlotGroup extends React.PureComponent {
                   componentClass: Component
               } = this.props;
 
-        let domain, ticks;
-        if (packets.length) {
-            const tMin      = packets[0].timestamp;
-            const tMax      = packets[packets.length - 1].timestamp;
-            // Use d3 to pick a nice domain function.
-            const domainFn  = d3.scaleTime().domain([new Date(tMin), new Date(tMax)]).nice(nTicks);
-            // Use the function to pick sensible tick marks
-            ticks           = domainFn.ticks(nTicks);
-            // And get the domain array from the function. This will be as two strings.
-            const domainStr = domainFn.domain();
-            // Convert the strings to numbers, which is what react-charts expect
-            domain          = [new Date(domainStr[0]).getTime(), new Date(domainStr[1]).getTime()];
-        } else {
-            domain = ['auto', 'auto'];
-            ticks  = [];
-        }
 
-        const timeFormatter = (tick) => {return moment(tick).format(tickFormat);};
+        const timeFormatter = (tick) => {return moment(tick).format(xTickFormat);};
 
         // TODO: Need tabs to change detail
         return (
@@ -117,10 +102,10 @@ export default class PlotGroup extends React.PureComponent {
                                          margin={margin}>
                                          <XAxis
                                              dataKey='timestamp'
-                                             domain={domain}
+                                             domain={xDomain}
                                              scale='time'
                                              type='number'
-                                             ticks={ticks}
+                                             ticks={xTicks}
                                              tickFormatter={timeFormatter}
                                          />
                                          <YAxis/>

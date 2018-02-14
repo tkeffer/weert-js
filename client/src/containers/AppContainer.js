@@ -7,6 +7,7 @@
 import React from 'react';
 import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
+import moment from 'moment/moment';
 import Grid from 'react-bootstrap/lib/Grid';
 import Row from 'react-bootstrap/lib/Row';
 import Col from 'react-bootstrap/lib/Col';
@@ -17,6 +18,8 @@ import {
     selectTimeDetail, startNewTimeSpan, fetchRecentIfNeeded, fetchTimeSpanIfNeeded,
     subscribeMeasurement
 } from '../actions';
+import {findFirstGood} from '../utility';
+import d3 from '../components/d3';
 import PacketTable from '../components/PacketTable';
 import WindCompass from '../components/WindCompass';
 import StatsTable from '../components/StatsTable';
@@ -42,21 +45,24 @@ const propTypes = {
     dispatch        : PropTypes.func.isRequired
 };
 
-const initialPlotGroupState = {
-    recent: {
-        tickFormat: "LTS"
-    },
-    day   : {
-        tickFormat: "LTS"
-    },
-    week  : {
-        tickFormat: "L"
-    },
-    month : {
-        tickFormat: "L"
-    },
-    year  : {
-        tickFormat: "L"
+const plotGroupOptions = {
+    nXTicks    : 5,
+    options: {
+        recent: {
+            xTickFormat: "HH:mm:ss",
+        },
+        day   : {
+            xTickFormat: "HH:mm"
+        },
+        week  : {
+            xTickFormat: "L",
+        },
+        month : {
+            xTickFormat: "L",
+        },
+        year  : {
+            xTickFormat: "L",
+        }
     }
 };
 
@@ -66,7 +72,7 @@ class AppContainer extends React.PureComponent {
         this.handleChange = this.handleChange.bind(this);
         this.state        = {
             subscriptions : {},
-            plotGroupState: initialPlotGroupState,
+            plotGroupOptions,
         };
     }
 
@@ -118,42 +124,57 @@ class AppContainer extends React.PureComponent {
     }
 
     renderPlotGroup() {
+        let selectedState, packets, header, tMin, tMax, domain, ticks;
         const {selectedTimeSpan} = this.props;
-        const {plotGroupState}   = this.state;
-        let selectedState, header, packets;
+        // First, get the packets we will plot, as well as their min and max timestamp. Oh, and also a header.
         if (selectedTimeSpan === 'recent') {
-            let firstGood;
-            header        = `Last ${this.props.recent.selectedTimeDetail} minutes`;
-            selectedState = this.props.recent;
-            if (selectedState.packets.length) {
-                const trimTime    = Date.now() - selectedState.selectedTimeDetail * 60000;
-                const firstRecent = selectedState.packets.findIndex((packet) => {
-                    return packet.timestamp >= trimTime;
-                });
-
-                // If there was no good packet, skip them all. Otherwise, just
-                // up to the first good packet
-                firstGood = firstRecent === -1 ? selectedState.packets.length : firstRecent;
-            } else {
-                firstGood = 0;
+            selectedState   = this.props.recent;
+            const firstGood = findFirstGood(selectedState.packets, selectedState.selectedTimeDetail * 60000);
+            packets         = selectedState.packets.slice(firstGood);
+            if (packets.length) {
+                tMin = packets[0].timestamp;
+                tMax = packets[packets.length - 1].timestamp;
             }
-            packets = selectedState.packets.slice(firstGood);
+
+            header = `Last ${this.props.recent.selectedTimeDetail} minutes`;
         } else {
             selectedState = this.props.timeSpans[selectedTimeSpan];
-            packets = selectedState.packets;
-            header        = `This ${selectedTimeSpan}`;
+            packets       = selectedState.packets;
+            tMin          = moment(selectedState.start).startOf(selectedTimeSpan);
+            tMax          = moment(selectedState.start).endOf(selectedTimeSpan);
+
+            header = `This ${selectedTimeSpan}`;
             if (selectedState.aggregation) {
                 header += ` (${selectedState.aggregation / 60000} minute aggregation)`;
             }
         }
+
+        // Now, given tMin and tMax, calculate a nice domain.
+        if (!packets.length) {
+            domain = ['auto', 'auto'];
+            ticks  = [];
+        } else {
+            const {nXTicks} = this.state.plotGroupOptions;
+            // Use d3 to pick a nice domain function.
+            const domainFn  = d3.scaleTime().domain([new Date(tMin), new Date(tMax)]).nice(nXTicks);
+            // Use the function to pick sensible tick marks
+            ticks           = domainFn.ticks(nXTicks).map(t=>new Date(t).getTime());
+            // And get the domain array from the function. This will be as two strings, each holding a time
+            const domainStr = domainFn.domain();
+            // Convert the strings to numbers, which is what react-charts expect
+            domain          = [new Date(domainStr[0]).getTime(), new Date(domainStr[1]).getTime()];
+        }
         return (
-            <PlotGroup {...plotGroupState[selectedTimeSpan]}
+            <PlotGroup {...this.state.plotGroupOptions.options[selectedTimeSpan]}
+                       xDomain={domain}
+                       xTicks={ticks}
                        isFetching={selectedState.isFetching}
                        packets={packets}
                        header={header}
             />
         );
     }
+
 
     render() {
         const currentPacket           = this.props.recent.packets[this.props.recent.packets.length - 1];
