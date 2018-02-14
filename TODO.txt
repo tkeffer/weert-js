@@ -8,8 +8,6 @@ SERVER
 CQ timer slowly advances forward in time. It needs to calculate the exact time to the
 next publishing event. Plus, it fails if the server is suspended (as on a laptop).
 
-Need to publish new stats as they become available.
-
 Need to refactor CQ specs so they use the configuration file config/obs_type.js
 
 Need to record gust directions.
@@ -20,14 +18,11 @@ CLIENT
 
 Add "stats" section.
 
-Plots:
- o Need to clip data as necessary for "recent" plots
+Live update of "stats" section.
 
 Introduce a system of style classes.
 
 Use tabs to switch between time scale.
-
-Live update of "stats" section.
 
 Browser window hangs if it is not the focus for a long period of time.
 

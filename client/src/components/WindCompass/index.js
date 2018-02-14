@@ -94,11 +94,9 @@ class Wedge extends React.PureComponent {
         else {
             // Need to do a transition
             const transitionDuration = this.props.transitionDuration || 1000;
-            // Use d3 to select the wedge, then calculate a linear transition.
-            // TODO: Not sure why the select is even necessary.
+            // Use d3 to calculate a linear transition.
             // TODO: Should we be using react-transition-group instead??
-            d3.select(this)
-              .transition()
+              d3.transition()
               .duration(transitionDuration)
               .ease(d3.easeLinear)
               .tween("attr.transform", () => {
