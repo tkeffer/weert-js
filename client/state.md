@@ -12,36 +12,40 @@ const state = {
 
     selectedTimeSpan: "day",           //  recent | day | week | month | year
 
-    recent: {
-        isFetching        : false,
-        measurement       : "wxpackets",
-        maxAge            : 3600000,        // = 1 hour in milliseconds
-        selectedTimeDetail: 5,              // 5 | 10 | 20 | 60
-        packets           : [
-            {
-                timestamp           : 1506713140000,
-                unit_system         : 10,
-                out_temperature     : 22.5,
-                out_humidity_percent: 41
-            },
-            {
-                timestamp           : 1506713440000,
-                unit_system         : 10,
-                out_temperature     : 22.8,
-                out_humidity_percent: 39
-            },
-            {
-                // ...
-            }
-        ],
-    },
-
     timeSpans: {
+        recent: {
+            isFetching : false,
+            measurement: "wxpackets",
+            options    : {
+                maxAge            : 3600000,        // = 1 hour in milliseconds
+                selectedTimeDetail: 5,              // 5 | 10 | 20 | 60
+            },
+            packets    : [
+                {
+                    timestamp           : 1506713140000,
+                    unit_system         : 10,
+                    out_temperature     : 22.5,
+                    out_humidity_percent: 41
+                },
+                {
+                    timestamp           : 1506713440000,
+                    unit_system         : 10,
+                    out_temperature     : 22.8,
+                    out_humidity_percent: 39
+                },
+                {
+                    // ...
+                }
+            ],
+        },
+
         day  : {
             isFetching : false,
             measurement: "wxpackets",
-            start      : 1517472000000,
-            aggregation: undefined,
+            options    : {
+                start      : 1517472000000,
+                aggregation: undefined,
+            },
             packets    : [
                 {
                     timestamp           : 1517472300000,
@@ -63,8 +67,10 @@ const state = {
         week : {
             isFetching : false,
             measurement: "wxrecords",
-            start      : 1517742000000,
-            aggregation: 10800000,      // = 3 hours in milliseconds
+            options    : {
+                start      : 1517742000000,
+                aggregation: 10800000,      // = 3 hours in milliseconds
+            },
             packets    : [
                 {
                     timestamp           : 1517742000000,

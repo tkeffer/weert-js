@@ -15,9 +15,6 @@ import {
     SELECT_NEW_START_TIME,
     SELECT_TIME_DETAIL,
     START_NEW_TIMESPAN,
-    FETCH_RECENT_IN_PROGRESS,
-    FETCH_RECENT_SUCCESS,
-    FETCH_RECENT_FAILURE,
     FETCH_TIMESPAN_IN_PROGRESS,
     FETCH_TIMESPAN_SUCCESS,
     FETCH_TIMESPAN_FAILURE,
@@ -34,42 +31,51 @@ const initialTags = {
 
 const initialTimeSpan = 'recent';
 
-const initialRecentState = {
-    isFetching        : false,
-    measurement       : "wxpackets",
-    maxAge            : 3600000,        // = 1 hour in milliseconds
-    selectedTimeDetail: 5,              // 5 | 10 | 20 | 60
-    packets           : [],
-};
-
 const initialTimeSpanState = {
-    day  : {
+    recent: {
         isFetching : false,
-        measurement: "wxrecords",
-        start      : moment().startOf('day').valueOf(),
-        aggregation: undefined,
+        measurement: "wxpackets",
         packets    : [],
+        options    : {
+            maxAge            : 3600000,        // = 1 hour in milliseconds
+            selectedTimeDetail: 5,              // 5 | 10 | 20 | 60
+        }
     },
-    week : {
+    day   : {
         isFetching : false,
         measurement: "wxrecords",
-        start      : moment().startOf('week').valueOf(),
-        aggregation: 3600000,      // = 1 hours in milliseconds
-        packets    : []
+        packets    : [],
+        options    : {
+            start      : moment().startOf('day').valueOf(),
+            aggregation: undefined,
+        },
     },
-    month: {
+    week  : {
         isFetching : false,
         measurement: "wxrecords",
-        start      : moment().startOf('month').valueOf(),
-        aggregation: 3600000,      // = 3 hours in milliseconds
-        packets    : []
+        packets    : [],
+        options    : {
+            start      : moment().startOf('week').valueOf(),
+            aggregation: 3600000,      // = 1 hours in milliseconds
+        }
     },
-    year : {
+    month : {
         isFetching : false,
         measurement: "wxrecords",
-        start      : moment().startOf('year').valueOf(),
-        aggregation: 21600000,      // = 6 hours in milliseconds
-        packets    : []
+        packets    : [],
+        options    : {
+            start      : moment().startOf('month').valueOf(),
+            aggregation: 3600000,      // = 3 hours in milliseconds
+        }
+    },
+    year  : {
+        isFetching : false,
+        measurement: "wxrecords",
+        packets    : [],
+        options    : {
+            start      : moment().startOf('year').valueOf(),
+            aggregation: 21600000,      // = 6 hours in milliseconds
+        }
     },
 };
 
@@ -114,47 +120,27 @@ function reduceSelectedTimeSpan(state = initialTimeSpan, action) {
     }
 }
 
-function reduceRecent(state = initialRecentState, action) {
+function reduceTimeSpans(state = initialTimeSpanState, action) {
     switch (action.type) {
         case SELECT_TIME_DETAIL:
             return {
-                ...state,
-                selectedTimeDetail: action.timeDetail
+                [action.timeSpan]: {
+                    ...state[action.timeSpan],
+                    options: {
+                        ...state[action.timeSpan]['options'],
+                        selectedTimeDetail: action.timeDetail
+                    }
+                }
             };
-        case FETCH_RECENT_IN_PROGRESS:
-            return {
-                ...state,
-                isFetching: true
-            };
-        case FETCH_RECENT_SUCCESS:
-            return {
-                ...state,
-                isFetching: false,
-                packets   : action.packets
-            };
-        case NEW_PACKET:
-            // Ignore any new packets that aren't associated with us
-            if (action.measurement === state.measurement) {
-                return {
-                    ...state,
-                    packets: pushPacketOnRecent(state.packets, action.packet, state.maxAge)
-                };
-            } else {
-                return state;
-            }
-        default:
-            return state;
-    }
-}
-
-function reduceTimeSpans(state = initialTimeSpanState, action) {
-    switch (action.type) {
         case FETCH_TIMESPAN_IN_PROGRESS:
             return {
                 ...state,
                 [action.timeSpan]: {
                     ...state[action.timeSpan],
-                    isFetching: true
+                    options: {
+                        ...state[action.timeSpan]['options'],
+                        isFetching: true
+                    }
                 }
             };
         case FETCH_TIMESPAN_SUCCESS:
@@ -162,8 +148,11 @@ function reduceTimeSpans(state = initialTimeSpanState, action) {
                 ...state,
                 [action.timeSpan]: {
                     ...state[action.timeSpan],
-                    isFetching: false,
-                    packets   : action.packets,
+                    packets: action.packets,
+                    options: {
+                        ...state[action.timeSpan]['options'],
+                        isFetching: false
+                    }
                 }
             };
         case NEW_PACKET:
@@ -177,10 +166,11 @@ function reduceStats(state = initialStatsState, action) {
     return state;
 }
 
+// Combine all the reducers into one big reducer. The final state will be a composite, with keys
+// 'selectedTags', 'selectedTimeSpan', 'timeSpans' and 'stats':
 const rootReducer = combineReducers({
                                         selectedTags    : reduceTags,
                                         selectedTimeSpan: reduceSelectedTimeSpan,
-                                        recent          : reduceRecent,
                                         timeSpans       : reduceTimeSpans,
                                         stats           : reduceStats,
                                     });
@@ -191,32 +181,27 @@ export default rootReducer;
  * Utility functions
  */
 
-function pushPacketOnRecent(packets, packet, maxAge) {
-    const firstGood = findFirstGood(packets, maxAge);
-    // Make a copy of the packets we are going to keep, then tack on the new packet at the end.
-    return [
-        ...packets.slice(firstGood),
-        packet
-    ];
-}
-
 function pushPacketOnTimeSpans(state, action) {
     const {measurement, packet} = action;
 
     // We don't want to mutate state. So, build a new copy.
     let newState = {};
+
     // Iterate over all the time spans
     for (let timeSpan of Object.keys(state)) {
-        // Does this time span use the incoming measurement?
-        if (state[timeSpan].measurement === measurement) {
-            // It does. Make a copy, replacing the old array of packets with a new one
-            // that has the new packet tacked on to the end
+
+        const {options, packets} = state[timeSpan];
+
+        // Does this time span use the incoming measurement? Also, we cannot handle aggregations
+        if (state[timeSpan].measurement === measurement && options.aggregation === undefined) {
+
+            // Find the first packet we are going to keep. This will be all the packets for time spans other
+            // than 'recent':
+            const firstGood    = findFirstGood(packets, options.maxAge);
+            // Make a copy of the packets we are going to keep, then add the new packet to the end
             newState[timeSpan] = {
                 ...state[timeSpan],
-                packets: [
-                    ...state[timeSpan].packets,
-                    packet
-                ]
+                packets: [...packets.slice(firstGood), packet]
             };
         } else {
             // This time span does not use the measurement. Just use the old state.

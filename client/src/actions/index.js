@@ -1,15 +1,13 @@
 import moment from 'moment/moment';
 
 import * as api from '../Api';
+import * as utility from '../utility';
 
 export const SELECT_TAGS                = 'SELECT_TAGS';
 export const SELECT_TIME_SPAN           = 'SELECT_TIME_SPAN';
 export const SELECT_NEW_START_TIME      = 'SELECT_NEW_START_TIME';
 export const SELECT_TIME_DETAIL         = 'SELECT_TIME_DETAIL';
 export const START_NEW_TIMESPAN         = 'START_NEW_TIMESPAN';
-export const FETCH_RECENT_IN_PROGRESS   = 'FETCH_RECENT_IN_PROGRESS';
-export const FETCH_RECENT_SUCCESS       = 'FETCH_RECENT_SUCCESS';
-export const FETCH_RECENT_FAILURE       = 'FETCH_RECENT_FAILURE';
 export const FETCH_TIMESPAN_IN_PROGRESS = 'FETCH_TIMESPAN_IN_PROGRESS';
 export const FETCH_TIMESPAN_SUCCESS     = 'FETCH_TIMESPAN_SUCCESS';
 export const FETCH_TIMESPAN_FAILURE     = 'FETCH_TIMESPAN_FAILURE';
@@ -36,6 +34,11 @@ export function selectTimeSpan(timeSpan) {
 
 // Select a new starting time for a time span. This allows changing the displayed date.
 export function selectNewStartTime(timeSpan, start) {
+    if (utility.isDevelopment()) {
+        if (timeSpan === 'recent') {
+            throw new Error("Attempt to change start time for recent");
+        }
+    }
     return {
         type: SELECT_NEW_START_TIME,
         timeSpan,
@@ -59,31 +62,11 @@ export function startNewTimeSpan(timeSpan) {
     };
 }
 
-// Issued when there is a fetch in progress for 'recent' packets
-function fetchRecentInProgress() {
-    return {
-        type: FETCH_RECENT_IN_PROGRESS
-    };
-}
-
-// Issued when there is a fetch in progress for time span packets ('day', 'week', etc.)
+// Issued when there is a fetch in progress for time span packets ('recent', 'day', 'week', etc.)
 function fetchTimeSpanInProgress(timeSpan) {
     return {
         type: FETCH_TIMESPAN_IN_PROGRESS,
         timeSpan,
-    };
-}
-
-function receiveRecent(packets) {
-    return {
-        type   : FETCH_RECENT_SUCCESS,
-        packets: packets.map(packet => {
-            // Flatten the packets:
-            return {
-                timestamp: packet.timestamp,
-                ...packet.fields
-            };
-        }),
     };
 }
 
@@ -101,79 +84,51 @@ function receiveTimeSpan(timeSpan, packets) {
     };
 }
 
-function fetchRecent(measurement, tags, maxAge) {
+function fetchTimeSpan(measurement, tags, timeSpan, options) {
     return dispatch => {
-        dispatch(fetchRecentInProgress());
-        const start = Date.now() - maxAge;
-        return api.getPackets(measurement, tags, start)
-                  .then(packets => dispatch(receiveRecent(packets)));
-    };
-}
-
-function fetchTimeSpan(measurement, tags, timeSpan, start, aggregation) {
-    return dispatch => {
+        let start, stop;
         dispatch(fetchTimeSpanInProgress(timeSpan));
-        const stop = getStopTime(start, timeSpan);
-        return api.getPackets(measurement, tags, start, stop, aggregation)
+        if (timeSpan === 'recent') {
+            start = Date.now() - options.maxAge;
+            stop  = undefined;
+
+        } else {
+            start = options.start;
+            stop  = getStopTime(options.start, timeSpan);
+        }
+        return api.getPackets(measurement, tags, start, stop, options.aggregation)
                   .then(packets => dispatch(receiveTimeSpan(timeSpan, packets)));
     };
 }
 
-// Determine if we need to fetch some 'recent' packets.
-function shouldFetchRecent(recentState, newMaxAge) {
-    // If a fetch is in progress, don't do another fetch
-    if (recentState.isFetching) {
-        return false;
-    }
-    // If the maxAge doesn't match, we need to fetch
-    if (recentState.maxAge !== newMaxAge)
-        return true;
-    // If we don't have any packets, we need to fetch
-    return !(recentState.packets && recentState.packets.length);
-}
 
-// Determine if we need to fetch a time span.
-function shouldFetchTimeSpan(timeSpanState, newStart, newAggregation) {
+function shouldFetchTimeSpan(timeSpanState, newOptions) {
     // If a fetch is in progress, don't do another fetch
     if (timeSpanState.isFetching) {
         return false;
     }
-    // If the start of the time span, or the aggregation, don't match, do a fetch
-    if (timeSpanState.start !== newStart || timeSpanState.aggregation != newAggregation) {
+
+    // If the time span options have changed, do a fetch
+    if (!utility.isSame(timeSpanState.options, newOptions)) {
         return true;
     }
+
     // If we don't have any packets for this time span, do a fetch
     return !(timeSpanState.packets && timeSpanState.packets.length);
 }
 
-export function fetchRecentIfNeeded(newMaxAge) {
-    return (dispatch, getState) => {
-        const state       = getState();
-        const recentState = state['recent'];
-
-        if (shouldFetchRecent(recentState, newMaxAge)) {
-            const {selectedTags} = state;
-            const {measurement}  = recentState;
-            return dispatch(fetchRecent(measurement,
-                                        selectedTags,
-                                        newMaxAge));
-        }
-    };
-}
-
-export function fetchTimeSpanIfNeeded(timeSpan, newStart, newAggregation) {
+export function fetchTimeSpanIfNeeded(timeSpan, newOptions) {
     return (dispatch, getState) => {
         const state         = getState();
         const timeSpanState = state['timeSpans'][timeSpan];
 
-        if (shouldFetchTimeSpan(timeSpanState, newStart, newAggregation)) {
+        if (shouldFetchTimeSpan(timeSpanState, newOptions)) {
             const {selectedTags} = state;
             const {measurement}  = timeSpanState;
             return dispatch(fetchTimeSpan(measurement,
                                           selectedTags,
                                           timeSpan,
-                                          newStart,
-                                          newAggregation));
+                                          newOptions));
         }
     };
 }

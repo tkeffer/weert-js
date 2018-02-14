@@ -15,7 +15,7 @@ import Jumbotron from 'react-bootstrap/lib/Jumbotron';
 
 import {
     selectTags, selectTimeSpan, selectNewStartTime,
-    selectTimeDetail, startNewTimeSpan, fetchRecentIfNeeded, fetchTimeSpanIfNeeded,
+    selectTimeDetail, startNewTimeSpan, fetchTimeSpanIfNeeded,
     subscribeMeasurement
 } from '../actions';
 import {findFirstGood} from '../utility';
@@ -34,14 +34,6 @@ const propTypes = {
                                       }).isRequired,
     selectedTimeSpan: PropTypes.oneOfType([PropTypes.string,
                                               PropTypes.number]).isRequired,
-    recent          : PropTypes.shape({
-                                          isFetching        : PropTypes.boolean,
-                                          measurement       : PropTypes.string,
-                                          maxAge            : PropTypes.number,
-                                          selectedTimeDetail: PropTypes.oneOfType([PropTypes.string,
-                                                                                      PropTypes.number]),
-                                          packets           : PropTypes.array
-                                      }).isRequired,
     timeSpans       : PropTypes.object.isRequired,
     dispatch        : PropTypes.func.isRequired
 };
@@ -51,7 +43,7 @@ class AppContainer extends React.PureComponent {
         super(props);
         this.handleChange = this.handleChange.bind(this);
         this.state        = {
-            subscriptions   : {},
+            subscriptions: {},
             ...config,
         };
     }
@@ -86,14 +78,9 @@ class AppContainer extends React.PureComponent {
     fetchAndSubscribeIfNeeded(timeSpan) {
         let measurement;
         const {dispatch, selectedTags} = this.props;
-        if (timeSpan === 'recent') {
-            measurement = this.props.recent.measurement;
-            dispatch(fetchRecentIfNeeded(this.props.recent.maxAge));
-        } else {
-            const timeSpanState = this.props.timeSpans[timeSpan];
-            measurement         = timeSpanState.measurement;
-            dispatch(fetchTimeSpanIfNeeded(timeSpan, timeSpanState.start, timeSpanState.aggregation));
-        }
+        const timeSpanState            = this.props.timeSpans[timeSpan];
+        measurement                    = timeSpanState.measurement;
+        dispatch(fetchTimeSpanIfNeeded(timeSpan, timeSpanState.options));
         // Before subscribing, check to see if we already have a subscription for this series
         if (!this.state.subscriptions[measurement]) {
             // Subscribe to any new packets coming from the given series
@@ -104,28 +91,27 @@ class AppContainer extends React.PureComponent {
     }
 
     renderPlotGroup() {
-        let selectedState, packets, header, tMin, tMax, domain, ticks;
+        let packets, header, tMin, tMax, domain, ticks;
         const {selectedTimeSpan} = this.props;
+        const selectedState      = this.props.timeSpans[selectedTimeSpan];
         // First, get the packets we will plot, as well as their min and max timestamp. Oh, and also a header.
         if (selectedTimeSpan === 'recent') {
-            selectedState   = this.props.recent;
-            const firstGood = findFirstGood(selectedState.packets, selectedState.selectedTimeDetail * 60000);
+            const firstGood = findFirstGood(selectedState.packets, selectedState.options.selectedTimeDetail * 60000);
             packets         = selectedState.packets.slice(firstGood);
             if (packets.length) {
                 tMin = packets[0].timestamp;
                 tMax = packets[packets.length - 1].timestamp;
             }
 
-            header = `Last ${this.props.recent.selectedTimeDetail} minutes`;
+            header = `Last ${this.props.timeSpans.recent.options.selectedTimeDetail} minutes`;
         } else {
-            selectedState = this.props.timeSpans[selectedTimeSpan];
-            packets       = selectedState.packets;
-            tMin          = moment(selectedState.start).startOf(selectedTimeSpan);
-            tMax          = moment(selectedState.start).endOf(selectedTimeSpan);
+            packets = selectedState.packets;
+            tMin    = moment(selectedState.options.start).startOf(selectedTimeSpan);
+            tMax    = moment(selectedState.options.start).endOf(selectedTimeSpan);
 
             header = `This ${selectedTimeSpan}`;
-            if (selectedState.aggregation) {
-                header += ` (${selectedState.aggregation / 60000} minute aggregation)`;
+            if (selectedState.options.aggregation) {
+                header += ` (${selectedState.options.aggregation / 60000} minute aggregation)`;
             }
         }
 
@@ -157,23 +143,26 @@ class AppContainer extends React.PureComponent {
 
 
     render() {
-        const currentPacket           = this.props.recent.packets[this.props.recent.packets.length - 1];
-        const isFetchingCurrentPacket = this.props.recent.isFetching;
+        const {selectedTimeSpan} = this.props;
+        const {selectedState}    = this.props.timeSpans[selectedTimeSpan];
+        const recentState        = this.props.timeSpans.recent;
+
+        const currentPacket           = recentState.packets.slice(-1)[0];
+        const isFetchingCurrentPacket = recentState.isFetching;
 
         const {
-                  selectedTimeSpan,
-              } = this.props;
-        const {
-                  packetTableState,
-                  windCompassState,
-                  statsTableState,
+                  packetTableOptions,
+                  windCompassOptions,
+                  statsTableOptions,
               } = this.state;
+
         let selectedStats;
         if (selectedTimeSpan === 'recent') {
-            selectedStats = this.props.timeSpans['day'];
+            selectedStats = this.props.stats['day'];
         } else {
             selectedStats = this.props.stats[selectedTimeSpan];
         }
+
         return (
             <Grid fluid={true}>
                 <Jumbotron>
@@ -190,14 +179,14 @@ class AppContainer extends React.PureComponent {
                         </div>
 
                         <div>
-                            <PacketTable {...packetTableState}
+                            <PacketTable {...packetTableOptions}
                                          packet={currentPacket}
                                          isFetching={isFetchingCurrentPacket}
                             />
                         </div>
 
                         <div>
-                            <WindCompass {...windCompassState}
+                            <WindCompass {...windCompassOptions}
                                          windSpeed={currentPacket ? currentPacket['wind_speed'] : undefined}
                                          windDirection={currentPacket ? currentPacket['wind_dir'] : undefined}
                                          isFetching={isFetchingCurrentPacket}
@@ -205,7 +194,7 @@ class AppContainer extends React.PureComponent {
                         </div>
 
                         <div>
-                            <StatsTable {...statsTableState}
+                            <StatsTable {...statsTableOptions}
                                         stats={selectedStats}
                                         isFetching={selectedStats.isFetching}
                             />

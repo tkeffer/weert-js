@@ -7,7 +7,7 @@
 
 export function findFirstGood(packets, maxAge) {
 
-    if (packets.length) {
+    if (packets.length && maxAge !== undefined) {
         // First, find the first packet less than maxAge old
         const trimTime    = Date.now() - maxAge;
         const firstRecent = packets.findIndex((packet) => {
@@ -22,3 +22,10 @@ export function findFirstGood(packets, maxAge) {
     }
 }
 
+export function isDevelopment(){
+    return !process.env.NODE_ENV || process.env.NODE_ENV === 'development'
+}
+
+export function isSame(option1, option2){
+    option1.maxAge === option2.maxAge && option1.start === option2.start && option1.aggregation === option2.aggregation;
+}
