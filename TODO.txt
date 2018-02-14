@@ -5,6 +5,8 @@ Update README install instructions to reflect separate client and server install
 
 SERVER
 
+Allow queries that involve aggregation.
+
 CQ timer slowly advances forward in time. It needs to calculate the exact time to the
 next publishing event. Plus, it fails if the server is suspended (as on a laptop).
 
@@ -20,9 +22,11 @@ Add "stats" section.
 
 Live update of "stats" section.
 
-Introduce a system of style classes.
+Add aggregregations for longer time spans.
 
 Use tabs to switch between time scale.
+
+Introduce a system of style classes.
 
 Browser window hangs if it is not the focus for a long period of time.
 

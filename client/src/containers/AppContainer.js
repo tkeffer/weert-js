@@ -25,6 +25,7 @@ import WindCompass from '../components/WindCompass';
 import StatsTable from '../components/StatsTable';
 import PlotGroup from '../components/PlotGroup';
 import Picker from '../components/Picker';
+import * as config from '../../config/componentConfig';
 
 const propTypes = {
     selectedTags    : PropTypes.shape({
@@ -45,34 +46,13 @@ const propTypes = {
     dispatch        : PropTypes.func.isRequired
 };
 
-const plotGroupOptions = {
-    nXTicks    : 5,
-    options: {
-        recent: {
-            xTickFormat: "HH:mm:ss",
-        },
-        day   : {
-            xTickFormat: "HH:mm"
-        },
-        week  : {
-            xTickFormat: "L",
-        },
-        month : {
-            xTickFormat: "L",
-        },
-        year  : {
-            xTickFormat: "L",
-        }
-    }
-};
-
 class AppContainer extends React.PureComponent {
     constructor(props) {
         super(props);
         this.handleChange = this.handleChange.bind(this);
         this.state        = {
-            subscriptions : {},
-            plotGroupOptions,
+            subscriptions   : {},
+            ...config,
         };
     }
 
@@ -158,7 +138,7 @@ class AppContainer extends React.PureComponent {
             // Use d3 to pick a nice domain function.
             const domainFn  = d3.scaleTime().domain([new Date(tMin), new Date(tMax)]).nice(nXTicks);
             // Use the function to pick sensible tick marks
-            ticks           = domainFn.ticks(nXTicks).map(t=>new Date(t).getTime());
+            ticks           = domainFn.ticks(nXTicks).map(t => new Date(t).getTime());
             // And get the domain array from the function. This will be as two strings, each holding a time
             const domainStr = domainFn.domain();
             // Convert the strings to numbers, which is what react-charts expect
