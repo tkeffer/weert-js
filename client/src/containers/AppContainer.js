@@ -73,9 +73,12 @@ class AppContainer extends React.PureComponent {
     }
 
     componentDidUpdate(prevProps) {
-        if (this.props.selectedTimeSpan !== prevProps.selectedTimeSpan) {
-            this.fetchAndSubscribeIfNeeded(this.props.selectedTimeSpan);
-            fetchStatsIfNeeded(this.props.selectedTimeSpan)
+        const {selectedTimeSpan} = this.props;
+        if (selectedTimeSpan !== prevProps.selectedTimeSpan) {
+            this.fetchAndSubscribeIfNeeded(selectedTimeSpan);
+            const {dispatch} = this.props;
+            const selectedStats = selectedTimeSpan === 'recent' ? 'day' : selectedTimeSpan;
+            dispatch(fetchStatsIfNeeded(selectedStats));
         }
     }
 
@@ -202,7 +205,7 @@ class AppContainer extends React.PureComponent {
 
                         <div>
                             <StatsTable {...statsTableOptions}
-                                        stats={selectedStats}
+                                        statsData={selectedStats.data}
                                         isFetching={selectedStats.isFetching}
                             />
                         </div>

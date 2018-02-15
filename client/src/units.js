@@ -6,6 +6,8 @@
  */
 
 import * as unitConfig from '../config/unitConfig';
+import {sprintf} from 'sprintf-js';
+import moment from 'moment/moment';
 
 const groupMap = {
     0x01: unitConfig.unitSystem_US,
@@ -56,3 +58,29 @@ export function getUnitLabel(obsType, unitSystem, val) {
     }
     return unitLabel;
 }
+
+/**
+ * Format an observation value
+ * @param {string} obsType - The observation type (e.g., "out_temperature")
+ * @param {number} val - Its numeric value
+ * @param {number} unitSystem - The unit system it's in.
+ * @param {string} [format] - A formatting string. If not provided, an appropriate one will be chosen.
+ * @returns {string}
+ */
+export function getValueString(obsType, val, unitSystem, format) {
+    if (val === undefined) {
+        return "N/A";
+    }
+
+    // Special treatment for time
+    if (obsType === 'timestamp') {
+        return moment(val).format(format);
+    }
+
+    // It's a regular ol' observation type. Get a label and format the number.
+    const label      = getUnitLabel(obsType, unitSystem, val);
+    const unitFormat = format || getUnitFormat(obsType, unitSystem);
+    return sprintf(unitFormat, val) + label;
+}
+
+

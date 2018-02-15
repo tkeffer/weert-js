@@ -22,10 +22,16 @@ export function findFirstGood(packets, maxAge) {
     }
 }
 
-export function isDevelopment(){
-    return !process.env.NODE_ENV || process.env.NODE_ENV === 'development'
+export function isDevelopment() {
+    return !process.env.NODE_ENV || process.env.NODE_ENV === 'development';
 }
 
-export function isSame(option1, option2){
+export function isSame(option1, option2) {
     option1.maxAge === option2.maxAge && option1.start === option2.start && option1.aggregation === option2.aggregation;
+}
+
+// Access a deeply nested value, with thanks to A. Sharif (https://goo.gl/f924sP)
+export function getNested(path, obj) {
+    return path.reduce((xs, x) =>
+                        (xs && xs[x]) ? xs[x] : null, obj);
 }

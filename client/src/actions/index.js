@@ -181,7 +181,9 @@ function fetchStats(measurement, tags, timeSpan) {
 function shouldFetchStats(statsState) {
     if (statsState.isFetching)
         return false;
-    return (!!Object.keys(statsState.data));
+    // TODO: Might be able to optimize this if we knew whether the existing stats were out of date.
+    // For now, always fetch
+    return true;
 }
 
 export function fetchStatsIfNeeded(timeSpan) {
