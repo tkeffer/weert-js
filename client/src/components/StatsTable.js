@@ -76,12 +76,12 @@ export default class StatsTable extends React.PureComponent {
 
         return (
             <Component>
+                <h3>{header}</h3>
                 {isFetching && _.isEmpty(statsData) && <h3>Loading...</h3>}
                 {!isFetching && _.isEmpty(statsData) && <h3>Empty stats place holder</h3>}
                 {!_.isEmpty(statsData) &&
                  <div style={{opacity: isFetching ? 0.5 : 1}}>
                      <Table bordered hover>
-                         <caption>{header}</caption>
                          <tbody>
                          <tr>
                              <td>High Temperature<br/>Low Temperature</td>
