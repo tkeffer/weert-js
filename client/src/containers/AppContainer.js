@@ -12,6 +12,8 @@ import Grid from 'react-bootstrap/lib/Grid';
 import Row from 'react-bootstrap/lib/Row';
 import Col from 'react-bootstrap/lib/Col';
 import Jumbotron from 'react-bootstrap/lib/Jumbotron';
+import Tabs from 'react-bootstrap/lib/Tabs';
+import Tab from 'react-bootstrap/lib/Tabs';
 
 import {
     selectTags, selectTimeSpan, selectNewStartTime,
@@ -24,7 +26,6 @@ import PacketTable from '../components/PacketTable';
 import WindCompass from '../components/WindCompass';
 import StatsTable from '../components/StatsTable';
 import PlotGroup from '../components/PlotGroup';
-import Picker from '../components/Picker';
 import * as config from '../../config/componentConfig';
 
 const propTypes = {
@@ -76,7 +77,7 @@ class AppContainer extends React.PureComponent {
         const {selectedTimeSpan} = this.props;
         if (selectedTimeSpan !== prevProps.selectedTimeSpan) {
             this.fetchAndSubscribeIfNeeded(selectedTimeSpan);
-            const {dispatch} = this.props;
+            const {dispatch}    = this.props;
             const selectedStats = selectedTimeSpan === 'recent' ? 'day' : selectedTimeSpan;
             dispatch(fetchStatsIfNeeded(selectedStats));
         }
@@ -181,14 +182,6 @@ class AppContainer extends React.PureComponent {
                 <Row>
                     <Col xs={12} lg={3}>
                         <div>
-                            <Picker
-                                value={selectedTimeSpan}
-                                onChange={this.handleChange}
-                                options={['recent', 'day', 'week', 'month', 'year']}
-                            />
-                        </div>
-
-                        <div>
                             <PacketTable {...packetTableOptions}
                                          packet={currentPacket}
                                          isFetching={isFetchingCurrentPacket}
@@ -212,6 +205,16 @@ class AppContainer extends React.PureComponent {
                     </Col>
 
                     <Col xs={12} lg={9}>
+                        <Tabs
+                            activeKey={this.state.selectedTimeSpan}
+                            onSelect={this.handleChange}
+                        >
+                            <Tab eventKey={'recent'} title={"Recent"}/>
+                            <Tab eventKey={'day'} title={"Today"}/>
+                            <Tab eventKey={'week'} title={'This week'}/>
+                            <Tab eventKey={'month'} title={'This month'}/>
+                            <Tab eventKey={'year'} title={'This year'}/>
+                        </Tabs>
                         {this.renderPlotGroup()}
                     </Col>
                 </Row>

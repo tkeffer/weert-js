@@ -1,11 +1,11 @@
 CONFIGURATION
 
-Update README install instructions to reflect separate client and server installs.
+* Update README install instructions to reflect separate client and server installs.
 
 
 SERVER
 
-Allow queries that involve aggregation.
+* Allow queries that involve aggregation.
 
 CQ timer slowly advances forward in time. It needs to calculate the exact time to the
 next publishing event. Plus, it fails if the server is suspended (as on a laptop).
@@ -18,13 +18,13 @@ Need to record gust directions.
 
 CLIENT
 
-Add "stats" section.
+* Add "stats" section with proper header.
 
-Live update of "stats" section.
+* Live update of "stats" section.
 
-Add aggregregations for longer time spans.
+* Add aggregregations for longer time spans.
 
-Use tabs to switch between time scale.
+* Add a "zoom" feature to the recent plot.
 
 Introduce a system of style classes.
 
@@ -39,9 +39,7 @@ Highlight changed values in the "since midnight" stats area.
 
 Take advantage of isFetching in WindCompass
 
-The <caption> in PacketTable does not seem to work consistently. Just use a heading instead.
 
-Use d3-time-format to format times instead of moment. Should be much smaller.
 
 
 DATABASE
