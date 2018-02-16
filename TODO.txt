@@ -26,6 +26,10 @@ CLIENT
 
 * Add a "zoom" feature to the recent plot.
 
+* Need proper header for each plot
+
+* Multiple plot lines for each plot.
+
 Introduce a system of style classes.
 
 Browser window hangs if it is not the focus for a long period of time.
