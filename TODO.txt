@@ -7,6 +7,8 @@ SERVER
 
 * Allow queries that involve aggregation.
 
+* Results from query on wxrecords for 'today' starts at 0010, not 0005.
+
 CQ timer slowly advances forward in time. It needs to calculate the exact time to the
 next publishing event. Plus, it fails if the server is suspended (as on a laptop).
 
@@ -18,15 +20,9 @@ Need to record gust directions.
 
 CLIENT
 
-* Add "stats" section with proper header.
-
 * Live update of "stats" section.
 
 * Add aggregregations for longer time spans.
-
-* Add a "zoom" feature to the recent plot.
-
-* Need proper header for each plot
 
 * Multiple plot lines for each plot.
 

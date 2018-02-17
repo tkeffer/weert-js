@@ -8,7 +8,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import moment from 'moment/moment';
-import {Label, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer} from 'recharts';
+import {LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer} from 'recharts';
 
 import * as units from '../units';
 
@@ -123,7 +123,6 @@ export default class PlotGroup extends React.PureComponent {
                                                animationDuration={animationDuration}
                                                animationEasing='linear'
                                          />
-                                         <Label value='hello' position='insideTopRight'/>
                                      </LineChart>
                                  </ResponsiveContainer>
                              </div>

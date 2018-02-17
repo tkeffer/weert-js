@@ -14,6 +14,11 @@ import Col from 'react-bootstrap/lib/Col';
 import Jumbotron from 'react-bootstrap/lib/Jumbotron';
 import Tabs from 'react-bootstrap/lib/Tabs';
 import Tab from 'react-bootstrap/lib/Tabs';
+import Nav from 'react-bootstrap/lib/Nav';
+import NavDropdown from 'react-bootstrap/lib/NavDropdown';
+import NavItem from 'react-bootstrap/lib/NavItem';
+import MenuItem from 'react-bootstrap/lib/MenuItem';
+
 
 import {
     selectTags, selectTimeSpan, selectNewStartTime,
@@ -83,8 +88,14 @@ class AppContainer extends React.PureComponent {
         }
     }
 
-    handleChange(nextTimeScale) {
-        this.props.dispatch(selectTimeSpan(nextTimeScale));
+    handleChange(key) {
+        if (key.startsWith('recent')) {
+            let nextTimeDetail;
+            [key, nextTimeDetail] = key.split('.');
+            this.props.dispatch(selectTimeDetail(nextTimeDetail));
+        }
+        this.props.dispatch(selectTimeSpan(key));
+
     }
 
     fetchAndSubscribeIfNeeded(timeSpan) {
@@ -210,13 +221,19 @@ class AppContainer extends React.PureComponent {
                         <Tabs
                             activeKey={this.state.selectedTimeSpan}
                             onSelect={this.handleChange}
-                            id='select-time-span'
                         >
-                            <Tab eventKey='recent' title='Recent' id='recent'/>
-                            <Tab eventKey='day' title='Today' id='day'/>
-                            <Tab eventKey='week' title='This week' id='week'/>
-                            <Tab eventKey='month' title='This month' id='month'/>
-                            <Tab eventKey='year' title='This year' id='year'/>
+                            <Nav bsStyle='tabs'>
+                                <NavDropdown eventKey='recent' title='Recent...'>
+                                    <MenuItem eventKey='recent.5'>5 minutes</MenuItem>
+                                    <MenuItem eventKey='recent.10'>10 minutes</MenuItem>
+                                    <MenuItem eventKey='recent.30'>30 minutes</MenuItem>
+                                    <MenuItem eventKey='recent.60'>60 minutes</MenuItem>
+                                </NavDropdown>
+                                <NavItem eventKey='day'>Today</NavItem>
+                                <NavItem eventKey='week'>This week</NavItem>
+                                <NavItem eventKey='month'>This month</NavItem>
+                                <NavItem eventKey='year'>This year</NavItem>
+                            </Nav>
                         </Tabs>
                         {this.renderPlotGroup()}
                     </Col>
