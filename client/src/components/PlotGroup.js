@@ -8,8 +8,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import moment from 'moment/moment';
+import {Label, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer} from 'recharts';
 
-import {LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer} from 'recharts';
+import * as units from '../units';
 
 const propTypes = {
     isFetching       : PropTypes.bool.isRequired,
@@ -35,7 +36,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    obsTypes         : ["wind_speed", "sealevel_pressure", "out_temperature", "in_temperature"],
+    obsTypes         : ["wind_speed", "out_temperature", "in_temperature", "radiation_radiation", "sealevel_pressure",],
     header           : "Need a header!",
     xDomain          : ['auto', 'auto'],
     xTickFormat      : 'lll',
@@ -82,7 +83,6 @@ export default class PlotGroup extends React.PureComponent {
 
         const timeFormatter = (tick) => {return moment(tick).format(xTickFormat);};
 
-        // TODO: Need tabs to change detail
         return (
             <Component>
                 {isFetching && !packets && <h3>Loading...</h3>}
@@ -95,7 +95,7 @@ export default class PlotGroup extends React.PureComponent {
                      {obsTypes.map((obsType, i) => {
                          return (
                              <div key={obsType}>
-                                 <h4>{obsType} of length {packets.length}</h4>
+                                 <h4>{units.getLabel(obsType)}</h4>
                                  <ResponsiveContainer width={width} height={height} debounce={debounce}>
                                      <LineChart
                                          data={packets}
@@ -119,9 +119,11 @@ export default class PlotGroup extends React.PureComponent {
                                                dataKey={obsType}
                                                stroke={stroke}
                                                dot={dot}
+                                               isAnimationActive={false}
                                                animationDuration={animationDuration}
                                                animationEasing='linear'
                                          />
+                                         <Label value='hello' position='insideTopRight'/>
                                      </LineChart>
                                  </ResponsiveContainer>
                              </div>

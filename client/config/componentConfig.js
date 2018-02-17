@@ -6,7 +6,7 @@
  */
 
 export const plotGroupOptions = {
-    nXTicks    : 5,
+    nXTicks: 5,
     options: {
         recent: {
             xTickFormat: "HH:mm:ss",
@@ -23,6 +23,25 @@ export const plotGroupOptions = {
         year  : {
             xTickFormat: "L",
         }
+    }
+};
+
+export const statsTableOptions = {
+    'day'  : {
+        header    : "Since midnight",
+        timeFormat: "HH:mm:ss",
+    },
+    'week' : {
+        header    : "This week",
+        timeFormat: "HH:mm:ss ddd",
+    },
+    'month': {
+        header    : "This month",
+        timeFormat: "HH:mm:ss Do",
+    },
+    'year' : {
+        header    : "This year",
+        timeFormat: "HH:mm:ss D-MMM",
     }
 };
 

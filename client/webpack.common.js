@@ -39,7 +39,7 @@ module.exports = {
     },
     plugins: [
         // This will clean (delete) the destination directory before the build
-        new CleanWebpackPlugin(['dist']),
+        // new CleanWebpackPlugin(['dist']),
         // This will inject the necessary <script> tag, with a link to the bundle, into the index.html file
         new HtmlWebpackPlugin({
                                   template: path.resolve(src_dir, 'index.html'),

@@ -40,8 +40,8 @@ const propTypes = {
 };
 
 class AppContainer extends React.PureComponent {
-    constructor(props) {
-        super(props);
+    constructor(props, context) {
+        super(props, context);
         this.handleChange = this.handleChange.bind(this);
         this.state        = {
             subscriptions: {},
@@ -167,11 +167,13 @@ class AppContainer extends React.PureComponent {
                   statsTableOptions,
               } = this.state;
 
-        let selectedStats;
+        let selectedStatsSpan, selectedStats;
         if (selectedTimeSpan === 'recent') {
-            selectedStats = this.props.stats['day'];
+            selectedStatsSpan = 'day';
+            selectedStats     = this.props.stats['day'];
         } else {
-            selectedStats = this.props.stats[selectedTimeSpan];
+            selectedStatsSpan = selectedTimeSpan;
+            selectedStats     = this.props.stats[selectedTimeSpan];
         }
 
         return (
@@ -197,7 +199,7 @@ class AppContainer extends React.PureComponent {
                         </div>
 
                         <div>
-                            <StatsTable {...statsTableOptions}
+                            <StatsTable {...this.state.statsTableOptions[selectedStatsSpan]}
                                         statsData={selectedStats.data}
                                         isFetching={selectedStats.isFetching}
                             />
@@ -208,12 +210,13 @@ class AppContainer extends React.PureComponent {
                         <Tabs
                             activeKey={this.state.selectedTimeSpan}
                             onSelect={this.handleChange}
+                            id='select-time-span'
                         >
-                            <Tab eventKey={'recent'} title={"Recent"}/>
-                            <Tab eventKey={'day'} title={"Today"}/>
-                            <Tab eventKey={'week'} title={'This week'}/>
-                            <Tab eventKey={'month'} title={'This month'}/>
-                            <Tab eventKey={'year'} title={'This year'}/>
+                            <Tab eventKey='recent' title='Recent' id='recent'/>
+                            <Tab eventKey='day' title='Today' id='day'/>
+                            <Tab eventKey='week' title='This week' id='week'/>
+                            <Tab eventKey='month' title='This month' id='month'/>
+                            <Tab eventKey='year' title='This year' id='year'/>
                         </Tabs>
                         {this.renderPlotGroup()}
                     </Col>

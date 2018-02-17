@@ -1,39 +1,39 @@
 {
-    "name": "weert",
-    "version": "0.4.0",
-    "private": true,
-    "description": "Logging for real-time data streams",
-    "scripts": {
-        "start": "node ./server/server",
-        "test": "jasmine",
-        "env": "env"
-    },
-    "author": {
-        "name": "Tom Keffer",
-        "email": "tkeffer@gmail.com"
-    },
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/tkeffer/weert-js"
-    },
-    "dependencies": {
-        "basic-auth": "^2.0.0",
-        "body-parser": "^1.18.2",
-        "classnames": "^2.2.5",
-        "compression": "^1.7.1",
-        "debug": "^2.2.0",
-        "express": "^4.13.3",
-        "faye": "^1.2.4",
-        "hbs": "^4.0.1",
-        "influx": "^5.0.7",
-        "morgan": "^1.6.1",
-        "normalize-url": "^1.3.1",
-        "path": "^0.12.7",
-        "url": "^0.11.0"
-    },
-    "devDependencies": {
-        "async": "^1.5.0",
-        "frisby": "^2.0.5",
-        "request": "^2.83.0"
-    }
+  "name": "weert",
+  "version": "0.4.0",
+  "private": true,
+  "description": "Logging for real-time data streams",
+  "scripts": {
+    "start": "node ./server/server",
+    "test": "jasmine",
+    "env": "env"
+  },
+  "author": {
+    "name": "Tom Keffer",
+    "email": "tkeffer@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tkeffer/weert-js"
+  },
+  "dependencies": {
+    "basic-auth": "^2.0.0",
+    "body-parser": "^1.18.2",
+    "classnames": "^2.2.5",
+    "compression": "^1.7.1",
+    "debug": "^2.2.0",
+    "express": "^4.13.3",
+    "faye": "^1.2.4",
+    "hbs": "^4.0.1",
+    "influx": "^5.0.7",
+    "morgan": "^1.6.1",
+    "normalize-url": "^1.3.1",
+    "path": "^0.12.7",
+    "url": "^0.11.0"
+  },
+  "devDependencies": {
+    "async": "^1.5.0",
+    "frisby": "^2.0.5",
+    "request": "^2.83.0"
+  }
 }

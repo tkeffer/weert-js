@@ -22,26 +22,29 @@ const propTypes = {
 
 const defaultProps = {
     header        : "Need a header!",
-    timeFormat    : "HH:MM:ss",
+    timeFormat    : "HH:mm:ss D-MMM",
     componentClass: 'div'
 };
 
 function Line(props) {
 
-    const {obsType, statsData, unitSystem, timeFormat, stats} = props;
+    const {obsType, statsData, unitSystem, timeFormat, stats, componentClass: ComponentProp} = props;
+
+    const Component = ComponentProp || 'span';
+
     return (
-        <span>
-        {`${units.getValueString(obsType,
-                                 utility.getNested([obsType, stats, "value"],
-                                                   statsData),
-                                 unitSystem)} at ` +
-         `${units.getValueString("timestamp",
-                                 utility.getNested([obsType, stats, "timestamp"],
-                                                   statsData),
-                                 unitSystem,
-                                 timeFormat)}`
-        }
-        </span>
+        <Component>
+            {`${units.getValueString(obsType,
+                                     utility.getNested([obsType, stats, "value"],
+                                                       statsData),
+                                     unitSystem)} at ` +
+             `${units.getValueString("timestamp",
+                                     utility.getNested([obsType, stats, "timestamp"],
+                                                       statsData),
+                                     unitSystem,
+                                     timeFormat)}`
+            }
+        </Component>
     );
 }
 
@@ -84,9 +87,47 @@ export default class StatsTable extends React.PureComponent {
                      <Table bordered hover>
                          <tbody>
                          <tr>
-                             <td>High Temperature<br/>Low Temperature</td>
+                             <td>Max Wind Speed</td>
+                             <Line
+                                 obsType='wind_speed'
+                                 statsData={statsData}
+                                 unitSystem={unitSystem}
+                                 timeFormat={timeFormat}
+                                 stats='max'
+                                 componentClass='td'
+                             />
+                         </tr>
+                         <tr>
+                             <td>Low Outside Temperature<br/>High Outside Temperature</td>
                              <MinMaxColumn
-                                 obsType={"out_temperature"}
+                                 obsType='out_temperature'
+                                 statsData={statsData}
+                                 unitSystem={unitSystem}
+                                 timeFormat={timeFormat}
+                             />
+                         </tr>
+                         <tr>
+                             <td>Low Inside Temperature<br/>High Inside Temperature</td>
+                             <MinMaxColumn
+                                 obsType='in_temperature'
+                                 statsData={statsData}
+                                 unitSystem={unitSystem}
+                                 timeFormat={timeFormat}
+                             />
+                         </tr>
+                         <tr>
+                             <td>Min Solar Radiation<br/>Max Solar Radiation</td>
+                             <MinMaxColumn
+                                 obsType='radiation_radiation'
+                                 statsData={statsData}
+                                 unitSystem={unitSystem}
+                                 timeFormat={timeFormat}
+                             />
+                         </tr>
+                         <tr>
+                             <td>Min Sea-level Pressure<br/>Max Sea-level Pressure</td>
+                             <MinMaxColumn
+                                 obsType='sealevel_pressure'
                                  statsData={statsData}
                                  unitSystem={unitSystem}
                                  timeFormat={timeFormat}

@@ -33,5 +33,5 @@ export function isSame(option1, option2) {
 // Access a deeply nested value, with thanks to A. Sharif (https://goo.gl/f924sP)
 export function getNested(path, obj) {
     return path.reduce((xs, x) =>
-                        (xs && xs[x]) ? xs[x] : null, obj);
+                           ((xs != null) && (xs[x] != null)) ? xs[x] : undefined, obj);
 }

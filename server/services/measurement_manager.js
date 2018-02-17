@@ -156,9 +156,6 @@ class MeasurementManager {
         let ordering    = [];
         let from_clause = auxtools.get_query_from(measurement, this.measurement_config[measurement]);
 
-        console.log(now_moment);
-        console.log(start, stop);
-
         // Calculate any necessary time shift for this measurement
         let timeshift = this.measurement_config[measurement] &&
                         this.measurement_config[measurement].timeshift ?

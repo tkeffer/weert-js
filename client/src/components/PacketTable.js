@@ -22,7 +22,10 @@ const propTypes = {
 
 const defaultProps = {
     packet        : undefined,
-    obsTypes      : ["timestamp", "sealevel_pressure", "out_temperature", "in_temperature"],
+    obsTypes      : [
+        "timestamp", "wind_speed", "out_temperature", "in_temperature",
+        "radiation_radiation", "sealevel_pressure",
+    ],
     header        : "Current Values",
     isFetching    : true,
     componentClass: 'div',
