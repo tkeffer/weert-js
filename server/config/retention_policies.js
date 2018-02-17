@@ -13,6 +13,7 @@ module.exports = {
     "h24": {
         database   : 'weert',
         duration   : '24h',
-        replication: 1
+        replication: 1,
+        isDefault  : true
     }
 };
