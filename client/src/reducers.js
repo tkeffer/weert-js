@@ -114,6 +114,9 @@ function reduceTags(state = initialTags, action) {
 function reduceSelectedTimeSpan(state = initialTimeSpan, action) {
     switch (action.type) {
         case SELECT_TIME_SPAN:
+            if (action.timeSpan === state.selectedTimeSpan){
+                return state;
+            }
             return action.timeSpan;
         default:
             return state;
@@ -123,11 +126,8 @@ function reduceSelectedTimeSpan(state = initialTimeSpan, action) {
 function reduceTimeSpans(state = initialTimeSpanState, action) {
     switch (action.type) {
         case SELECT_TIME_DETAIL:
-            if (isDevelopment()) {
-                if (action.timeSpan !== 'recent') {
-                    throw new Error(`Attempt to change time detail for time `
-                                    + `span (${action.timeSpan}) other than recent`);
-                }
+            if (action.timeDetail === state.recent.options.selectedTimeDetail){
+                return state;
             }
             return {
                 ...state,
