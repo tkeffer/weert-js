@@ -26,7 +26,7 @@ const defaultProps = {
         "timestamp", "wind_speed", "out_temperature", "in_temperature",
         "radiation_radiation", "sealevel_pressure",
     ],
-    header        : "Current Values",
+    header        : "Current values",
     isFetching    : true,
     componentClass: 'div',
 };

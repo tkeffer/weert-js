@@ -62,6 +62,19 @@ function MinMaxColumn(props) {
     );
 }
 
+function MinMaxRow(props){
+    const {obsType} = props;
+    return (
+        <tr>
+            <td>Low {units.getLabel(obsType)}<br/>High {units.getLabel(obsType)}</td>
+            <MinMaxColumn
+                {...props}
+            />
+        </tr>
+
+    )
+}
+
 /*
  * Place holder for a table holding statistics
  */
@@ -97,43 +110,30 @@ export default class StatsTable extends React.PureComponent {
                                  componentClass='td'
                              />
                          </tr>
-                         <tr>
-                             <td>Low Outside Temperature<br/>High Outside Temperature</td>
-                             <MinMaxColumn
-                                 obsType='out_temperature'
-                                 statsData={statsData}
-                                 unitSystem={unitSystem}
-                                 timeFormat={timeFormat}
-                             />
-                         </tr>
-                         <tr>
-                             <td>Low Inside Temperature<br/>High Inside Temperature</td>
-                             <MinMaxColumn
-                                 obsType='in_temperature'
-                                 statsData={statsData}
-                                 unitSystem={unitSystem}
-                                 timeFormat={timeFormat}
-                             />
-                         </tr>
-                         <tr>
-                             <td>Min Solar Radiation<br/>Max Solar Radiation</td>
-                             <MinMaxColumn
-                                 obsType='radiation_radiation'
-                                 statsData={statsData}
-                                 unitSystem={unitSystem}
-                                 timeFormat={timeFormat}
-                             />
-                         </tr>
-                         <tr>
-                             <td>Min Sea-level Pressure<br/>Max Sea-level Pressure</td>
-                             <MinMaxColumn
-                                 obsType='sealevel_pressure'
-                                 statsData={statsData}
-                                 unitSystem={unitSystem}
-                                 timeFormat={timeFormat}
-                             />
-                         </tr>
-
+                         <MinMaxRow
+                             obsType='out_temperature'
+                             statsData={statsData}
+                             unitSystem={unitSystem}
+                             timeFormat={timeFormat}
+                         />
+                         <MinMaxRow
+                             obsType='in_temperature'
+                             statsData={statsData}
+                             unitSystem={unitSystem}
+                             timeFormat={timeFormat}
+                         />
+                         <MinMaxRow
+                             obsType='radiation_radiation'
+                             statsData={statsData}
+                             unitSystem={unitSystem}
+                             timeFormat={timeFormat}
+                         />
+                         <MinMaxRow
+                             obsType='sealevel_pressure'
+                             statsData={statsData}
+                             unitSystem={unitSystem}
+                             timeFormat={timeFormat}
+                         />
                          </tbody>
                      </Table>
                  </div>}
