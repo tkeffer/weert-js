@@ -90,9 +90,10 @@ const PacketRouterFactory = function (measurement_manager, pub_sub) {
                 limit     : req.query.limit,
                 direction : req.query.direction
             })
-            .then(packet => {
+            .then(packets => {
+                debug(`GET /measurements/${measurement}/packets returned ${packets.length} packets`);
                 res.status(200)
-                   .json(packet);
+                   .json(packets);
             })
             .catch(err => {
                 debug('GET /measurements/:measurement/packets/ error:', err.message);

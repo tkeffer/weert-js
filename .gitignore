@@ -5,9 +5,6 @@ client/dist/
 .project
 .pydevproject
 
-# JetBrains
-.idea
-
 # GFM viewers
 .*.md.html
 
