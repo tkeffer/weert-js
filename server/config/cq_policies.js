@@ -10,41 +10,18 @@
  * such as daily, could be added.
  */
 
+var obs_types = require('./obs_types');
+
+// Extract the aggregation type from the observation type metadata.
+var aggregations = obs_types.reduce(
+    (accum, current) => {
+        accum[current.obs_type] = current.subsample;
+        return accum;
+    }, {});
+
 module.exports = {
     "Standard5": {
         "interval"   : "5m",
-        "aggregation": {
-            "altimeter_pressure"            : "avg",
-            "console_voltage"               : "avg",
-            "dewpoint_temperature"          : "avg",
-            "extra1_humidity_percent"       : "avg",
-            "extra1_temperature"            : "avg",
-            "extra2_humidity_percent"       : "avg",
-            "extra2_temperature"            : "avg",
-            "extra3_temperature"            : "avg",
-            "gauge_pressure"                : "avg",
-            "heatindex_temperature"         : "avg",
-            "in_humidity_percent"           : "avg",
-            "in_temperature"                : "avg",
-            "in_temperature_battery_status" : "last",
-            "leaf1_temperature"             : "avg",
-            "leaf2_temperature"             : "avg",
-            "out_temperature"               : "avg",
-            "out_temperature_battery_status": "last",
-            "radiation_radiation"           : "avg",
-            "rain_battery_status"           : "last",
-            "rain_rain"                     : "sum",
-            "sealevel_pressure"             : "avg",
-            "soil1_temperature"             : "avg",
-            "soil2_temperature"             : "avg",
-            "soil3_temperature"             : "avg",
-            "soil4_temperature"             : "avg",
-            "unit_system"                   : "last",
-            "uv_uv"                         : "avg",
-            "wind_speed"                    : "avg",
-            "windchill_temperature"         : "avg",
-            "x_wind_speed"                  : "avg",
-            "y_wind_speed"                  : "avg",
-        }
+        "aggregation": aggregations,
     }
 };
