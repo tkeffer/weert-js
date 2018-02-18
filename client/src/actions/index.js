@@ -84,6 +84,14 @@ function receiveTimeSpan(timeSpan, packets) {
     };
 }
 
+function receiveTimeSpanFailed(timeSpan, err) {
+    return {
+        type: FETCH_TIMESPAN_FAILURE,
+        timeSpan,
+        err
+    };
+}
+
 function fetchTimeSpan(measurement, tags, timeSpan, options) {
     return dispatch => {
         let start, stop;
@@ -98,7 +106,8 @@ function fetchTimeSpan(measurement, tags, timeSpan, options) {
             stop  = getStopTime(options.start, timeSpan);
         }
         return api.getPackets(measurement, tags, start, stop, options.aggregation)
-                  .then(packets => dispatch(receiveTimeSpan(timeSpan, packets)));
+                  .then(packets => dispatch(receiveTimeSpan(timeSpan, packets)))
+                  .catch(err => dispatch(receiveTimeSpanFailed(timeSpan, err)));
     };
 }
 
@@ -169,12 +178,21 @@ function receiveStats(timeSpan, stats) {
     };
 }
 
+function receiveStatsFailed(timeSpan, err) {
+    return {
+        type: FETCH_STATS_FAILURE,
+        timeSpan,
+        err
+    };
+}
+
 function fetchStats(measurement, tags, timeSpan) {
     return dispatch => {
         // Let the world know that a fetch is in progress
         dispatch(fetchStatsInProgress(timeSpan));
         return api.getStats(measurement, tags, timeSpan)
-                  .then(stats => dispatch(receiveStats(timeSpan, stats)));
+                  .then(stats => dispatch(receiveStats(timeSpan, stats)))
+                  .catch(err => dispatch(receiveStatsFailed(timeSpan, err)));
     };
 }
 
