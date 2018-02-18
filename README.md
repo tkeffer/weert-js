@@ -22,8 +22,9 @@ on Ubuntu 16.04:
   $ systemctl start influxdb
   ```
 
-3. Download and install [node](https://nodejs.org/en/). WeeRT was tested with version 6.13.0.
-Later versions should work fine.
+3. Download and install [node](https://nodejs.org/en/). WeeRT was tested with version 8.9.0,
+also known as LTS/Carbon. This version or later is needed to support the object "spread" operator
+used by WeeRT. Later versions should work fine.
 
 4. Download WeeRT from the git repository
 

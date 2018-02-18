@@ -31,14 +31,21 @@ class MeasurementManager {
         if (deep_packet.measurement && deep_packet.measurement !== measurement) {
             return Promise.reject(new Error("Value of 'measurement' in packet does not match given value."));
         }
-        // Filter out any nulls because InfluxDB will reject them.
-        // This will mutate deep_packet!!
-        for (let k in deep_packet.fields) {
-            if (deep_packet.fields[k] === null)
-                delete deep_packet.fields[k];
-        }
+
+        // Make a copy of the packet, filtering out any nulls because InfluxDB will reject them.
+        const final_packet = {
+            ...deep_packet,
+            fields: Object.keys(deep_packet.fields)
+                          .filter(k => deep_packet.fields[k] != null)
+                          .reduce((f, k) => {
+                                      f[k] = deep_packet.fields[k];
+                                      return f;
+                                  }, {}
+                          )
+        };
+
         return this.influx
-                   .writeMeasurement(measurement, [deep_packet],
+                   .writeMeasurement(measurement, [final_packet],
                                      this._get_write_options(measurement));
     }
 
