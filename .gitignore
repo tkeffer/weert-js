@@ -5,6 +5,12 @@ client/dist/
 .project
 .pydevproject
 
+# Jetbrains
+.idea
+# Except coding styles. We want them in the repository
+!.idea/codeStyles/codeStyleConfig.xml
+!.idea/codeStyles/Project.xml
+
 # GFM viewers
 .*.md.html
 
