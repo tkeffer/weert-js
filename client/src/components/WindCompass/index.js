@@ -115,7 +115,7 @@ class Wedge extends React.PureComponent {
         // Get the angle from state
         const {angle}                        = this.state;
         // If the wind direction is undefined, render nothing
-        if (angle === undefined)
+        if (angle == null)
             return null;
         return (
             <path
