@@ -56,7 +56,7 @@ const initialTimeSpanState = {
         packets    : [],
         options    : {
             start      : moment().startOf('week').valueOf(),
-            aggregation: 3600000,      // = 1 hours in milliseconds
+            aggregation: '1h',
         }
     },
     month : {
@@ -65,7 +65,7 @@ const initialTimeSpanState = {
         packets    : [],
         options    : {
             start      : moment().startOf('month').valueOf(),
-            aggregation: 3600000,      // = 3 hours in milliseconds
+            aggregation: '3h',
         }
     },
     year  : {
@@ -74,7 +74,7 @@ const initialTimeSpanState = {
         packets    : [],
         options    : {
             start      : moment().startOf('year').valueOf(),
-            aggregation: 21600000,      // = 6 hours in milliseconds
+            aggregation: '6h',
         }
     },
 };

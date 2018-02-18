@@ -16,7 +16,7 @@ export function getPackets(measurement, tags, start, stop, aggregation) {
     const url   = `http://${window.location.host}/api/v1/measurements/${measurement}/packets`;
     let params  = `?start=${start}`;
     if (stop) params += `&stop=${stop}`;
-    if (aggregation) params += `&aggregation=${aggregation}`
+    if (aggregation) params += `&group=${aggregation}`
     if (platform) params += `&platform=${platform}`;
     if (stream) params += `&stream=${stream}`;
 
@@ -25,8 +25,9 @@ export function getPackets(measurement, tags, start, stop, aggregation) {
     // TODO: Should probably add a timeout
     return fetch(fullUrl)
         .then(response => {
-            if (!response.ok)
+            if (!response.ok) {
                 return Promise.reject(new Error(response.statusText));
+            }
             return response.json();
         });
 }

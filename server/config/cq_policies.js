@@ -15,7 +15,8 @@ var obs_types = require('./obs_types');
 module.exports = {
     "Standard5": {
         "interval"   : "5m",
-        // Just use the subsampling specified in obs_types.
+        // This allows one to specify a generalized aggregation policy, but we
+        //  will just use the subsampling specified in obs_types.
         "aggregation": obs_types,
     }
 };

@@ -95,6 +95,8 @@ class MeasurementManager {
             return Promise.reject(new Error("Aggregation requires a start and/or stop time"));
         }
 
+        // If aggregation was specified, get the aggregation clause. This will be something like
+        // "avg(out_temperature) as out_temperature,SUM(rain_rain) as rain_rain, ..."
         const agg_clause  = group_by ? sub_sampling.form_agg_clause(aggregates, true) : '*';
         const from_clause = auxtools.get_query_from(measurement, this.measurement_config[measurement]);
 

@@ -133,7 +133,7 @@ class AppContainer extends React.PureComponent {
 
             header = `This ${selectedTimeSpan}`;
             if (selectedState.options.aggregation) {
-                header += ` (${selectedState.options.aggregation / 60000} minute aggregation)`;
+                header += ` (${selectedState.options.aggregation} aggregation)`;
             }
         }
 
