@@ -1,7 +1,14 @@
 # WeeRT
-A real-time logging and display server, using Node, Express, and InfluxDB.
+
+WeeRT consists of two, independent parts:
+- A real-time logging and display server, written with [Node](https://nodejs.org/en/),
+[Express](http://expressjs.com/), and [InfluxDB](https://www.influxdata.com/).
+- A client, written with [React](https://reactjs.org/) and [Redux](https://redux.js.org/),
+that interacts with the server.
 
 This utility is still EXPERIMENTAL, and will require some skill to install and administer.
+
+The server and client use separate install and build procedures.
 
 ## Installing the server
 
@@ -24,7 +31,7 @@ Later versions should work fine.
   $ git clone https://github.com/tkeffer/weert-js.git
   ```
 
-5. Enter the directory, and install the dependencies
+5. Enter the directory, and install the server dependencies
 
   ```shell
   $ cd weert-js
@@ -78,12 +85,14 @@ not support the POST method used by the uploader.
 
 4. Run `weewxd`
 
-## Running the browser client
+## Building and running the client
 
-1. Build the client dependencies
+1. Install, then build the client libraries.
 
     ```shell
-    npm run build
+    cd client
+   npm install
+   npm run build
     ```
 
 2. After making sure the WeeRT server is still running, open up a client at [http://localhost:3000](http://localhost:3000).
@@ -96,9 +105,11 @@ not support the POST method used by the uploader.
 - Data are stored in a [InfluxDB](https://www.influxdata.com/) server.
 - Realtime updates are done through a publish - subscribe interface
   using [Faye](http://faye.jcoglan.com).
-- Realtime plots are done using [plotly.js](https://plot.ly/javascript/)
-
-For experimental purposes.
+- The client asks for the necessary data through the API, then subscribes to any updates.
+- The client view is managed by React.
+- The client data state is managed by Reflux.
+- Realtime plots are done using [Recharts](http://recharts.org). This is a charting library that uses
+  React to create DOM elements. As of 15-Feb-2018 it is still in beta, but seems reasonably stable.
 
 ## Notes
 
@@ -169,14 +180,10 @@ Which brings us to the next topic...
 
 ### Units
 
-Internally, WeeRT makes no assumptions about units. However, the
-browser client does. Right now, it assumes all units are US
-Customary. If they are in something else, you'll have to change the
-HTML.
+Internally, the WeeRT server makes no assumptions about units.
 
-Eventually, WeeRT will be able to determine the proper unit label to
-use from an observation's inferred unit group and from the type
-`unit_system` (similar to WeeWX's `usUnits`).
+The client is unit-agnostic, except for the WindCompass, which assumes US
+Customary.
 
 ### Security
 
@@ -349,6 +356,7 @@ GET /api/v1/measurements/:measurement/packets
 | `stop`          | integer | All packets less than or equal to this timestamp in milliseconds will be included in the results. Default: last available packet.  |
 | `limit`         | integer | Limit the number of returned packets to this value. Default: no limit.                                              |
 | `direction`     | string  | The direction of the sort. Can be either `asc` or `desc`. Default: `asc`.                                           |
+| `group`         | string  | Group by time (*e.g.* '1h''). This will perform a server-defined aggregation for each observation type.             |
 
 
 **Response code**

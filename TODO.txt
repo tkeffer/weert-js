@@ -1,6 +1,5 @@
 CONFIGURATION
 
-* Update README install instructions to reflect separate client and server installs.
 
 
 SERVER
@@ -26,14 +25,16 @@ CLIENT
 
 * Add reducers and UI code to deal with failed requests FETCH_TIMESPAN_FAILURE and FETCH_STATS_FAILURE.
 
+* Check that Metric units work in client.
+
+WindCompass assumes US units.
+
 Introduce a system of style classes.
 
 Browser window hangs if it is not the focus for a long period of time.
 
 Look into using react-smooth or react-transition-group instead of d3 to do WindCompass
 transition.
-
-Deal with unit systems.
 
 Highlight changed values in the "since midnight" stats area.
 
