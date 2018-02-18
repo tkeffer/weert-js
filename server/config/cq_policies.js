@@ -12,16 +12,10 @@
 
 var obs_types = require('./obs_types');
 
-// Extract the aggregation type from the observation type metadata.
-var aggregations = obs_types.reduce(
-    (accum, current) => {
-        accum[current.obs_type] = current.subsample;
-        return accum;
-    }, {});
-
 module.exports = {
     "Standard5": {
         "interval"   : "5m",
-        "aggregation": aggregations,
+        // Just use the subsampling specified in obs_types.
+        "aggregation": obs_types,
     }
 };

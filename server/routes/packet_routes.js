@@ -88,7 +88,8 @@ const PacketRouterFactory = function (measurement_manager, pub_sub) {
                 start_time: req.query.start,
                 stop_time : req.query.stop,
                 limit     : req.query.limit,
-                direction : req.query.direction
+                direction : req.query.direction,
+                group_by  : req.query.group
             })
             .then(packets => {
                 debug(`GET /measurements/${measurement}/packets returned ${packets.length} packets`);

@@ -8,7 +8,9 @@
 
 const moment = require('moment');
 
-const auxtools = require('../auxtools');
+const auxtools     = require('../auxtools');
+const obs_types    = require('../config/obs_types');
+const sub_sampling = require('./subsampling');
 
 /*
  * Class to manage the InfluxDB database
@@ -62,25 +64,51 @@ class MeasurementManager {
                    });
     }
 
+    /**
+     * Return an array of packets that satisfy a query, possibly aggregating them and grouping by time.
+     * @param {string} measurement - The measurement name
+     * @param {string|undefined} platform - Select by platform. Otherwise, all platforms
+     * @param {string|undefined} stream - Select by stream. Otherwise, all streams.
+     * @param {number|undefined} start_time - Only times greater than this value will be included. In milliseconds
+     * @param {number|undefined} stop_time - Only times less than or equal to this value will be included. In
+     *     milliseconds.
+     * @param {number|undefined} limit - The max number of packets to be returned.
+     * @param {string|undefined} direction - The sorting direction (by time). Either 'asc' or 'desc'.
+     * @param {string|undefined} group_by - If not-null, perform an aggregation query, grouping by time.
+     *                            The time interval should be something like '1h' or '15m'. See https://goo.gl/6fhBrD
+     *                            Default is no aggregation.
+     * @param {object[]} aggregates - If doing an aggregation query, this array holds the type of
+     *                            aggregation to be used for each observation type.
+     * @param {string} aggregates[].obs_type - The observation type (e.g., "out_temperature")
+     * @param (string} aggregates[].subsample - The aggregation (e.g., 'avg') to be used for this type.
+     * @returns {Promise<object[]>} - A promise to return an array of packets.
+     */
     find_packets(measurement, {
         platform = undefined, stream = undefined,
         start_time = undefined, stop_time = undefined,
-        limit = undefined, direction = 'asc'
+        limit = undefined, direction = 'asc',
+        group_by = undefined,
+        aggregates = obs_types,
     } = {}) {
 
-        let from_clause = auxtools.get_query_from(measurement, this.measurement_config[measurement]);
+        if (group_by && start_time == null && stop_time == null) {
+            return Promise.reject(new Error("Aggregation requires a start and/or stop time"));
+        }
+
+        const agg_clause  = group_by ? sub_sampling.form_agg_clause(aggregates, true) : '*';
+        const from_clause = auxtools.get_query_from(measurement, this.measurement_config[measurement]);
 
         let query_string;
         if (start_time) {
             if (stop_time)
-                query_string = `SELECT * FROM ${from_clause} WHERE time > ${start_time}ms AND time <= ${stop_time}ms`;
+                query_string = `SELECT ${agg_clause} FROM ${from_clause} WHERE time > ${start_time}ms AND time <= ${stop_time}ms`;
             else
-                query_string = `SELECT * FROM ${from_clause} WHERE time > ${start_time}ms`;
+                query_string = `SELECT ${agg_clause} FROM ${from_clause} WHERE time > ${start_time}ms`;
         } else {
             if (stop_time)
-                query_string = `SELECT * FROM ${from_clause} WHERE time <= ${stop_time}ms`;
+                query_string = `SELECT ${agg_clause} FROM ${from_clause} WHERE time <= ${stop_time}ms`;
             else
-                query_string = `SELECT * FROM ${from_clause}`;
+                query_string = `SELECT ${agg_clause} FROM ${from_clause}`;
         }
 
         if (platform) {
@@ -95,6 +123,10 @@ class MeasurementManager {
                 query_string += ` AND stream = '${stream}'`;
             else
                 query_string += ` WHERE stream = '${stream}'`;
+        }
+
+        if (group_by) {
+            query_string += ` GROUP BY time(${group_by})`;
         }
 
         query_string += ` ORDER BY time ${direction}`;

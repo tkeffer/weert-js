@@ -9,6 +9,8 @@ SERVER
 
 * Results from query on wxrecords for 'today' starts at 0010, not 0005.
 
+* Add documentation for aggregation queries.
+
 CQ timer slowly advances forward in time. It needs to calculate the exact time to the
 next publishing event. Plus, it fails if the server is suspended (as on a laptop).
 
