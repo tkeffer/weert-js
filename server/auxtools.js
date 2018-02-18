@@ -86,7 +86,7 @@ let raw_to_deep = function (columns, row) {
         // Convert timestamp from string to a number
             deep_packet['timestamp'] = +row[i];
         else
-            deep_packet['fields'][type] = +row[i];
+            deep_packet['fields'][type] = row[i];
     }
     return deep_packet;
 };
