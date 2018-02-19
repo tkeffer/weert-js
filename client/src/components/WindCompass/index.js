@@ -46,7 +46,7 @@ const defaultProps = {
         "S", "SSW", "SW", "WSW",
         "W", "WNW", "NW", "NNW"
     ],
-    maxPrevDirs       : 10,
+    maxPrevDirs       : 20,
     wedgeLength       : 5,
     viewBoxSize       : 250
 };
@@ -88,7 +88,7 @@ class Wedge extends React.PureComponent {
 
         // To do a transition, both angles must be defined, and not equal to each other.
         // Otherwise, just jump to the ending angle.
-        if (startAngle === undefined || endAngle === undefined || startAngle === endAngle) {
+        if (startAngle == null || endAngle == null || startAngle === endAngle) {
             this.setState({angle: endAngle});
         }
         else {
