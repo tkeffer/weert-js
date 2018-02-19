@@ -161,7 +161,7 @@ export default class WindCompass extends React.PureComponent {
 
     generateSpeedDisplay() {
         let text;
-        if (this.props.windSpeed === undefined) {
+        if (this.props.windSpeed == null) {
             text = this.props.naText;
         } else {
             text = this.props.windSpeed.toFixed(this.props.decimalDigits);
@@ -176,7 +176,7 @@ export default class WindCompass extends React.PureComponent {
 
     generateOrdinalDisplay() {
         let text;
-        if (this.props.windDirection === undefined) {
+        if (this.props.windDirection == null) {
             text = this.props.naText;
         } else {
             text = this.windDirToCardinalConverter(this.props.windDirection);
