@@ -4,13 +4,7 @@ CONFIGURATION
 
 SERVER
 
-* Results from query on wxrecords for 'today' starts at 0010, not 0005.
-  (Need to shift the time in ALL select statements! This includes aggregations.)
-
 * CQs need to record wind gusts.
-
-CQ timer slowly advances forward in time. It needs to calculate the exact time to the
-next publishing event. Plus, it fails if the server is suspended (as on a laptop).
 
 Need to record gust directions.
 
@@ -25,8 +19,6 @@ CLIENT
 * Check that Metric units work in client.
 
 Add reducers and UI code to deal with failed requests FETCH_TIMESPAN_FAILURE and FETCH_STATS_FAILURE.
-
-WindCompass assumes US units.
 
 Introduce a system of style classes.
 

@@ -26,22 +26,27 @@ class MeasurementManager {
     insert_packet(measurement, deep_packet) {
 
         // Make sure the packet has a timestamp.
-        if (deep_packet.timestamp === undefined)
+        if (deep_packet.timestamp == null)
             return Promise.reject(new Error("No timestamp"));
         if (deep_packet.measurement && deep_packet.measurement !== measurement) {
             return Promise.reject(new Error("Value of 'measurement' in packet does not match given value."));
         }
 
+        const timeshift = this._get_timeshift(measurement);
+
         // Make a copy of the packet, filtering out any nulls because InfluxDB will reject them.
+        // Also, if this measurement is the result of a CQ, its timestamps will mark the
+        // *beginning* of an interval, not the end. So, before inserting the packet, change
+        // the timestamp to the beginning of the interval.
         const final_packet = {
             ...deep_packet,
-            fields: Object.keys(deep_packet.fields)
-                          .filter(k => deep_packet.fields[k] != null)
-                          .reduce((f, k) => {
-                                      f[k] = deep_packet.fields[k];
-                                      return f;
-                                  }, {}
-                          )
+            timestamp: deep_packet.timestamp - timeshift,
+            fields   : Object.keys(deep_packet.fields)
+                             .filter(k => deep_packet.fields[k] != null)
+                             .reduce((f, k) => {
+                                 f[k] = deep_packet.fields[k];
+                                 return f;
+                             }, {})
         };
 
         return this.influx
@@ -51,6 +56,10 @@ class MeasurementManager {
 
     find_packet(measurement, timestamp, {platform = undefined, stream = undefined} = {}) {
 
+        // If this measurement has timestamps marking the *beginning* of an interval instead
+        // of the more normal end, shift the timestamp.
+        const timeshift = this._get_timeshift(measurement);
+        timestamp -= timeshift;
         let from_clause = auxtools.get_query_from(measurement, this.measurement_config[measurement]);
 
         let query_string = `SELECT * FROM ${from_clause} WHERE time=${timestamp}ms`;
@@ -101,6 +110,12 @@ class MeasurementManager {
         if (group_by && start_time == null && stop_time == null) {
             return Promise.reject(new Error("Aggregation requires a start and/or stop time"));
         }
+
+        // If this measurement has timestamps marking the *beginning* of an interval instead
+        // of the more normal end, shift the timestamps.
+        const timeshift = this._get_timeshift(measurement);
+        if (start_time) start_time -= timeshift;
+        if (stop_time) stop_time -= timeshift;
 
         // If aggregation was specified, get the aggregation clause. This will be something like
         // "avg(out_temperature) as out_temperature,SUM(rain_rain) as rain_rain, ..."
@@ -159,6 +174,11 @@ class MeasurementManager {
 
     delete_packet(measurement, timestamp, {platform = undefined, stream = undefined} = {}) {
 
+        // If this measurement has timestamps marking the *beginning* of an interval instead
+        // of the more normal end, shift the timestamp.
+        const timeshift = this._get_timeshift(measurement);
+        timestamp -= timeshift;
+
         let from_clause = auxtools.get_query_from(measurement, this.measurement_config[measurement]);
 
         let delete_stmt = `DELETE FROM ${from_clause} WHERE time=${timestamp}ms`;
@@ -177,31 +197,26 @@ class MeasurementManager {
     }
 
     delete_measurement(measurement) {
-        let db;
-        let measurement_config = this.measurement_config[measurement];
-        if (measurement_config && 'database' in measurement_config) {
-            db = measurement_config.database;
-        }
+        const db = auxtools.getNested(['measurement_config', measurement, 'database'], this);
         return this.influx.dropMeasurement(measurement, db);
     }
-
 
     run_stats(measurement, stats_specs, {
         platform = undefined, stream = undefined,
         now = undefined, span = 'day'
     } = {}) {
-        let now_moment  = now ? moment(+now) : moment();
-        let start       = +now_moment.startOf(span);
-        let stop        = +now_moment.endOf(span);
-        let queries     = [];
-        let ordering    = [];
-        let from_clause = auxtools.get_query_from(measurement, this.measurement_config[measurement]);
+        const now_moment  = now ? moment(+now) : moment();
+        let start         = +now_moment.startOf(span);
+        let stop          = +now_moment.endOf(span);
+        let queries       = [];
+        let ordering      = [];
+        const from_clause = auxtools.get_query_from(measurement, this.measurement_config[measurement]);
 
-        // Calculate any necessary time shift for this measurement
-        let timeshift = this.measurement_config[measurement] &&
-                        this.measurement_config[measurement].timeshift ?
-            this.measurement_config[measurement].timeshift : 0;
-
+        // If this measurement has timestamps marking the *beginning* of an interval instead
+        // of the more normal end, shift the timestamp.
+        const timeshift = this._get_timeshift(measurement);
+        start -= timeshift;
+        stop -= timeshift;
 
         // First, build all the queries that will be needed.
         // One for each measurement and aggregation type
@@ -213,22 +228,14 @@ class MeasurementManager {
                     let agg_lc = agg.toLowerCase();
                     if (agg_lc === 'avg')
                         agg_lc = 'mean';
-                    let query_string;
-                    // The query will vary whether a timestamp marks the beginning or end of an interval.
-                    // All are the end, except the results of Continuous Queries, which, inexplicably,
-                    // are timestamped by their beginning. Vary the query accordingly
-                    if (timeshift) {
-                        query_string = `SELECT ${agg_lc}(${obs_type}) ` +
-                                       `FROM ${from_clause} WHERE time>=${start}ms AND time<${stop}ms`;
-                    } else {
-                        query_string = `SELECT ${agg_lc}(${obs_type}) ` +
+                    let query_string = `SELECT ${agg_lc}(${obs_type}) ` +
                                        `FROM ${from_clause} WHERE time>${start}ms AND time<=${stop}ms`;
-                    }
 
                     if (platform)
                         query_string += ` AND platform = '${platform}'`;
                     if (stream)
                         query_string += ` AND stream = '${stream}'`;
+
                     queries.push(query_string);
 
                     // Remember the observation types and aggregation type for each query
@@ -256,7 +263,7 @@ class MeasurementManager {
                            final_results[obs_type][agg_type] = {"value": null};
                            // Aggregation types 'count' and 'sum' do not have a timestamp
                            // associated with them.
-                           if (agg_type !== 'count' && agg_type != 'sum')
+                           if (agg_type !== 'count' && agg_type !== 'sum')
                                final_results[obs_type][agg_type]['timestamp'] = null;
 
 
@@ -286,7 +293,7 @@ class MeasurementManager {
                                // OK, we've found the aggregation value and time. Set the final result
                                // accordingly
                                final_results[obs_type][agg_type]['value'] = agg_value;
-                               if (agg_type !== 'count' && agg_type != 'sum')
+                               if (agg_type !== 'count' && agg_type !== 'sum')
                                    final_results[obs_type][agg_type]['timestamp'] = time + timeshift;
                            }
                        }
@@ -296,12 +303,8 @@ class MeasurementManager {
 
 
     _get_write_options(measurement) {
-        let rp = undefined;
-        let db = undefined;
-        if (measurement in this.measurement_config) {
-            rp = this.measurement_config[measurement].rp;
-            db = this.measurement_config[measurement].database;
-        }
+        const rp = auxtools.getNested(['measurement_config', measurement, 'rp'], this);
+        const db = auxtools.getNested(['measurement_config', measurement, 'database'], this);
         return {
             retentionPolicy: rp,
             database       : db,
@@ -310,10 +313,17 @@ class MeasurementManager {
     }
 
     _shift_timestamp(measurement, packet) {
+        packet.timestamp += this._get_timeshift(measurement);
+    }
+
+    _get_timeshift(measurement) {
         // This is to correct a flaw in continuous queries. They timestamp their result with the
-        // beginning of the aggregation period, while we want the end. So shift the time.
-        if (this.measurement_config[measurement] && this.measurement_config[measurement].timeshift)
-            packet.timestamp += this.measurement_config[measurement].timeshift;
+        // beginning of the aggregation period, while we want the end. So, for measurements
+        // that are the result of a CQ, shift the time.
+        let timeshift = auxtools.getNested(['measurement_config', measurement, 'timeshift'], this);
+        if (timeshift == null)
+            timeshift = 0;
+        return timeshift;
     }
 }
 

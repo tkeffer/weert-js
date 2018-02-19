@@ -142,15 +142,27 @@ let get_query_from = function (measurement, measurement_config) {
     return from_clause;
 };
 
+let isDevelopment = function () {
+    return !process.env.NODE_ENV || process.env.NODE_ENV === 'development';
+};
+
+// Access a deeply nested value, with thanks to A. Sharif (https://goo.gl/f924sP)
+let getNested = function (path, obj) {
+    return path.reduce((xs, x) =>
+                           ((xs != null) && (xs[x] != null)) ? xs[x] : undefined, obj);
+};
+
 
 module.exports = {
-    locationPath      : locationPath,
-    resourcePath      : resourcePath,
-    fromError         : fromError,
-    create_deep_packet: create_deep_packet,
-    flat_to_deep      : flat_to_deep,
-    epoch_to_ms       : epoch_to_ms,
-    get_query_from    : get_query_from,
-    raw_to_deep       : raw_to_deep,
-    raws_to_deeps     : raws_to_deeps
+    locationPath,
+    resourcePath,
+    fromError,
+    create_deep_packet,
+    flat_to_deep,
+    epoch_to_ms,
+    get_query_from,
+    raw_to_deep,
+    raws_to_deeps,
+    isDevelopment,
+    getNested,
 };
