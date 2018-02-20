@@ -1,8 +1,10 @@
 /*
- * Copyright (c) 2017-2018 Tom Keffer <tkeffer@gmail.com> and Peter Finley
+ * Copyright (c) 2016-2018 Tom Keffer <tkeffer@gmail.com>
  *
- *  See the file LICENSE for your full rights.
- *
+ * See the file LICENSE for your full rights.
+ */
+
+/*
  * A re-implementation of Peter Finley's D3 "WindCompass" using React.
  */
 

@@ -1,4 +1,10 @@
 /*
+ * Copyright (c) 2016-2018 Tom Keffer <tkeffer@gmail.com>
+ *
+ * See the file LICENSE for your full rights.
+ */
+
+/*
  * Webpack configuration options common to both production and development versions.
  */
 

@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2016-2018 Tom Keffer <tkeffer@gmail.com>
+ *
+ * See the file LICENSE for your full rights.
+ */
+
 import moment from 'moment/moment';
 
 import * as api from '../Api';

@@ -1,8 +1,7 @@
 /*
- * Copyright (c) 2017-2018 Tom Keffer <tkeffer@gmail.com>
+ * Copyright (c) 2016-2018 Tom Keffer <tkeffer@gmail.com>
  *
- *  See the file LICENSE for your full rights.
- *
+ * See the file LICENSE for your full rights.
  */
 
 import * as faye from 'faye';

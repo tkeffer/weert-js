@@ -1,4 +1,10 @@
 /*
+ * Copyright (c) 2016-2018 Tom Keffer <tkeffer@gmail.com>
+ *
+ * See the file LICENSE for your full rights.
+ */
+
+/*
  * This Webpack configuration is for production. It will minify the results.
  */
 
