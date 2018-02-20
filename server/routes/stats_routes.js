@@ -23,26 +23,27 @@ const StatsRouterFactory = function (measurement_manager) {
 
     router.get('/measurements/:measurement/stats', function (req, res) {
 
-        if (!req.query.span) {
-            debug('GET /measurements/:measurement/stats:', "No time span specified");
+        const {measurement}                 = req.params;
+        const {platform, stream, now, span} = req.query;
+
+        if (!span) {
+            debug(`GET /measurements/${measurement}/stats:`, "No time span specified");
             res.status(400)
                .send("No time span specified");
         }
 
-        measurement_manager.run_stats(req.params.measurement, obs_types, {
-                 platform   : req.query.platform,
-                 stream     : req.query.stream,
-                 now        : req.query.now,
-                 span       : req.query.span
-             })
-             .then(results => {
-                 res.json(results);
-             })
-             .catch(err => {
-                 debug('GET /measurements/:measurement/stats error:', err.message);
-                 res.status(400)
-                    .json(auxtools.fromError(400, err));
-             });
+        measurement_manager.run_stats(measurement, obs_types, {
+                               platform,
+                               stream,
+                               now,
+                               span
+                           })
+                           .then(results => res.json(results))
+                           .catch(err => {
+                               debug(`GET /measurements/${measurement}/stats error:`, err.message);
+                               res.status(400)
+                                  .json(auxtools.fromError(400, err));
+                           });
     });
 
     return router;

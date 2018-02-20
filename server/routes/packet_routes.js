@@ -25,9 +25,9 @@ const PacketRouterFactory = function (measurement_manager, pub_sub) {
         // Make sure the incoming packet is encoded in JSON.
         if (req.is('json')) {
             // Get the measurement
-            const measurement = req.params.measurement;
+            const {measurement} = req.params;
             // Get the packet out of the request body:
-            const packet      = req.body;
+            const packet        = req.body;
             // Insert the packet into the database
             measurement_manager
                 .insert_packet(measurement, packet)
@@ -39,14 +39,14 @@ const PacketRouterFactory = function (measurement_manager, pub_sub) {
                     // Notify any subscribers via the pub-sub facility
                     pub_sub.publish(`/${measurement}`, packet)
                            .then(function () {
-                                     debug(`PUBlished packet ${new Date(packet.timestamp)} to /${measurement}`);
+                                     debug(`PUBlished packet ${new Date(packet.timestamp)} to ${measurement}`);
                                  },
                                  function (err) {
-                                     debug("POST /measurements/:measurement/packets PUB-SUB error:", err.message);
+                                     debug(`POST /measurements/${measurement}/packets PUB-SUB error:`, err.message);
                                  });
                 })
                 .catch(function (err) {
-                    debug('POST /measurements/:measurement/packets error:', err.message);
+                    debug(`POST /measurements/${measurement}/packets error:`, err.message);
                     res.status(400)
                        .json(auxtools.fromError(400, err));
                 });
@@ -59,19 +59,19 @@ const PacketRouterFactory = function (measurement_manager, pub_sub) {
     // DELETE a specific packet
     router.delete('/measurements/:measurement/packets/:timestamp', function (req, res) {
         // Get the measurement and timestamp out of the route path
-        const measurement = req.params.measurement;
-        const timestamp   = req.params.timestamp;
+        const {measurement, timestamp} = req.params;
+        const {platform, stream}       = req.query;
         measurement_manager
             .delete_packet(measurement, timestamp, {
-                platform: req.query.platform,
-                stream  : req.query.stream
+                platform,
+                stream
             })
             .then(() => {
                 // No way to tell success or failure with Influx. Just assume Success.
                 res.sendStatus(204);
             })
             .catch(err => {
-                debug('DELETE /measurements/:measurement/packets/:timestamp delete error:', err.message);
+                debug(`DELETE /measurements/${measurement}/packets/${timestamp} delete error:`, err.message);
                 res.status(400)
                    .json(auxtools.fromError(400, err));
             });
@@ -79,17 +79,20 @@ const PacketRouterFactory = function (measurement_manager, pub_sub) {
 
     // GET all packets which satisfies a search query.
     router.get('/measurements/:measurement/packets', function (req, res) {
-        const measurement = req.params.measurement;
+
+        const {measurement} = req.params;
+
+        const {platform, stream, start, stop, limit, direction, group} = req.query;
 
         measurement_manager
             .find_packets(measurement, {
-                platform  : req.query.platform,
-                stream    : req.query.stream,
-                start_time: req.query.start,
-                stop_time : req.query.stop,
-                limit     : req.query.limit,
-                direction : req.query.direction,
-                group_by  : req.query.group
+                platform,
+                stream,
+                start_time: start,
+                stop_time : stop,
+                limit,
+                direction,
+                group_by  : group
             })
             .then(packets => {
                 debug(`GET /measurements/${measurement}/packets returned ${packets.length} packets`);
@@ -97,7 +100,7 @@ const PacketRouterFactory = function (measurement_manager, pub_sub) {
                    .json(packets);
             })
             .catch(err => {
-                debug('GET /measurements/:measurement/packets/ error:', err.message);
+                debug(`GET /measurements/${measurement}/packets/ error:`, err.message);
                 res.status(400)
                    .json(auxtools.fromError(400, err));
             });
@@ -108,12 +111,12 @@ const PacketRouterFactory = function (measurement_manager, pub_sub) {
     // GET a packet with a specific timestamp
     router.get('/measurements/:measurement/packets/:timestamp', function (req, res) {
         // Get the measurement and timestamp out of the route path
-        const measurement = req.params.measurement;
-        const timestamp   = req.params.timestamp;
+        const {measurement, timestamp} = req.params;
+        const {platform, stream} = req.query;
         measurement_manager
             .find_packet(measurement, timestamp, {
-                platform: req.query.platform,
-                stream  : req.query.stream
+                platform,
+                stream
             })
             .then((results) => {
                 if (results.length)
@@ -124,7 +127,7 @@ const PacketRouterFactory = function (measurement_manager, pub_sub) {
                 }
             })
             .catch(err => {
-                debug('GET /measurements/:measurement/packets/:timestamp find error', err.message);
+                debug(`GET /measurements/${measurement}/packets/${timestamp} find error`, err.message);
                 res.status(400)
                    .json(auxtools.fromError(400, err));
             });
@@ -133,7 +136,7 @@ const PacketRouterFactory = function (measurement_manager, pub_sub) {
     // GET metadata about a single measurement
     router.get('/measurements/:measurement', function (req, res) {
         // Get the measurement out of the route path
-        const measurement = req.params.measurement;
+        const {measurement} = req.params;
 
         measurement_manager
             .get_measurement_info(measurement)
@@ -145,7 +148,7 @@ const PacketRouterFactory = function (measurement_manager, pub_sub) {
                 }
             })
             .catch(err => {
-                debug('GET /measurements/:measurement error:', err.message);
+                debug(`GET /measurements/${measurement} error:`, err.message);
                 res.status(400)
                    .json(auxtools.fromError(400, err));
             });
@@ -153,7 +156,7 @@ const PacketRouterFactory = function (measurement_manager, pub_sub) {
 
     // DELETE a measurement
     router.delete('/measurements/:measurement', function (req, res) {
-        const measurement = req.params.measurement;
+        const {measurement} = req.params;
         measurement_manager
             .delete_measurement(measurement)
             .then(() => {
@@ -161,7 +164,7 @@ const PacketRouterFactory = function (measurement_manager, pub_sub) {
                 res.sendStatus(204);
             })
             .catch(err => {
-                debug('DELETE /measurements/:measurement error:', err.message);
+                debug(`DELETE /measurements/${measurement} error:`, err.message);
                 res.status(400)
                    .json(auxtools.fromError(400, err));
             });

@@ -47,7 +47,7 @@ var AuthRouterFactory = function (users) {
         if (!user_info)
             return false;
         // Make sure the user exists, and the given password matches
-        return (users[user_info.name] !== undefined && users[user_info.name] === user_info.pass);
+        return (users[user_info.name] != null && users[user_info.name] === user_info.pass);
     };
 
     // Return the built router
