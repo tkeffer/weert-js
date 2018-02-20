@@ -208,10 +208,26 @@ class MeasurementManager {
     }
 
     get_measurement_info(measurement) {
-        let from_clause = auxtools.get_query_from(measurement, this.measurement_config[measurement]);
+        const from_clause = auxtools.get_query_from(measurement, this.measurement_config[measurement]);
 
-        let query = `SHOW SERIES FROM ${from_clause};`;
-        return this.influx.query(query);
+        return this.influx.query(`SHOW SERIES FROM ${from_clause};`)
+                   .then(result_set => {
+                       // Convert the  rather awkward InfluxDB notation into something more useful
+                       return result_set.map((series) => {
+                           // Strip off the returned measurement, keeping the rest of the string
+                           const [result_measurement, ...rest] = series.key.split(',');
+                           if (result_measurement !== measurement) {
+                               throw new Error(`Internal error in get_measurement_info(): ` +
+                                               `'${result_measurement}' != '${measurement}'`);
+                           }
+                           // Convert InfluxDB's notation into something more Javascripty.
+                           return rest.reduce((f, pair) => {
+                               const [key, value] = pair.split('=');
+                               f[key]             = value;
+                               return f;
+                           }, {});
+                       });
+                   });
     }
 
     delete_measurement(measurement) {

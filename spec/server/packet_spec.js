@@ -324,7 +324,7 @@ describe("Testing measurement", function () {
         frisby.get(measurement_url)
               .expect('status', 200)
               .then(function (res) {
-                  expect(res.body).toEqual([{key: 'test_measurement,platform=test_platform'}]);
+                  expect(res.body).toEqual([{platform: 'test_platform'}]);
               })
               .done(doneFn);
     });
