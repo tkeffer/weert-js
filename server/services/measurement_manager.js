@@ -107,6 +107,24 @@ class MeasurementManager {
         aggregates = obs_types,
     } = {}) {
 
+        /*
+         * Note added 19-Feb-2018:
+         *
+         * Unfortunately, while the following strategy for grouping by time is efficient, it is not
+         * entirely accurate. The reason is a difference of opinion on whether a timestamp represents
+         * the end of an interval (WeeWX's assumption), or the beginning (InfluxDB's).
+         *
+         * With the WeeWX strategy, to find the aggregates in a five minute interval, you must select greater than the
+         * starting time, and less than *or equal to* the ending time. Because of this, there may be a packet
+         * that lies precisely on the end of the five minute boundary, which gets included.
+         *
+         * When you then group by 5 minutes, InfluxDB assumes that this last packet is actually part of
+         * the *next* five minute interval, and thus in an entirely different "group by" bin.
+         *
+         * No easy fix, except to run the grouping in the application, instead of the database. This is likely
+         * to be very slow.
+         */
+
         if (group_by && start_time == null && stop_time == null) {
             return Promise.reject(new Error("Aggregation requires a start and/or stop time"));
         }
