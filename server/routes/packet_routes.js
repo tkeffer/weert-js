@@ -141,7 +141,7 @@ const PacketRouterFactory = function (measurement_manager, pub_sub) {
         measurement_manager
             .get_measurement_info(measurement)
             .then(measurement_metadata => {
-                if (measurement_metadata[0]) {
+                if (measurement_metadata.length) {
                     res.json(measurement_metadata);
                 } else {
                     res.sendStatus(404);    // Status 404 Resource Not Found

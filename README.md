@@ -320,6 +320,7 @@ that might be necessary. Both incoming and outgoing data use this format.
 
 
 
+
 All mutating calls (POSTs and DELETEs) must be authorized through
 an `Authorization` header. It should include
 the word `Basic`, followed by the base64 encoding of the username and password
@@ -374,16 +375,7 @@ Ask for all the packets in the measurement `examples`. This is the entire exampl
 ```shell
 $ curl -i --silent -X GET 'http://localhost:3000/api/v1/measurements/examples/packets'
 
-HTTP/1.1 200 OK
-X-Powered-By: Express
-Content-Type: application/json; charset=utf-8
-Content-Length: 1103
-ETag: W/"44f-FXNE7SWkA3UNTwmWW3APgfjgerQ"
-Vary: Accept-Encoding
-Date: Wed, 01 Nov 2017 18:55:34 GMT
-Connection: keep-alive
-
-[
+HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 1071ETag: W/"42f-Kqaqvg6Zcis8mLWGZNFjK+EkxYg"Vary: Accept-EncodingDate: Tue, 20 Feb 2018 02:31:40 GMTConnection: keep-alive[
     {
         "fields": {
             "out_temperature": 55.2,
@@ -482,16 +474,7 @@ to 2 packets:
 ```shell
 $ curl -i --silent -X GET 'http://localhost:3000/api/v1/measurements/examples/packets?stream=loft&limit=2'
 
-HTTP/1.1 200 OK
-X-Powered-By: Express
-Content-Type: application/json; charset=utf-8
-Content-Length: 273
-ETag: W/"111-943kObNtwLVG33lOFplNtaCD5Ww"
-Vary: Accept-Encoding
-Date: Wed, 01 Nov 2017 18:55:34 GMT
-Connection: keep-alive
-
-[
+HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 265ETag: W/"109-LqS2mHnIuOUVnjNJR4WjlhnE8Pk"Vary: Accept-EncodingDate: Tue, 20 Feb 2018 02:31:40 GMTConnection: keep-alive[
     {
         "fields": {
             "out_temperature": 61.2,
@@ -524,16 +507,7 @@ Query, constraining by time and stream name, returning results in reverse order:
 ```shell
 $ curl -i -X GET 'http://localhost:3000/api/v1/measurements/examples/packets?start=1506713140000&stop=1506713260000&stream=loft&direction=desc'
 
-HTTP/1.1 200 OK
-X-Powered-By: Express
-Content-Type: application/json; charset=utf-8
-Content-Length: 273
-ETag: W/"111-MdR0uz3YnZpIjTX5MIsATGLUAGE"
-Vary: Accept-Encoding
-Date: Wed, 01 Nov 2017 18:55:34 GMT
-Connection: keep-alive
-
-[
+HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 265ETag: W/"109-WbGOiOUsyQDiF05s0ikoRFuaqMw"Vary: Accept-EncodingDate: Tue, 20 Feb 2018 02:31:40 GMTConnection: keep-alive[
     {
         "fields": {
             "out_temperature": 61.6,
@@ -591,16 +565,7 @@ Get all packets at timestamp `1506713200000` on the stream `accurite`.
 ```shell
 $ curl -i -X GET 'http://localhost:3000/api/v1/measurements/examples/packets/1506713200000?stream=accurite'
 
-HTTP/1.1 200 OK
-X-Powered-By: Express
-Content-Type: application/json; charset=utf-8
-Content-Length: 141
-ETag: W/"8d-lgMXMsIcgUBQa3fZ2LE08kZwnZY"
-Vary: Accept-Encoding
-Date: Wed, 01 Nov 2017 18:55:34 GMT
-Connection: keep-alive
-
-[
+HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 137ETag: W/"89-ltSDLHrJ9+mg1BWXyNiq2LBCtww"Vary: Accept-EncodingDate: Tue, 20 Feb 2018 02:31:40 GMTConnection: keep-alive[
     {
         "fields": {
             "out_temperature": 55.3,
@@ -662,17 +627,7 @@ $ curl -u weert:weert -i --silent -X POST -H Content-type:application/json -d  \
 >   "fields" : {"out_temperature":56.1, "sealevel_pressure": 29.881}} ' \
 >   http://localhost:3000/api/v1/measurements/examples/packets
 
-HTTP/1.1 201 Created
-X-Powered-By: Express
-Location: http://localhost:3000/api/v1/measurements/examples/packets/1506713320000
-Content-Type: text/plain; charset=utf-8
-Content-Length: 7
-ETag: W/"7-rM9AyJuqT6iOan/xHh+AW+7K/T8"
-Vary: Accept-Encoding
-Date: Wed, 01 Nov 2017 18:55:34 GMT
-Connection: keep-alive
-
-Created
+HTTP/1.1 201 CreatedX-Powered-By: ExpressLocation: http://localhost:3000/api/v1/measurements/examples/packets/1506713320000Content-Type: text/plain; charset=utf-8Content-Length: 7ETag: W/"7-rM9AyJuqT6iOan/xHh+AW+7K/T8"Vary: Accept-EncodingDate: Tue, 20 Feb 2018 02:31:40 GMTConnection: keep-aliveCreated
 ```
 
 Note how the URL of the new resource is returned in the header `Location`.
@@ -714,12 +669,7 @@ Delete all packets with timestamp `1506713320000`.
 ```shell
 $ curl -u weert:weert -i --silent -X DELETE http://localhost:3000/api/v1/measurements/examples/packets/1506713320000
 
-HTTP/1.1 204 No Content
-X-Powered-By: Express
-ETag: W/"a-bAsFyilMr4Ra1hIU5PyoyFRunpI"
-Date: Wed, 01 Nov 2017 18:55:34 GMT
-Connection: keep-alive
-
+HTTP/1.1 204 No ContentX-Powered-By: ExpressETag: W/"a-bAsFyilMr4Ra1hIU5PyoyFRunpI"Date: Tue, 20 Feb 2018 02:31:40 GMTConnection: keep-alive
 ```
 
 
@@ -749,16 +699,7 @@ Get information about the measurement `examples`.
 ```Shell
 $ curl -i --silent -X GET 'http://localhost:3000/api/v1/measurements/examples'
 
-HTTP/1.1 200 OK
-X-Powered-By: Express
-Content-Type: application/json; charset=utf-8
-Content-Length: 95
-ETag: W/"5f-yLmyaipH4SiO3Fw4kY0f2OgVIgU"
-Vary: Accept-Encoding
-Date: Wed, 01 Nov 2017 18:55:34 GMT
-Connection: keep-alive
-
-[
+HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 95ETag: W/"5f-yLmyaipH4SiO3Fw4kY0f2OgVIgU"Vary: Accept-EncodingDate: Tue, 20 Feb 2018 02:31:40 GMTConnection: keep-alive[
     {
         "key": "examples,platform=barn,stream=accurite"
     },
@@ -775,16 +716,7 @@ a 404 "Not Found" status code.
 ```shell
 $ curl -i --silent -X GET http://localhost:3000/api/v1/measurements/foo
 
-HTTP/1.1 404 Not Found
-X-Powered-By: Express
-Content-Type: text/plain; charset=utf-8
-Content-Length: 9
-ETag: W/"9-0gXL1ngzMqISxa6S1zx3F4wtLyg"
-Vary: Accept-Encoding
-Date: Wed, 01 Nov 2017 18:55:34 GMT
-Connection: keep-alive
-
-Not Found
+HTTP/1.1 404 Not FoundX-Powered-By: ExpressContent-Type: text/plain; charset=utf-8Content-Length: 9ETag: W/"9-0gXL1ngzMqISxa6S1zx3F4wtLyg"Vary: Accept-EncodingDate: Tue, 20 Feb 2018 02:31:40 GMTConnection: keep-aliveNot Found
 ```
 
 ## Get statistics
@@ -825,16 +757,7 @@ See file `server/config/obs_types.js` for the schema.
 ```shell
 $ curl -i --silent -X GET 'http://localhost:3000/api/v1/measurements/examples/stats?span=day&now=1506713200000'
 
-HTTP/1.1 200 OK
-X-Powered-By: Express
-Content-Type: application/json; charset=utf-8
-Content-Length: 1752
-ETag: W/"6d8-6hMpYg4Iv+pfChtGbVY1hYNLxr4"
-Vary: Accept-Encoding
-Date: Wed, 01 Nov 2017 18:55:34 GMT
-Connection: keep-alive
-
-{
+HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 1857ETag: W/"741-gi9v+MnsnqtBn6hUHB8NufK9kjg"Vary: Accept-EncodingDate: Tue, 20 Feb 2018 02:31:40 GMTConnection: keep-alive{
     "altimeter_pressure": {
         "max": {
             "timestamp": null,
@@ -912,6 +835,16 @@ Connection: keep-alive
         }
     },
     "in_temperature": {
+        "max": {
+            "timestamp": null,
+            "value": null
+        },
+        "min": {
+            "timestamp": null,
+            "value": null
+        }
+    },
+    "out_humidity_percent": {
         "max": {
             "timestamp": null,
             "value": null
@@ -1046,12 +979,7 @@ Delete the measurement `examples`. All packets within the measurement will be de
 ```shell
 $ curl -u weert:weert -i --silent -X DELETE 'http://localhost:3000/api/v1/measurements/examples'
 
-HTTP/1.1 204 No Content
-X-Powered-By: Express
-ETag: W/"a-bAsFyilMr4Ra1hIU5PyoyFRunpI"
-Date: Wed, 01 Nov 2017 18:55:34 GMT
-Connection: keep-alive
-
+HTTP/1.1 204 No ContentX-Powered-By: ExpressETag: W/"a-bAsFyilMr4Ra1hIU5PyoyFRunpI"Date: Tue, 20 Feb 2018 02:31:40 GMTConnection: keep-alive
 ```
 
 
@@ -1061,12 +989,7 @@ return the same status code, 204.
 ```shell
 $ curl -u weert:weert -i --silent -X DELETE 'http://localhost:3000/api/v1/measurements/foo'
 
-HTTP/1.1 204 No Content
-X-Powered-By: Express
-ETag: W/"a-bAsFyilMr4Ra1hIU5PyoyFRunpI"
-Date: Wed, 01 Nov 2017 18:55:34 GMT
-Connection: keep-alive
-
+HTTP/1.1 204 No ContentX-Powered-By: ExpressETag: W/"a-bAsFyilMr4Ra1hIU5PyoyFRunpI"Date: Tue, 20 Feb 2018 02:31:40 GMTConnection: keep-alive
 ```
 
 
