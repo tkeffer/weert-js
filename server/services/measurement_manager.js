@@ -60,7 +60,7 @@ class MeasurementManager {
         // of the more normal end, shift the timestamp.
         const timeshift = this._get_timeshift(measurement);
         timestamp -= timeshift;
-        let from_clause = auxtools.get_query_from(measurement, this.measurement_config[measurement]);
+        const from_clause = auxtools.get_query_from(measurement, this.measurement_config[measurement]);
 
         let query_string = `SELECT * FROM ${from_clause} WHERE time=${timestamp}ms`;
         if (platform)
@@ -70,7 +70,7 @@ class MeasurementManager {
         return this.influx
                    .queryRaw(query_string, {precision: 'ms'})
                    .then(results => {
-                       let packet_arrays = auxtools.raws_to_deeps(results.results);
+                       const packet_arrays = auxtools.raws_to_deeps(results.results);
                        for (let packet of packet_arrays[0]) {
                            if (packet) {
                                this._shift_timestamp(measurement, packet);
@@ -180,7 +180,7 @@ class MeasurementManager {
         return this.influx
                    .queryRaw(query_string, {precision: 'ms'})
                    .then(results => {
-                       let packet_arrays = auxtools.raws_to_deeps(results.results);
+                       const packet_arrays = auxtools.raws_to_deeps(results.results);
                        for (let packet of packet_arrays[0]) {
                            if (packet) {
                                this._shift_timestamp(measurement, packet);
@@ -197,7 +197,7 @@ class MeasurementManager {
         const timeshift = this._get_timeshift(measurement);
         timestamp -= timeshift;
 
-        let from_clause = auxtools.get_query_from(measurement, this.measurement_config[measurement]);
+        const from_clause = auxtools.get_query_from(measurement, this.measurement_config[measurement]);
 
         let delete_stmt = `DELETE FROM ${from_clause} WHERE time=${timestamp}ms`;
         if (platform)
@@ -230,6 +230,13 @@ class MeasurementManager {
                    });
     }
 
+    get_last_timestamp(measurement, {platform, stream} = {}) {
+        return this.find_packets(measurement, {platform, stream, limit: 1, direction: 'desc'})
+                   .then(packets => {
+                       return packets.length? packets[0].timestamp : undefined;
+                   });
+    }
+
     delete_measurement(measurement) {
         const db = auxtools.getNested(['measurement_config', measurement, 'database'], this);
         return this.influx.dropMeasurement(measurement, db);
@@ -255,8 +262,8 @@ class MeasurementManager {
         // First, build all the queries that will be needed.
         // One for each measurement and aggregation type
         for (let stats_spec of stats_specs) {
-            let obs_type = stats_spec.obs_type;
-            let stats    = stats_spec.stats;
+            const obs_type = stats_spec.obs_type;
+            const stats    = stats_spec.stats;
             if (stats) {
                 for (let agg of stats) {
                     let agg_lc = agg.toLowerCase();
@@ -288,8 +295,8 @@ class MeasurementManager {
                        // Process the result set, one query at a time
                        for (let i = 0; i < result_set.results.length; i++) {
 
-                           let obs_type = ordering[i][0];
-                           let agg_type = ordering[i][1];
+                           const obs_type = ordering[i][0];
+                           const agg_type = ordering[i][1];
                            // If we haven't seen this observation type before then initialize it
                            if (final_results[obs_type] === undefined)
                                final_results[obs_type] = {};
@@ -303,7 +310,7 @@ class MeasurementManager {
 
                            // Simplify what follows by extracting this particular result
                            // out of the result set
-                           let result = result_set.results[i];
+                           const result = result_set.results[i];
                            // Was there a result for this observation and aggregation type?
                            // If so, process it.
                            if (result.series) {
@@ -312,8 +319,8 @@ class MeasurementManager {
                                let time, agg_name, agg_value;
                                // Go through this result finding the time, aggregation type and value
                                for (let col = 0; col < result.series[0].columns.length; col++) {
-                                   let name = result.series[0].columns[col];
-                                   let val  = result.series[0].values[0][col];
+                                   const name = result.series[0].columns[col];
+                                   const val  = result.series[0].values[0][col];
                                    if (name === 'time')
                                        time = val;
                                    else {
