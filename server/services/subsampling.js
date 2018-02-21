@@ -8,9 +8,76 @@
 
 const debug = require('debug')('weert:subsampling');
 
-const cq_policies = require('../config/cq_policies');
-const config      = require('../config/config');
-const auxtools    = require('../auxtools');
+const config   = require('../config/config');
+const auxtools = require('../auxtools');
+
+/**
+ * Subsample a measurement using a subsampling strategy
+ * @param {MeasurementManager} measurement_manager - Instance of a MeasurementManager
+ * @param {object} options - An object containing the subsampling options to use
+ * @param {string} options.source - The source measurement
+ * @param {string} options.destination - The destination measurement
+ * @param {number} options.interval - How often to subsample in milliseconds
+ * @param {object[]} options.strategy - An array of subsampling strategies to use
+ * @param {number|undefined| options.end_ts - Generate subsamples up through this time. If not given,
+ *                                            the present time will be used. The final number is ceiled
+ *                                            with the interval.
+ */
+function subsample(measurement_manager, options) {
+    const {source, destination, interval, strategy} = options;
+
+    const end_ts = auxtools.ceil(options.end_ts || Date.now(), interval);
+
+    const agg_clause = form_agg_clause(strategy, true);
+
+    // Find all the series in the source measurement
+    return measurement_manager.get_measurement_info(source)
+                              .then(all_series => {
+
+                                  for (let series of all_series) {
+
+                                      Promise.all([
+                                                      measurement_manager.get_last_timestamp(source, series),
+                                                      measurement_manager.get_first_timestamp(source, series),
+                                                      measurement_manager.get_last_timestamp(destination, series),
+                                                  ])
+                                             .then(tss => {
+                                                 let [source_last_ts, source_first_ts, destination_last_ts] = tss;
+
+                                                 console.log('for platform', series.platform, 'measurement', source,
+                                                             'first:', new Date(source_first_ts), 'last:',
+                                                             new Date(source_last_ts));
+                                                 console.log('for platform', series.platform, 'measurement',
+                                                             destination, 'last:', destination_last_ts, '(',
+                                                             new Date(destination_last_ts), ')');
+
+                                                 let start_ts = destination_last_ts == null ? auxtools.floor(
+                                                     source_first_ts, interval) : destination_last_ts;
+                                                 let last_ts  = Math.min(end_ts,
+                                                                         auxtools.floor(source_last_ts, interval));
+                                                 console.log("final start, stop=", new Date(start_ts),
+                                                             new Date(last_ts));
+                                                 while (start_ts < last_ts) {
+                                                     console.log("Will subsample from ", new Date(start_ts), 'through',
+                                                                 new Date(start_ts + interval));
+                                                     const options = {
+                                                         ...series,
+                                                         start_time: start_ts,
+                                                         stop_time : start_ts + interval,
+                                                         aggregates: strategy,
+                                                     };
+                                                     measurement_manager.find_packets(source,options)
+                                                         .then(agg_packets =>{
+                                                             console.log("aggregated packets=", agg_packets);
+                                                         });
+                                                     start_ts += interval;
+                                                 }
+                                                 return Promise.resolve();
+                                             });
+                                  }
+                              });
+}
+
 
 // Create all the Continuous Queries specified
 // in the measurement configuration. Returns an array
@@ -77,18 +144,15 @@ function _form_cq_stmt(measurement_config, measurement, cq_config) {
  * @param {object[]} agg_obj_array - An array of objects, each of which specify the type of aggregation to be done
  * for a specific observation type.
  * @param {string} agg_obj_array[].obs_type - The observation type (e.g., 'out_temperature')
- * @param {string} agg_obj_array[].subsample - The aggregation (e.g., 'avg' or 'sum') to be used for this type
+ * @param {string} agg_obj_array[].subsample - An InfluxDB expression to be used for this type.
+ *                                             Something like 'mean(out_temperature')
  * @param {boolean} as - True to include 'as' clause. Otherwise, false.
- * @returns {string} - The aggregation clause. It will look something like "AVG(out_temperature),SUM(rain_rain)..."
+ * @returns {string} - The aggregation clause. It will look something like "avg(out_temperature),sum(rain_rain)..."
  */
-function form_agg_clause(agg_obj_array, as=false) {
+function form_agg_clause(agg_obj_array, as = false) {
     let aggs = [];
     for (let agg_obj of agg_obj_array) {
-        let agg_type = agg_obj.subsample.toLowerCase();
-        // Offer 'avg' as a synonym for 'mean':
-        if (agg_type === 'avg')
-            agg_type = 'mean';
-        let agg_str = `${agg_type}(${agg_obj.obs_type})`;
+        let agg_str = agg_obj.subsample;
         if (as) agg_str += ` as ${agg_obj.obs_type}`;
         aggs.push(agg_str);
     }
@@ -152,7 +216,8 @@ function setup_all_notices(measurement_manager, pub_sub, measurement_configs) {
 }
 
 module.exports = {
+    subsample,
     create_all_cqs   : create_all_cqs,
     setup_all_notices: setup_all_notices,
-    form_agg_clause  : form_agg_clause
+    form_agg_clause  : form_agg_clause,
 };

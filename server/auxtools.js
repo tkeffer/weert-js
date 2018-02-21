@@ -12,22 +12,22 @@
 const url          = require('url');
 const normalizeUrl = require('normalize-url');
 
-let locationPath = function (originalUrl, protocol, host, name) {
-    let base_pathname = url.parse(originalUrl).pathname;
-    let fullpath      = url.format({
-                                       protocol: protocol,
-                                       host    : host,
-                                       pathname: base_pathname + '/' + name
-                                   });
+const locationPath = function (originalUrl, protocol, host, name) {
+    const base_pathname = url.parse(originalUrl).pathname;
+    const fullpath      = url.format({
+                                         protocol: protocol,
+                                         host    : host,
+                                         pathname: base_pathname + '/' + name,
+                                     });
     return normalizeUrl(fullpath);
 };
 
 // Given a request header and a name, form a new endpoint
-let resourcePath = function (req, name) {
+const resourcePath = function (req, name) {
     return locationPath(req.originalUrl, req.protocol, req.get('host'), name);
 };
 
-let fromError = function (code, err) {
+const fromError = function (code, err) {
     let e     = {};
     e.message = err.message;
     e.code    = code;
@@ -38,21 +38,21 @@ let fromError = function (code, err) {
 };
 
 // Create a deep packet from a set of parameters.
-let create_deep_packet = function (measurement, platform, stream, timestamp, fields) {
-    let packet = {
+const create_deep_packet = function (measurement, platform, stream, timestamp, fields) {
+    const packet = {
         'timestamp'  : timestamp,
         'measurement': measurement,
         'tags'       : {'platform': platform, 'stream': stream},
-        'fields'     : fields
+        'fields'     : fields,
     };
     return packet;
 };
 
 // Convert a flat_packet into a deep packet
-let flat_to_deep = function (flat_packet) {
+const flat_to_deep = function (flat_packet) {
     let deep_packet = {
         'tags'  : {},
-        'fields': {}
+        'fields': {},
     };
 
     for (let key in flat_packet) {
@@ -70,14 +70,14 @@ let flat_to_deep = function (flat_packet) {
 };
 
 // Convert columns and a row to a single deep packet
-let raw_to_deep = function (columns, row) {
+const raw_to_deep = function (columns, row) {
     let deep_packet = {
         'tags'  : {},
-        'fields': {}
+        'fields': {},
     };
 
     for (let i = 0; i < columns.length; i++) {
-        let type = columns[i];
+        const type = columns[i];
         if (type === 'platform')
             deep_packet['tags']['platform'] = row[i];
         else if (type === 'stream')
@@ -92,12 +92,12 @@ let raw_to_deep = function (columns, row) {
 };
 
 // Convert a raw InfluxDB result set into an array of deep packet arrays.
-let raws_to_deeps = function (results) {
+const raws_to_deeps = function (results) {
     let massaged = [];
     for (let result of results) {
         if (result.series) {
-            let deep_array = result.series[0].values.map(
-                function (row) {return raw_to_deep(result.series[0].columns, row);}
+            const deep_array = result.series[0].values.map(
+                function (row) {return raw_to_deep(result.series[0].columns, row);},
             );
             massaged.push(deep_array);
         } else {
@@ -108,7 +108,7 @@ let raws_to_deeps = function (results) {
 };
 
 // Convert from InfluxDB "epoch" notation to milliseconds
-let epoch_to_ms = function (epoch) {
+const epoch_to_ms = function (epoch) {
     if (epoch.endsWith('ms')) {
         return +epoch.slice(0, -2);
     } else if (epoch.endsWith('s')) {
@@ -126,7 +126,7 @@ let epoch_to_ms = function (epoch) {
 
 // Given a measurement configuration and measurement name, form
 // the "from" part of an InfluxDB query
-let get_query_from = function (measurement, measurement_config) {
+const get_query_from = function (measurement, measurement_config) {
     let rp = '';
     let db = '';
     if (measurement_config) {
@@ -138,20 +138,27 @@ let get_query_from = function (measurement, measurement_config) {
             if (!rp) rp = '.';
         }
     }
-    let from_clause = db + rp + measurement;
+    const from_clause = db + rp + measurement;
     return from_clause;
 };
 
-let isDevelopment = function () {
+const isDevelopment = function () {
     return !process.env.NODE_ENV || process.env.NODE_ENV === 'development';
 };
 
 // Access a deeply nested value, with thanks to A. Sharif (https://goo.gl/f924sP)
-let getNested = function (path, obj) {
+const getNested = function (path, obj) {
     return path.reduce((xs, x) =>
                            ((xs != null) && (xs[x] != null)) ? xs[x] : undefined, obj);
 };
 
+const floor = function (x, interval) {
+    return Math.floor(x / interval) * interval;
+};
+
+const ceil = function (x, interval) {
+    return Math.ceil(x / interval) * interval;
+};
 
 module.exports = {
     locationPath,
@@ -165,4 +172,6 @@ module.exports = {
     raws_to_deeps,
     isDevelopment,
     getNested,
+    floor,
+    ceil,
 };

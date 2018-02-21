@@ -5,7 +5,6 @@
  */
 
 'use strict';
-
 const moment = require('moment');
 
 const auxtools     = require('../auxtools');
@@ -46,7 +45,7 @@ class MeasurementManager {
                              .reduce((f, k) => {
                                  f[k] = deep_packet.fields[k];
                                  return f;
-                             }, {})
+                             }, {}),
         };
 
         return this.influx
@@ -58,7 +57,7 @@ class MeasurementManager {
 
         // If this measurement has timestamps marking the *beginning* of an interval instead
         // of the more normal end, shift the timestamp.
-        const timeshift = this._get_timeshift(measurement);
+        const timeshift   = this._get_timeshift(measurement);
         timestamp -= timeshift;
         const from_clause = auxtools.get_query_from(measurement, this.measurement_config[measurement]);
 
@@ -81,22 +80,24 @@ class MeasurementManager {
     }
 
     /**
-     * Return an array of packets that satisfy a query, possibly aggregating them and grouping by time.
+     * Return an array of packets that satisfy a query, possibly aggregating and/or grouping by time.
      * @param {string} measurement - The measurement name
-     * @param {string|undefined} platform - Select by platform. Otherwise, all platforms
-     * @param {string|undefined} stream - Select by stream. Otherwise, all streams.
-     * @param {number|undefined} start_time - Only times greater than this value will be included. In milliseconds
-     * @param {number|undefined} stop_time - Only times less than or equal to this value will be included. In
+     * @param {object} options - An options object.
+     * @param {string|undefined} options.platform - Select by platform. Otherwise, all platforms
+     * @param {string|undefined} options.stream - Select by stream. Otherwise, all streams.
+     * @param {number|undefined} options.start_time - Only times greater than this value will be included. In milliseconds
+     * @param {number|undefined} options.stop_time - Only times less than or equal to this value will be included. In
      *     milliseconds.
-     * @param {number|undefined} limit - The max number of packets to be returned.
-     * @param {string|undefined} direction - The sorting direction (by time). Either 'asc' or 'desc'.
-     * @param {string|undefined} group_by - If not-null, perform an aggregation query, grouping by time.
-     *                            The time interval should be something like '1h' or '15m'. See https://goo.gl/6fhBrD
-     *                            Default is no aggregation.
-     * @param {object[]} aggregates - If doing an aggregation query, this array holds the type of
-     *                            aggregation to be used for each observation type.
-     * @param {string} aggregates[].obs_type - The observation type (e.g., "out_temperature")
-     * @param (string} aggregates[].subsample - The aggregation (e.g., 'avg') to be used for this type.
+     * @param {number|undefined} options.limit - The max number of packets to be returned. Default is all packets.
+     * @param {string|undefined} options.direction - The sorting direction (by time). Either 'asc' or 'desc'.
+     * @param {string|undefined} options.group_by - If not-null, group by time. The time interval should be something
+     *     like '1h' or '15m'. See https://goo.gl/6fhBrD. If given, then a start
+     *     and stop time must also be specified and an aggregation will be done.
+     *     Default is no grouping.
+     * @param {object[]} options.aggregates - If non-null, do an aggregation query. This array holds the type of
+     *     aggregation to be used for each observation type.
+     * @param {string} options.aggregates[].obs_type - The observation type (e.g., "out_temperature")
+     * @param (string} options.aggregates[].subsample - The aggregation (e.g., "avg(out_temperature)" to be used for this type.
      * @returns {Promise<object[]>} - A promise to return an array of packets.
      */
     find_packets(measurement, {
@@ -104,7 +105,7 @@ class MeasurementManager {
         start_time = undefined, stop_time = undefined,
         limit = undefined, direction = 'asc',
         group_by = undefined,
-        aggregates = obs_types,
+        aggregates = undefined,
     } = {}) {
 
         /*
@@ -129,6 +130,20 @@ class MeasurementManager {
             return Promise.reject(new Error("Aggregation requires a start and/or stop time"));
         }
 
+        if (group_by){
+            // Group by time requested. This requires an aggregation strategy.
+            // Supply one if none was given.
+            if (aggregates == null) {
+                aggregates = obs_types;
+            }
+        } else {
+            // No group by time has been requested. If an aggregation has been requested,
+            // group the results by the tags.
+            if (aggregates){
+                group_by = 'tags';
+            }
+        }
+
         // If this measurement has timestamps marking the *beginning* of an interval instead
         // of the more normal end, shift the timestamps.
         const timeshift = this._get_timeshift(measurement);
@@ -137,7 +152,7 @@ class MeasurementManager {
 
         // If aggregation was specified, get the aggregation clause. This will be something like
         // "avg(out_temperature) as out_temperature,SUM(rain_rain) as rain_rain, ..."
-        const agg_clause  = group_by ? sub_sampling.form_agg_clause(aggregates, true) : '*';
+        const agg_clause  = aggregates == null ? '*' : sub_sampling.form_agg_clause(aggregates, true);
         const from_clause = auxtools.get_query_from(measurement, this.measurement_config[measurement]);
 
         let query_string;
@@ -230,10 +245,17 @@ class MeasurementManager {
                    });
     }
 
+    get_first_timestamp(measurement, {platform, stream} = {}) {
+        return this.find_packets(measurement, {platform, stream, limit: 1, direction: 'asc'})
+                   .then(packets => {
+                       return packets.length ? packets[0].timestamp : undefined;
+                   });
+    }
+
     get_last_timestamp(measurement, {platform, stream} = {}) {
         return this.find_packets(measurement, {platform, stream, limit: 1, direction: 'desc'})
                    .then(packets => {
-                       return packets.length? packets[0].timestamp : undefined;
+                       return packets.length ? packets[0].timestamp : undefined;
                    });
     }
 
@@ -244,7 +266,7 @@ class MeasurementManager {
 
     run_stats(measurement, stats_specs, {
         platform = undefined, stream = undefined,
-        now = undefined, span = 'day'
+        now = undefined, span = 'day',
     } = {}) {
         const now_moment  = now ? moment(+now) : moment();
         let start         = +now_moment.startOf(span);
@@ -349,7 +371,7 @@ class MeasurementManager {
         return {
             retentionPolicy: rp,
             database       : db,
-            precision      : 'ms'
+            precision      : 'ms',
         };
     }
 

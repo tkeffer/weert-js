@@ -1,16 +1,6 @@
 {
     "wxpackets": {
         "database": "weert",
-        "rp"      : "h24",
-        "cqs"     : [
-            {
-                "cq_destination": "wxrecords",
-                "cq_policy"     : "Standard5",
-                "cq_name"       : "archive_5m"
-            }
-        ]
-    },
-    "wxrecords":{
-        "timeshift": 300000
+        "rp"      : "h24"
     }
 }

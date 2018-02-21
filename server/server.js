@@ -94,24 +94,25 @@ influx.getDatabaseNames()
       .then((result) => {
           debug(`Set up ${result.length} retention policies`);
 
-          // Create the continuous queries for any measurements.
-          return subsampling.create_all_cqs(influx, measurement_config)
-                            .then(result => {
-                                debug(`Set up ${result.length} continuous queries`);
-                                return Promise.resolve();
-                            })
-                            .catch(err => {
-                                debug("Error creating CQs:", err);
-                                return Promise.reject(err);
-                            });
+          return Promise.resolve();
+          // // Create the continuous queries for any measurements.
+          // return subsampling.create_all_cqs(influx, measurement_config)
+          //                   .then(result => {
+          //                       debug(`Set up ${result.length} continuous queries`);
+          //                       return Promise.resolve();
+          //                   })
+          //                   .catch(err => {
+          //                       debug("Error creating CQs:", err);
+          //                       return Promise.reject(err);
+          //                   });
       })
       .then(() => {
 
           // Create a manager for the measurements, using the influx driver
           const measurement_manager = new MeasurementManager(influx, measurement_config);
 
-          // Arrange to be notified after each continuous query has been run
-          subsampling.setup_all_notices(measurement_manager, faye_client, measurement_config);
+          // // Arrange to be notified after each continuous query has been run
+          // subsampling.setup_all_notices(measurement_manager, faye_client, measurement_config);
 
           // Set up the basic authorization
           app.use(config.server.api, auth_router_factory(config.users));
