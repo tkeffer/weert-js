@@ -92,7 +92,7 @@ const PacketRouterFactory = function (measurement_manager, pub_sub) {
                 stop_time : stop,
                 limit,
                 direction,
-                group_by  : group
+                group,
             })
             .then(packets => {
                 debug(`GET /measurements/${measurement}/packets returned ${packets.length} packets`);

@@ -11,15 +11,18 @@ module.exports = {
     // Set to 0 (zero) for no debugging, 1 (one) for debugging.
     debug: 1,
 
+    // Number of concurrent async operations allowed.
+    concurrency: 100,
+
     // Users and their passwords
     users: {
-        "weert" : "weert"
+        "weert": "weert",
     },
 
     // Configuration info for the WeeRT server itself
     server: {
         port: 3000,
-        api : '/api/v1'
+        api : '/api/v1',
     },
 
     // Information about connecting to the InfluxDB host
@@ -29,11 +32,11 @@ module.exports = {
         username: 'root',
         password: 'root',
         database: 'weert',
-        cq_delay: 5000
+        cq_delay: 5000  //TODO: May not be needed anymore
     },
 
     // Configuration for the Faye pub-sub facility
-    faye:{
-        endpoint: '/api/v1/faye'
-    }
+    faye: {
+        endpoint: '/api/v1/faye',
+    },
 };

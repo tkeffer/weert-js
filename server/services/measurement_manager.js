@@ -80,31 +80,33 @@ class MeasurementManager {
     }
 
     /**
-     * Return an array of packets that satisfy a query, possibly aggregating and/or grouping by time.
+     * Return an array of packets that satisfy a query, possibly aggregating and grouping by time.
      * @param {string} measurement - The measurement name
      * @param {object} options - An options object.
      * @param {string|undefined} options.platform - Select by platform. Otherwise, all platforms
      * @param {string|undefined} options.stream - Select by stream. Otherwise, all streams.
-     * @param {number|undefined} options.start_time - Only times greater than this value will be included. In milliseconds
+     * @param {number|undefined} options.start_time - Only times greater than this value will be included. In
+     *     milliseconds
      * @param {number|undefined} options.stop_time - Only times less than or equal to this value will be included. In
      *     milliseconds.
      * @param {number|undefined} options.limit - The max number of packets to be returned. Default is all packets.
      * @param {string|undefined} options.direction - The sorting direction (by time). Either 'asc' or 'desc'.
-     * @param {string|undefined} options.group_by - If not-null, group by time. The time interval should be something
+     * @param {string|undefined} options.group - If not-null, group by time. The time interval should be something
      *     like '1h' or '15m'. See https://goo.gl/6fhBrD. If given, then a start
      *     and stop time must also be specified and an aggregation will be done.
      *     Default is no grouping.
      * @param {object[]} options.aggregates - If non-null, do an aggregation query. This array holds the type of
      *     aggregation to be used for each observation type.
      * @param {string} options.aggregates[].obs_type - The observation type (e.g., "out_temperature")
-     * @param (string} options.aggregates[].subsample - The aggregation (e.g., "avg(out_temperature)" to be used for this type.
+     * @param (string} options.aggregates[].subsample - The aggregation (e.g., "avg(out_temperature)" to be used for
+     *     this type.
      * @returns {Promise<object[]>} - A promise to return an array of packets.
      */
     find_packets(measurement, {
         platform = undefined, stream = undefined,
         start_time = undefined, stop_time = undefined,
         limit = undefined, direction = 'asc',
-        group_by = undefined,
+        group = undefined,
         aggregates = undefined,
     } = {}) {
 
@@ -126,22 +128,14 @@ class MeasurementManager {
          * to be very slow.
          */
 
-        if (group_by && start_time == null && stop_time == null) {
+        if (group && start_time == null && stop_time == null) {
             return Promise.reject(new Error("Aggregation requires a start and/or stop time"));
         }
 
-        if (group_by){
-            // Group by time requested. This requires an aggregation strategy.
-            // Supply one if none was given.
-            if (aggregates == null) {
-                aggregates = obs_types;
-            }
-        } else {
-            // No group by time has been requested. If an aggregation has been requested,
-            // group the results by the tags.
-            if (aggregates){
-                group_by = 'tags';
-            }
+        // Group by time requested. This requires an aggregation strategy.
+        // Supply one if none was given.
+        if (group && aggregates == null) {
+            aggregates = obs_types;
         }
 
         // If this measurement has timestamps marking the *beginning* of an interval instead
@@ -182,11 +176,15 @@ class MeasurementManager {
                 query_string += ` WHERE stream = '${stream}'`;
         }
 
-        if (group_by) {
-            query_string += ` GROUP BY time(${group_by})`;
+        if (group) {
+            query_string += ` GROUP BY time(${group})`;
         }
 
-        query_string += ` ORDER BY time ${direction}`;
+        // A single value is returned if we are aggregating without grouping by time,
+        // so no ORDER BY is needed. Otherwise, include it.
+        if (!aggregates || group) {
+            query_string += ` ORDER BY time ${direction}`;
+        }
 
         if (limit) {
             query_string += ` LIMIT ${limit}`;

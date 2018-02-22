@@ -7,6 +7,7 @@
 'use strict';
 
 const debug = require('debug')('weert:subsampling');
+const async = require('async');
 
 const config   = require('../config/config');
 const auxtools = require('../auxtools');
@@ -19,63 +20,102 @@ const auxtools = require('../auxtools');
  * @param {string} options.destination - The destination measurement
  * @param {number} options.interval - How often to subsample in milliseconds
  * @param {object[]} options.strategy - An array of subsampling strategies to use
- * @param {number|undefined| options.end_ts - Generate subsamples up through this time. If not given,
+ * @param {number|undefined} options.end_ts - Generate subsamples up through this time. If not given,
  *                                            the present time will be used. The final number is ceiled
  *                                            with the interval.
  */
 function subsample(measurement_manager, options) {
+
+    const {source} = options;
+
+    // Find all the tags in the source measurement
+    return measurement_manager.get_measurement_info(source)
+                              .then(all_tags => {
+                                  let pAll = [];
+                                  // Then for each tag, subsample it.
+                                  for (let tag of all_tags) {
+                                      // Push the new promise on to the array of promises
+                                      pAll.push(subsample_series(measurement_manager, options, tag));
+                                  }
+                                  // Now return a promise to resolve them all
+                                  return Promise.all(pAll);
+                              });
+
+}
+
+
+function subsample_series(measurement_manager, options, tag) {
+
     const {source, destination, interval, strategy} = options;
 
     const end_ts = auxtools.ceil(options.end_ts || Date.now(), interval);
 
     const agg_clause = form_agg_clause(strategy, true);
 
-    // Find all the series in the source measurement
-    return measurement_manager.get_measurement_info(source)
-                              .then(all_series => {
+    return new Promise(function (resolve) {
 
-                                  for (let series of all_series) {
+        // Get the necessary start, stop times. Wait for them to all resolve before proceeding.
+        Promise.all([
+                        measurement_manager.get_last_timestamp(source, tag),
+                        measurement_manager.get_first_timestamp(source, tag),
+                        measurement_manager.get_last_timestamp(destination, tag),
+                    ])
+               .then(tss => {
+                   let [source_last_ts, source_first_ts, destination_last_ts] = tss;
 
-                                      Promise.all([
-                                                      measurement_manager.get_last_timestamp(source, series),
-                                                      measurement_manager.get_first_timestamp(source, series),
-                                                      measurement_manager.get_last_timestamp(destination, series),
-                                                  ])
-                                             .then(tss => {
-                                                 let [source_last_ts, source_first_ts, destination_last_ts] = tss;
+                   // We start up with the last record. If this is the first time through, then
+                   // there will be no last record, so we start just before the first packet.
+                   let start_ts = destination_last_ts || auxtools.floor(source_first_ts, interval);
+                   let last_ts  = end_ts;
+                   // If the ending time end_ts is way beyond the last packet, then there is no need
+                   // to go that far. Stop with the interval containing the last packet.
+                   if (source_last_ts != null) {
+                       last_ts = Math.min(last_ts, auxtools.floor(source_last_ts, interval));
+                   }
 
-                                                 console.log('for platform', series.platform, 'measurement', source,
-                                                             'first:', new Date(source_first_ts), 'last:',
-                                                             new Date(source_last_ts));
-                                                 console.log('for platform', series.platform, 'measurement',
-                                                             destination, 'last:', destination_last_ts, '(',
-                                                             new Date(destination_last_ts), ')');
+                   let N = 0;
+                   // Do all the aggregations and insertions asynchronously.
+                   // Get a queue function from async.queue that does what we need.
+                   let queue = async.queue((interval, done) => {
+                       const {start, stop} = interval;
+                       const options       = {
+                           ...tag,
+                           start_time: start,
+                           stop_time : stop,
+                           aggregates: strategy,
+                       };
 
-                                                 let start_ts = destination_last_ts == null ? auxtools.floor(
-                                                     source_first_ts, interval) : destination_last_ts;
-                                                 let last_ts  = Math.min(end_ts,
-                                                                         auxtools.floor(source_last_ts, interval));
-                                                 console.log("final start, stop=", new Date(start_ts),
-                                                             new Date(last_ts));
-                                                 while (start_ts < last_ts) {
-                                                     console.log("Will subsample from ", new Date(start_ts), 'through',
-                                                                 new Date(start_ts + interval));
-                                                     const options = {
-                                                         ...series,
-                                                         start_time: start_ts,
-                                                         stop_time : start_ts + interval,
-                                                         aggregates: strategy,
-                                                     };
-                                                     measurement_manager.find_packets(source,options)
-                                                         .then(agg_packets =>{
-                                                             console.log("aggregated packets=", agg_packets);
-                                                         });
-                                                     start_ts += interval;
-                                                 }
-                                                 return Promise.resolve();
-                                             });
-                                  }
-                              });
+                       measurement_manager.find_packets(source, options)
+                                          .then(agg_packets => {
+                                              if (agg_packets.length) {
+                                                  const agg_packet = {
+                                                      ...agg_packets[0],
+                                                      tags: tag,
+                                                  };
+                                                  N += 1;
+                                              } else {
+                                                  console.log("no aggregated packet");
+                                              }
+                                              done();
+                                          });
+                   }, config.concurrency);
+
+                   // Now populate the queue
+                   while (start_ts < last_ts) {
+                       queue.push({
+                                      start: start_ts,
+                                      stop : start_ts + interval,
+                                  });
+                       start_ts += interval;
+                   }
+
+                   // Wait until all the workers are done, then call the resolve function with
+                   // the number of records created.
+                   queue.drain = () => {
+                       resolve(N);
+                   };
+               });
+    });
 }
 
 
@@ -153,7 +193,7 @@ function form_agg_clause(agg_obj_array, as = false) {
     let aggs = [];
     for (let agg_obj of agg_obj_array) {
         let agg_str = agg_obj.subsample;
-        if (as) agg_str += ` as ${agg_obj.obs_type}`;
+        if (as) agg_str += ` AS ${agg_obj.obs_type}`;
         aggs.push(agg_str);
     }
 
@@ -217,6 +257,7 @@ function setup_all_notices(measurement_manager, pub_sub, measurement_configs) {
 
 module.exports = {
     subsample,
+    subsample_series,
     create_all_cqs   : create_all_cqs,
     setup_all_notices: setup_all_notices,
     form_agg_clause  : form_agg_clause,
