@@ -79,7 +79,7 @@ describe('In the single packet tests', function () {
                   return frisby.get(packet_link)
                                .expect('status', 200)
                                .then(function (res) {
-                                   expect(res.body).toEqual([form_deep_packet(0)]);
+                                   expect(JSON.parse(res.body)).toEqual([form_deep_packet(0)]);
                                });
               })
               .done(doneFn);
@@ -172,7 +172,7 @@ describe('Malformed packet tests', function () {
                   return frisby.get(packet_link)
                                .expect('status', 200)
                                .then(function (res) {
-                                   expect(res.body).toEqual([form_deep_packet(0)]);
+                                   expect(JSON.parse(res.body)).toEqual([form_deep_packet(0)]);
                                });
               })
               .done(doneFn);
@@ -239,7 +239,7 @@ describe("Launch and test " + N + " POSTs of packets", function () {
               .expect('status', 200)
               .then(function (res) {
                   // Could not get the Frisby test for JSON to work, so use this:
-                  expect(res.body).toEqual(packets);
+                  expect(JSON.parse(res.body)).toEqual(packets);
               })
               .done(doneFn);
     });
@@ -248,7 +248,7 @@ describe("Launch and test " + N + " POSTs of packets", function () {
         frisby.get(packets_url + '?direction=desc')
               .expect('status', 200)
               .then(function (res) {
-                  expect(res.body).toEqual(reverse_packets);
+                  expect(JSON.parse(res.body)).toEqual(reverse_packets);
               })
               .done(doneFn);
     });
@@ -263,7 +263,7 @@ describe("Launch and test " + N + " POSTs of packets", function () {
         frisby.get(packets_url + '?start=' + timestamp(2))
               .expect('status', 200)
               .then(function (res) {
-                  expect(res.body).toEqual(packets.slice(3, N + 1));
+                  expect(JSON.parse(res.body)).toEqual(packets.slice(3, N + 1));
               })
               .done(doneFn);
     });
@@ -272,7 +272,7 @@ describe("Launch and test " + N + " POSTs of packets", function () {
         frisby.get(packets_url + '?stop=' + timestamp(5))
               .expect('status', 200)
               .then(function (res) {
-                  expect(res.body).toEqual(packets.slice(0, 6));
+                  expect(JSON.parse(res.body)).toEqual(packets.slice(0, 6));
               })
               .done(doneFn);
     });
@@ -281,7 +281,7 @@ describe("Launch and test " + N + " POSTs of packets", function () {
         frisby.get(packets_url + '?limit=3&stop=' + timestamp(5))
               .expect('status', 200)
               .then(function (res) {
-                  expect(res.body).toEqual(packets.slice(0, 3));
+                  expect(JSON.parse(res.body)).toEqual(packets.slice(0, 3));
               })
               .done(doneFn);
     });
@@ -290,7 +290,7 @@ describe("Launch and test " + N + " POSTs of packets", function () {
         frisby.get(packets_url + '/' + timestamp(3))
               .expect('status', 200)
               .then(function (res) {
-                  expect(res.body).toEqual([packets[3]]);
+                  expect(JSON.parse(res.body)).toEqual([packets[3]]);
               })
               .done(doneFn);
     });
@@ -299,7 +299,7 @@ describe("Launch and test " + N + " POSTs of packets", function () {
         frisby.get(packets_url + '/' + timestamp(3) + '?platform=test_platform')
               .expect('status', 200)
               .then(function (res) {
-                  expect(res.body).toEqual([packets[3]]);
+                  expect(JSON.parse(res.body)).toEqual([packets[3]]);
               })
               .done(doneFn);
     });
@@ -324,7 +324,7 @@ describe("Testing measurement", function () {
         frisby.get(measurement_url)
               .expect('status', 200)
               .then(function (res) {
-                  expect(res.body).toEqual([{platform: 'test_platform'}]);
+                  expect(JSON.parse(res.body)).toEqual([{platform: 'test_platform'}]);
               })
               .done(doneFn);
     });
