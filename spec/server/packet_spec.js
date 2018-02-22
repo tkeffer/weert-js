@@ -37,7 +37,7 @@ var form_deep_packet = function (i) {
     let obj = {
         tags     : {platform: 'test_platform'},
         fields   : {temperature: temperature(i)},
-        timestamp: timestamp(i)
+        timestamp: timestamp(i),
     };
     return obj;
 };
@@ -47,12 +47,12 @@ let auth_value = 'Basic ' + Buffer.from("weert:weert").toString('base64');
 // Make sure to add an Authorization header to all requests.
 frisby.globalSetup({
                        request: {
-                           headers: {'Authorization': auth_value}
-                       }
+                           headers: {'Authorization': auth_value},
+                       },
                    });
 
 request = request.defaults({
-                               headers: {'Authorization': auth_value}
+                               headers: {'Authorization': auth_value},
                            });
 
 describe('In the single packet tests', function () {
@@ -61,7 +61,7 @@ describe('In the single packet tests', function () {
     beforeEach(function (doneFn) {
         request({
                     url   : measurement_url,
-                    method: 'DELETE'
+                    method: 'DELETE',
                 }, function (err) {
             doneFn();
         });
@@ -101,9 +101,9 @@ describe('In the single packet tests', function () {
                                    // Make sure it's truly deleted. This also tests getting a non-existent packet
                                    return frisby.get(packet_link)
                                                 .expect('status', 404);
-                               })
-                               .done(doneFn);
-              });
+                               });
+              })
+              .done(doneFn);
     });
 
     it('should DELETE a non-existing packet', function (doneFn) {
@@ -124,7 +124,7 @@ describe('Malformed packet tests', function () {
     beforeEach(function (doneFn) {
         request({
                     url   : packet_url,
-                    method: 'DELETE'
+                    method: 'DELETE',
                 }, function (err) {
             doneFn();
         });
@@ -208,7 +208,7 @@ describe("Launch and test " + N + " POSTs of packets", function () {
 
         request({
                     url   : measurement_url,
-                    method: 'DELETE'
+                    method: 'DELETE',
                 }, function (err) {
             // Now asynchronously repopulate it.
             async.each(indices, function (i, callback) {
@@ -216,7 +216,7 @@ describe("Launch and test " + N + " POSTs of packets", function () {
                             url   : packets_url,
                             method: 'POST',
                             body  : packets[i],
-                            json  : true
+                            json  : true,
                         }, function (error) {
                     return callback(error);
                 });
@@ -313,7 +313,7 @@ describe("Testing measurement", function () {
                     url   : packets_url,
                     method: 'POST',
                     json  : true,
-                    body  : form_deep_packet(0)
+                    body  : form_deep_packet(0),
                 }, function (error) {
             return doneFn();
         });
@@ -333,8 +333,8 @@ describe("Testing measurement", function () {
               .expect('status', 204)
               .then(function () {
                   frisby.get(measurement_url)
-                        .expect('status', 404)
-                        .done(doneFn());
-              });
+                        .expect('status', 404);
+              })
+              .done(doneFn);
     });
 });
