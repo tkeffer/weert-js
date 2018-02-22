@@ -22,6 +22,13 @@ class MeasurementManager {
         this.measurement_config = measurement_config;
     }
 
+    /**
+     * Insert a packet into the database
+     * @param {string} measurement - The name of the measurement into which the packet is to be inserted.
+     * @param {string} deep_packet - The deep packet to be inserted
+     * @returns {promise<DeepPacket>} - A promise to insert the packet. The promise resolves to the final,
+     * inserted packet. Its fields may have been modified.
+     */
     insert_packet(measurement, deep_packet) {
 
         // Make sure the packet has a timestamp.
@@ -48,9 +55,10 @@ class MeasurementManager {
                              }, {}),
         };
 
-        return this.influx
-                   .writeMeasurement(measurement, [final_packet],
-                                     this._get_write_options(measurement));
+        return this.influx.writeMeasurement(measurement, [final_packet], this._get_write_options(measurement))
+                   .then(() => {
+                       return Promise.resolve(final_packet);
+                   });
     }
 
     find_packet(measurement, timestamp, {platform = undefined, stream = undefined} = {}) {

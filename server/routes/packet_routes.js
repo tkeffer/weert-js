@@ -31,15 +31,15 @@ const PacketRouterFactory = function (measurement_manager, pub_sub) {
             // Insert the packet into the database
             measurement_manager
                 .insert_packet(measurement, packet)
-                .then(() => {
+                .then((final_packet) => {
                     // Form the URL of the newly created resource and send it back in the 'Location' header
-                    const resource_url = auxtools.resourcePath(req, packet.timestamp);
+                    const resource_url = auxtools.resourcePath(req, final_packet.timestamp);
                     res.location(resource_url)
                        .sendStatus(201);
                     // Notify any subscribers via the pub-sub facility
-                    pub_sub.publish(`/${measurement}`, packet)
+                    pub_sub.publish(`/${measurement}`, final_packet)
                            .then(function () {
-                                     debug(`PUBlished packet ${new Date(packet.timestamp)} to ${measurement}`);
+                                     debug(`PUBlished packet ${new Date(final_packet.timestamp)} to ${measurement}`);
                                  },
                                  function (err) {
                                      debug(`POST /measurements/${measurement}/packets PUB-SUB error:`, err.message);
