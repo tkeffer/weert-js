@@ -117,14 +117,11 @@ class MeasurementManager {
          * However, InfluxDB assumes that this last packet is actually part of the *next* five
          * minute interval, and thus in an entirely different "group by" bin. So, it won't include it.
          *
-         * To possible fixes:
-         *  1. Do the aggregation within the application. This is likely to be slow.
-         *  2. Do not allow packets to be inserted precisely on a record bounday. Add a millisecond to
-         *     their timestamp, thus forcing them into the next interval. This would require
-         *     knowledge of what the subsampling record boundaries are likely to be.
-         *
-         *  Neither is a great solution, so we do nothing...
+         * With the new "subsampling" function, it might not be hard, nor too slow, to do it in the
+         * application.
          */
+
+        // TODO: Look into using the subsampling function to do group by time queries.
 
         if (group && start_time == null && stop_time == null) {
             return Promise.reject(new Error("Aggregation by time requires a start and/or stop time"));
@@ -232,11 +229,6 @@ class MeasurementManager {
 
     delete_packet(measurement, timestamp, {platform = undefined, stream = undefined} = {}) {
 
-        // If this measurement has timestamps marking the *beginning* of an interval instead
-        // of the more normal end, shift the timestamp.
-        const timeshift = this._get_timeshift(measurement);
-        timestamp -= timeshift;
-
         const from_clause = auxtools.get_query_from(measurement, this.measurement_config[measurement]);
 
         let delete_stmt = `DELETE FROM ${from_clause} WHERE time=${timestamp}ms`;
@@ -300,12 +292,6 @@ class MeasurementManager {
         let ordering      = [];
         const from_clause = auxtools.get_query_from(measurement, this.measurement_config[measurement]);
 
-        // If this measurement has timestamps marking the *beginning* of an interval instead
-        // of the more normal end, shift the timestamp.
-        const timeshift = this._get_timeshift(measurement);
-        start -= timeshift;
-        stop -= timeshift;
-
         // First, build all the queries that will be needed.
         // One for each measurement and aggregation type
         for (let stats_spec of stats_specs) {
@@ -335,6 +321,10 @@ class MeasurementManager {
         // Now run the query and process the results.
         return this.influx.queryRaw(queries, {precision: 'ms'})
                    .then(result_set => {
+
+                       // If this measurement has timestamps marking the *beginning* of an interval instead
+                       // of the more normal end, shift the timestamp.
+                       const timeshift = this._get_timeshift(measurement);
 
                        // This will be what gets returned:
                        let final_results = {};
@@ -398,10 +388,6 @@ class MeasurementManager {
             database       : db,
             precision      : 'ms',
         };
-    }
-
-    _shift_timestamp(measurement, packet) {
-        packet.timestamp += this._get_timeshift(measurement);
     }
 
     _get_timeshift(measurement) {
