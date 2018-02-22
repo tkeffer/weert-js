@@ -28,7 +28,7 @@ function subsample(measurement_manager, options) {
 
     const {source} = options;
 
-    // Find all the tags in the source measurement
+    // Find all the tags in the source measurement and process them separately
     return measurement_manager.get_measurement_info(source)
                               .then(all_tags => {
                                   let pAll = [];
@@ -52,7 +52,7 @@ function subsample_series(measurement_manager, options, tag) {
 
     const agg_clause = form_agg_clause(strategy, true);
 
-    return new Promise(function (resolve) {
+    return new Promise(function (resolve, reject) {
 
         // Get the necessary start, stop times. Wait for them to all resolve before proceeding.
         Promise.all([
@@ -92,11 +92,22 @@ function subsample_series(measurement_manager, options, tag) {
                                                       ...agg_packets[0],
                                                       tags: tag,
                                                   };
-                                                  N += 1;
+                                                  // Return a promise to insert the aggregated packet.
+                                                  // The promise will resolve to the final, inserted packet
+                                                  return measurement_manager.insert_packet(destination, agg_packet);
                                               } else {
-                                                  console.log("no aggregated packet");
+                                                  // No aggregated packet. Just return a promise to resolve
+                                                  // to an empty packet.
+                                                  return Promise.resolve({});
                                               }
+                                          })
+                                          .then(packet => {
+                                              // If packet has a timestamp, it's not empty.
+                                              if (packet.timestamp) {N += 1;}
                                               done();
+                                          })
+                                          .catch(error => {
+                                              reject(error);
                                           });
                    }, config.concurrency);
 

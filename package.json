@@ -36,6 +36,7 @@
   "devDependencies": {
     "frisby": "^2.0.13",
     "jasmine": "^3.0.0",
+    "lodash": "^4.17.5",
     "request": "^2.83.0"
   }
 }

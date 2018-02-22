@@ -5,8 +5,8 @@
  */
 
 'use strict';
-const moment = require('moment');
-
+const moment       = require('moment');
+const _            = require('lodash');
 const auxtools     = require('../auxtools');
 const obs_types    = require('../config/obs_types');
 const sub_sampling = require('./subsampling');
@@ -38,21 +38,15 @@ class MeasurementManager {
             return Promise.reject(new Error("Value of 'measurement' in packet does not match given value."));
         }
 
-        const timeshift = this._get_timeshift(measurement);
-
         // Make a copy of the packet, filtering out any nulls because InfluxDB will reject them.
-        // Also, if this measurement is the result of a CQ, its timestamps will mark the
-        // *beginning* of an interval, not the end. So, before inserting the packet, change
-        // the timestamp to the beginning of the interval.
         const final_packet = {
             ...deep_packet,
-            timestamp: deep_packet.timestamp - timeshift,
-            fields   : Object.keys(deep_packet.fields)
-                             .filter(k => deep_packet.fields[k] != null)
-                             .reduce((f, k) => {
-                                 f[k] = deep_packet.fields[k];
-                                 return f;
-                             }, {}),
+            fields: Object.keys(deep_packet.fields)
+                          .filter(k => deep_packet.fields[k] != null)
+                          .reduce((f, k) => {
+                              f[k] = deep_packet.fields[k];
+                              return f;
+                          }, {}),
         };
 
         return this.influx.writeMeasurement(measurement, [final_packet], this._get_write_options(measurement))
@@ -63,10 +57,6 @@ class MeasurementManager {
 
     find_packet(measurement, timestamp, {platform = undefined, stream = undefined} = {}) {
 
-        // If this measurement has timestamps marking the *beginning* of an interval instead
-        // of the more normal end, shift the timestamp.
-        const timeshift   = this._get_timeshift(measurement);
-        timestamp -= timeshift;
         const from_clause = auxtools.get_query_from(measurement, this.measurement_config[measurement]);
 
         let query_string = `SELECT * FROM ${from_clause} WHERE time=${timestamp}ms`;
@@ -78,11 +68,6 @@ class MeasurementManager {
                    .queryRaw(query_string, {precision: 'ms'})
                    .then(results => {
                        const packet_arrays = auxtools.raws_to_deeps(results.results);
-                       for (let packet of packet_arrays[0]) {
-                           if (packet) {
-                               this._shift_timestamp(measurement, packet);
-                           }
-                       }
                        return Promise.resolve(packet_arrays[0]);
                    });
     }
@@ -126,18 +111,29 @@ class MeasurementManager {
          * the end of an interval (WeeWX's assumption), or the beginning (InfluxDB's).
          *
          * With the WeeWX strategy, to find the aggregates in a five minute interval, you must select greater than the
-         * starting time, and less than *or equal to* the ending time. Because of this, there may be a packet
-         * that lies precisely on the end of the five minute boundary, which gets included.
+         * starting time, and less than *or equal to* the ending time. Because of this, a packet
+         * that lies precisely on the end of the five minute boundary will get included.
          *
-         * When you then group by 5 minutes, InfluxDB assumes that this last packet is actually part of
-         * the *next* five minute interval, and thus in an entirely different "group by" bin.
+         * However, InfluxDB assumes that this last packet is actually part of the *next* five
+         * minute interval, and thus in an entirely different "group by" bin. So, it won't include it.
          *
-         * No easy fix, except to run the grouping in the application, instead of the database. This is likely
-         * to be very slow.
+         * To possible fixes:
+         *  1. Do the aggregation within the application. This is likely to be slow.
+         *  2. Do not allow packets to be inserted precisely on a record bounday. Add a millisecond to
+         *     their timestamp, thus forcing them into the next interval. This would require
+         *     knowledge of what the subsampling record boundaries are likely to be.
+         *
+         *  Neither is a great solution, so we do nothing...
          */
 
         if (group && start_time == null && stop_time == null) {
-            return Promise.reject(new Error("Aggregation requires a start and/or stop time"));
+            return Promise.reject(new Error("Aggregation by time requires a start and/or stop time"));
+        }
+
+        // Because InfluxDB timestamps aggregated intervals with the *start* of the interval,
+        // and we require the end, we have to modify the timestamp. This requires the stop time.
+        if (aggregates && stop_time == null) {
+            return Promise.reject(new Error("Aggregation requires a stop time"));
         }
 
         // Group by time requested. This requires an aggregation strategy.
@@ -145,12 +141,6 @@ class MeasurementManager {
         if (group && aggregates == null) {
             aggregates = obs_types;
         }
-
-        // If this measurement has timestamps marking the *beginning* of an interval instead
-        // of the more normal end, shift the timestamps.
-        const timeshift = this._get_timeshift(measurement);
-        if (start_time) start_time -= timeshift;
-        if (stop_time) stop_time -= timeshift;
 
         // If aggregation was specified, get the aggregation clause. This will be something like
         // "avg(out_temperature) as out_temperature,SUM(rain_rain) as rain_rain, ..."
@@ -202,10 +192,39 @@ class MeasurementManager {
                    .queryRaw(query_string, {precision: 'ms'})
                    .then(results => {
                        const packet_arrays = auxtools.raws_to_deeps(results.results);
-                       for (let packet of packet_arrays[0]) {
-                           if (packet) {
-                               this._shift_timestamp(measurement, packet);
+
+                       // If we are aggregating, but not grouping by time, then there are some special
+                       // cases to take care of.
+                       if (aggregates && !group) {
+                           // Was anything returned?
+                           if (packet_arrays[0].length == 0) {
+                               // No. Return an empty array
+                               return Promise.resolve([]);
+                           } else if (packet_arrays[0].length == 1) {
+                               // There is a single packet, which is what we expected.
+                               // Its timestamp should be the *end* of the interval
+                               return Promise.resolve([
+                                                          {
+                                                              ...packet_arrays[0][0],
+                                                              timestamp: stop_time,
+                                                          },
+                                                      ]);
                            }
+                           // If there is more than one packet, something went wrong
+                           return Promise.reject(
+                               new Error("More than one packet returned despite aggregating over time"),
+                           );
+
+                       }
+                       // We are not aggregating, or we're grouping by time.
+                       // If we're grouping by time, we need to shift the timestamps to the *end*
+                       // of each interval
+                       if (group){
+                           const shift = auxtools.epoch_to_ms(group)
+                           const final = packet_arrays[0].map(packet =>{
+                               packet.timestamp += shift;
+                           })
+                           return Promise.resolve(final);
                        }
                        return Promise.resolve(packet_arrays[0]);
                    });
