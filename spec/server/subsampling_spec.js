@@ -109,6 +109,7 @@ describe('Check subsampling', function () {
         // Delete any existing data first
         measurement_manager.delete_measurement(test_packet_measurement)
                            .then(() => {
+                               // Now repopulate, using two platforms
                                Promise.all([
                                                populate_db(measurement_manager, platform1),
                                                populate_db(measurement_manager, platform2),
@@ -117,7 +118,8 @@ describe('Check subsampling', function () {
                            });
     });
 
-    it('should have populated', function () {
+    // Double-check that the database got populated as we expected.
+    it('should have populated', function (done) {
         measurement_manager.find_packets(test_packet_measurement, {platform: platform1})
                            .then(packets => {
                                expect(packets.length).toEqual(nPackets);
@@ -125,6 +127,7 @@ describe('Check subsampling', function () {
                            })
                            .then(packets => {
                                expect(packets.length).toEqual(nPackets);
+                               done();
                            });
     });
 
