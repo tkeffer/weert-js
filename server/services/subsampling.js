@@ -10,10 +10,10 @@ const debug = require('debug')('weert:subsampling');
 const async = require('async');
 const cron  = require('cron');
 
-const config   = require('../config/config');
-const auxtools = require('../auxtools');
-
-const ss_policies = require('../config/ss_policies');
+const auxtools      = require('../auxtools');
+const config        = require('../config/config');
+const ss_policies   = require('../config/ss_policies');
+const event_emitter = require('./event_emitter');
 
 function setup_cron(measurement_manager) {
 
@@ -22,20 +22,22 @@ function setup_cron(measurement_manager) {
         const skip = ss_job_spec.interval / 60000;
         let job    = new cron.CronJob(`* */${skip} * * * *`,
                                       () => {
-                                          subsample(measurement_manager, ss_job_spec, );
-                                          //                                                let packet = result[0];
-                                          //                                                let d      = new Date(packet.timestamp);
-                                          //                                                debug(`Publishing packet from ${cq_destination} for ` +
-                                          //                                                      `time ${d} (${packet.timestamp})`);
-                                          //                                                return pub_sub.publish(`/${cq_destination}`, packet);
+                                          debug(`Starting subsampling at ${new Date()}.`);
+                                          subsample(measurement_manager, ss_job_spec)
+                                              .then(N => {
+                                                  debug(`Finished creating ${N} subsamples at ${new Date()}.`);
+                                              });
                                       });
         jobs.push(job);
+        debug(`Created cron job`)
     }
     return jobs;
 }
 
 /**
- * Subsample a measurement using a subsampling strategy
+ * Subsample a measurement using a subsampling strategy. The created records are inserted into
+ * the database. It also emits a NEW_AGGREGATE event for each produced record. These events
+ * are not emitted in any particular order.
  * @param {MeasurementManager} measurement_manager - Instance of a MeasurementManager
  * @param {object} options - An object containing the subsampling options to use
  * @param {string} options.source - The source measurement
@@ -45,12 +47,10 @@ function setup_cron(measurement_manager) {
  * @param {number|undefined} options.end_ts - Generate subsamples up through this time. If not given,
  *                                            the present time will be used. The final number is ceiled
  *                                            with the interval.
- * @param {function} callback - Optional callback that will be called with new, aggregated records
- * as they are created.
  * @returns {Promise<number>[]} - An array of promises, one for each series. They will resolve to the number
  * of new records created for each series.
  */
-function subsample(measurement_manager, options, callback) {
+function subsample(measurement_manager, options) {
 
     const {source} = options;
 
@@ -61,7 +61,7 @@ function subsample(measurement_manager, options, callback) {
                                   // Then for each tag, subsample it.
                                   for (let tag of all_tags) {
                                       // Push the new promise on to the array of promises
-                                      pAll.push(subsample_series(measurement_manager, options, tag, callback));
+                                      pAll.push(subsample_series(measurement_manager, options, tag));
                                   }
                                   // Now return a promise to resolve them all
                                   return Promise.all(pAll);
@@ -81,11 +81,9 @@ function subsample(measurement_manager, options, callback) {
  * @param {number|undefined} options.end_ts - Generate subsamples up through this time. If not given,
  *                                            the present time will be used. The final number is ceiled
  *                                            with the interval.
- * @param {function} callback - This callback will be called with new, aggregated records
- * as they are created.
  * @returns {Promise<number>} - Returns a promise to resolve to the number of records created and inserted.
  */
-function subsample_series(measurement_manager, options, tag, callback) {
+function subsample_series(measurement_manager, options, tag) {
 
     const {source, destination, interval, strategy} = options;
 
@@ -152,7 +150,8 @@ function subsample_series(measurement_manager, options, tag, callback) {
                                           .then(record => {
                                               // If the record has a timestamp, it's not empty.
                                               if (record.timestamp) {
-                                                  if (callback) {callback(record);}
+                                                  event_emitter.emit("NEW_AGGREGATION", record);
+                                                  debug(`Emitted record with timestamp ${new Date(record.timestamp)}`)
                                                   N += 1;
                                               }
                                               done();
@@ -320,7 +319,6 @@ function notice(ms, callback) {
 module.exports = {
     setup_cron,
     subsample,
-    subsample_series,
     // create_all_cqs   : create_all_cqs,
     // setup_all_notices: setup_all_notices,
     form_agg_clause: form_agg_clause,

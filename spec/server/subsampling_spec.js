@@ -6,15 +6,16 @@
 
 "use strict";
 
-const async  = require('async');
-const _      = require('lodash');
-const config = require('../../server/config/config');
+const async = require('async');
+const _     = require('lodash');
+
+const event_emitter      = require('../../server/services/event_emitter');
+const config             = require('../../server/config/config');
+const MeasurementManager = require('../../server/services/measurement_manager');
+const subsampling        = require('../../server/services/subsampling');
 
 const Influx = require('influx');
 const influx = new Influx.InfluxDB(config.influxdb);
-
-const MeasurementManager = require('../../server/services/measurement_manager');
-const subsampling        = require('../../server/services/subsampling');
 
 // Null measurement config needed for these tests.
 const measurement_config = {};
@@ -113,8 +114,13 @@ function reduce_packets(packets) {
     }, {});
 }
 
+/**
+ * Updates a running summary with a packet
+ * @param {object} summary - The running summary
+ * @param {object} packet - A new packet. It's mins, maxes, etc., will be merged into the summary
+ * @returns {object} - The merged (reduced) summary.
+ */
 function summary_reducer(summary, packet) {
-    // Updates a running summary with a packet
     const {fields} = packet;
     for (let obsType of Object.keys(fields)) {
         // If we have not seen this type before,
@@ -234,18 +240,26 @@ describe('While checking subsampling', function () {
     });
 
     it('should subsample', function (done) {
+
         const seen_records = {
             platform1: new Set(),
             platform2: new Set(),
         };
-        const options      = {
+
+        // Listen for the NEW_AGGREGATION events being emitted from the subsampler,
+        // so we can test them as well.
+        event_emitter.on('NEW_AGGREGATION', record => {
+            if (!_.isEmpty(record)) {
+                seen_records[record.tags.platform].add(record);
+            }
+        });
+
+        const options = {
             ...ss_policies[0],
             end_ts: timestamp(nPackets - 1),
         };
-        subsampling.subsample(measurement_manager, options, (record) => {
-                       // Keep track of all timestamps that have been inserted
-                       seen_records[record.tags.platform].add(record);
-                   })
+
+        subsampling.subsample(measurement_manager, options)
                    .then((N_array) => {
                        const [N1, N2] = N_array;
                        expect(N1).toEqual(nRecords);
