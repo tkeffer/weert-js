@@ -19,31 +19,15 @@ const subsampling        = require('../../server/services/subsampling');
 // Null measurement config needed for these tests.
 const measurement_config = {};
 
-// Simplified obs_types, in lieu of the real one.
-const obs_types = [
-    {
-        obs_type : "out_temperature",
-        subsample: "MEAN(out_temperature)",
-        stats    : ["min", "max"],
-    },
-    {
-        obs_type : "unit_system",
-        subsample: "MIN(unit_system)",
-    },
-];
+// Just subsample some of the types. This keeps the test packets manageable.
+const keep_types = ['out_temperature', 'wind_speed', 'windgust_speed', 'unit_system'];
+const obs_types  = require('../../server/config/obs_types')
+    .filter(ss => keep_types.includes(ss.obs_type));
 
 // The name of the measurement to be used for the testing packets.
 const test_packet_measurement = 'test_packets';
 // The name of the measurement resulting from the subsampling.
 const test_record_measurement = 'test_records';
-// We will be using two platforms.
-const platform1               = 'test_platform1';
-const platform2               = 'test_platform2';
-
-// Use a different temperature profile for each platform
-const base_temperature = (platform => {
-    return platform === platform1 ? 10.0 : 20.0;
-});
 
 // The period of the test temperature wave in milliseconds.
 const period          = 3600000;
@@ -74,19 +58,30 @@ function timestamp(i) {
     return start + loop_interval * i;
 }
 
-function temperature(t, baseVal) {
-    return Math.sin(2.0 * Math.PI * (t - start) / period) + baseVal;
+// Arbitrary values added to the packet fields, to differentiate the two platforms
+const baseValues = {
+    'platform1': 0,
+    'platform2': 5,
+};
+// Made up functions for the data. The platform number is just added to the returned
+// value, to allow the data for each series to be unique.
+const valFns = {
+    out_temperature: (t, platform) => Math.sin(2.0 * Math.PI * (t - start) / period) + baseValues[platform],
+    wind_speed     : (t, platform) => Math.cos(2.0 * Math.PI * (t - start) / period) + baseValues[platform],
+    unit_system    : () => 16,
 };
 
+
 function form_deep_packet(t, platform) {
+
     const obj = {
         tags     : {
             platform: platform,
         },
-        fields   : {
-            out_temperature: temperature(t, base_temperature(platform)),
-            unit_system    : 16,
-        },
+        fields   : Object.keys(valFns).reduce((packet, obsType) => {
+            packet[obsType] = valFns[obsType](t, platform);
+            return packet;
+        }, {}),
         timestamp: t,
     };
     return obj;
@@ -99,6 +94,25 @@ function expected_packets(platform) {
             });
 }
 
+function reduce_packets(packets) {
+    return packets.reduce((summary, packet) => {
+        for (let obsType of Object.keys(packets)) {
+            // If we have not seen this type before, initialize
+            if (summary[obsType] == null) {
+                summary[obsType] = {sum: 0.0, count: 0, max: null};
+            }
+            if (packet[obsType] != null) {
+                summary.sum += packet[obsType];
+                summary.count += 1;
+                if (summary.max == null || packet[obsType] > summary.max) {
+                    summary.max = packet[obsType];
+                }
+            }
+        }
+        return summary;
+    }, {});
+}
+
 function expected_records(packet_array, platform) {
     let records = [];
 
@@ -106,26 +120,39 @@ function expected_records(packet_array, platform) {
             .map(start_of_interval => {
                 const end_of_interval = start_of_interval + record_interval;
 
-                let sumCount       = packet_array.filter(packet => {
-                                                     // Include only packets in this time interval
-                                                     return packet.timestamp > start_of_interval && packet.timestamp <= end_of_interval;
-                                                 })
-                                                 .reduce((sumCount, packet) => {
-                                                     // Calculate the running sum and count
-                                                     let [sum, count] = sumCount;
-                                                     if (packet.fields.out_temperature != null) {
-                                                         sum += packet.fields.out_temperature;
-                                                         count += 1;
-                                                     }
-                                                     return [sum, count];
-                                                 }, [0.0, 0]);
-                const [sum, count] = sumCount;
-                let record         = {
+                const summary = packet_array.filter(packet => {
+                                                // Include only packets in this time interval
+                                                return packet.timestamp > start_of_interval && packet.timestamp <= end_of_interval;
+                                            })
+                                            .reduce((summary, packet) => {
+                                                // Calculate sum, count, and max for the collection of packets
+                                                const {fields} = packet;
+                                                for (let obsType of Object.keys(fields)) {
+                                                    // If we have not seen this type before,
+                                                    // initialize the summary with this type
+                                                    if (summary[obsType] == null) {
+                                                        summary[obsType] = {sum: 0.0, count: 0, max: null};
+                                                    }
+                                                    if (fields[obsType] != null) {
+                                                        summary[obsType].sum += fields[obsType];
+                                                        summary[obsType].count += 1;
+                                                        if (summary[obsType].max == null || fields[obsType] > summary[obsType].max) {
+                                                            summary[obsType].max = fields[obsType];
+                                                        }
+                                                    }
+                                                }
+                                                return summary;
+                                            }, {});
+                let record    = {
                     tags     : {
                         platform: platform,
                     },
                     fields   : {
-                        out_temperature: count ? sum / count : null,
+                        out_temperature: summary.out_temperature.count ?
+                            summary.out_temperature.sum / summary.out_temperature.count : null,
+                        wind_speed     : summary.wind_speed.count ?
+                            summary.wind_speed.sum / summary.wind_speed.count : null,
+                        windgust_speed : summary.wind_speed.max,
                         unit_system    : 16,
                     },
                     timestamp: end_of_interval,
@@ -134,10 +161,10 @@ function expected_records(packet_array, platform) {
             });
 }
 
-const packet_array1 = expected_packets(platform1);
-const packet_array2 = expected_packets(platform2);
-const record_array1 = expected_records(packet_array1, platform1);
-const record_array2 = expected_records(packet_array2, platform2);
+const packet_array1 = expected_packets('platform1');
+const packet_array2 = expected_packets('platform2');
+const record_array1 = expected_records(packet_array1, 'platform1');
+const record_array2 = expected_records(packet_array2, 'platform2');
 
 function populate_db(measurement_manager, packet_array) {
     let N = 0;
@@ -178,10 +205,10 @@ describe('While checking subsampling', function () {
 
     // Double-check that the database got populated as we expected.
     it('should have populated', function (done) {
-        measurement_manager.find_packets(test_packet_measurement, {platform: platform1})
+        measurement_manager.find_packets(test_packet_measurement, {platform: 'platform1'})
                            .then(packets => {
                                expect(packets.length).toEqual(nPackets);
-                               return measurement_manager.find_packets(test_packet_measurement, {platform: platform2});
+                               return measurement_manager.find_packets(test_packet_measurement, {platform: 'platform2'});
                            })
                            .then(packets => {
                                expect(packets.length).toEqual(nPackets);
@@ -201,11 +228,11 @@ describe('While checking subsampling', function () {
                        expect(N2).toEqual(nRecords);
                    })
                    .then(() => {
-                       measurement_manager.find_packets(test_record_measurement, {platform: platform1})
+                       measurement_manager.find_packets(test_record_measurement, {platform: 'platform1'})
                                           .then(records => {
                                               expect(records).toEqual(record_array1);
                                               return measurement_manager.find_packets(test_record_measurement,
-                                                                                      {platform: platform2});
+                                                                                      {platform: 'platform2'});
                                           })
                                           .then(records => {
                                               expect(records).toEqual(record_array2);
