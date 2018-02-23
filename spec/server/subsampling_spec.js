@@ -113,6 +113,31 @@ function reduce_packets(packets) {
     }, {});
 }
 
+function summary_reducer(summary, packet) {
+    // Updates a running summary with a packet
+    const {fields} = packet;
+    for (let obsType of Object.keys(fields)) {
+        // If we have not seen this type before,
+        // initialize the summary with this type
+        if (summary[obsType] == null) {
+            summary[obsType] = {sum: 0.0, count: 0, max: null, min: null, maxtime: null, mintime: null};
+        }
+        if (fields[obsType] != null) {
+            summary[obsType].sum += fields[obsType];
+            summary[obsType].count += 1;
+            if (summary[obsType].max == null || fields[obsType] > summary[obsType].max) {
+                summary[obsType].max     = fields[obsType];
+                summary[obsType].maxtime = packet.timestamp;
+            }
+            if (summary[obsType].min == null || fields[obsType] < summary[obsType].min) {
+                summary[obsType].min     = fields[obsType];
+                summary[obsType].mintime = packet.timestamp;
+            }
+        }
+    }
+    return summary;
+};
+
 function expected_records(packet_array, platform) {
     let records = [];
 
@@ -124,25 +149,7 @@ function expected_records(packet_array, platform) {
                                                 // Include only packets in this time interval
                                                 return packet.timestamp > start_of_interval && packet.timestamp <= end_of_interval;
                                             })
-                                            .reduce((summary, packet) => {
-                                                // Calculate sum, count, and max for the collection of packets
-                                                const {fields} = packet;
-                                                for (let obsType of Object.keys(fields)) {
-                                                    // If we have not seen this type before,
-                                                    // initialize the summary with this type
-                                                    if (summary[obsType] == null) {
-                                                        summary[obsType] = {sum: 0.0, count: 0, max: null};
-                                                    }
-                                                    if (fields[obsType] != null) {
-                                                        summary[obsType].sum += fields[obsType];
-                                                        summary[obsType].count += 1;
-                                                        if (summary[obsType].max == null || fields[obsType] > summary[obsType].max) {
-                                                            summary[obsType].max = fields[obsType];
-                                                        }
-                                                    }
-                                                }
-                                                return summary;
-                                            }, {});
+                                            .reduce(summary_reducer, {});
                 let record    = {
                     tags     : {
                         platform: platform,
@@ -165,6 +172,9 @@ const packet_array1 = expected_packets('platform1');
 const packet_array2 = expected_packets('platform2');
 const record_array1 = expected_records(packet_array1, 'platform1');
 const record_array2 = expected_records(packet_array2, 'platform2');
+
+const packet_array1_summary = packet_array1.reduce(summary_reducer, {});
+const record_array1_summary = record_array1.reduce(summary_reducer, {});
 
 function populate_db(measurement_manager, packet_array) {
     let N = 0;
@@ -208,7 +218,8 @@ describe('While checking subsampling', function () {
         measurement_manager.find_packets(test_packet_measurement, {platform: 'platform1'})
                            .then(packets => {
                                expect(packets.length).toEqual(nPackets);
-                               return measurement_manager.find_packets(test_packet_measurement, {platform: 'platform2'});
+                               return measurement_manager.find_packets(test_packet_measurement,
+                                                                       {platform: 'platform2'});
                            })
                            .then(packets => {
                                expect(packets.length).toEqual(nPackets);
@@ -241,5 +252,27 @@ describe('While checking subsampling', function () {
                    });
     });
 
-
+    it('should calculate stats', function (done) {
+        const options = {
+            platform: 'platform1',
+            now     : start,
+        };
+        measurement_manager.run_stats(test_record_measurement, obs_types, options)
+                           .then(results => {
+                               for (let obsType of ['out_temperature', 'wind_speed', 'windgust_speed', 'unit_system']) {
+                                   if (obsType !== 'windgust_speed') {
+                                       expect(results[obsType].min.value)
+                                           .toEqual(record_array1_summary[obsType].min);
+                                       expect(results[obsType].min.timestamp)
+                                           .toEqual(record_array1_summary[obsType].mintime);
+                                   }
+                                   expect(results[obsType].max.value)
+                                       .toEqual(record_array1_summary[obsType].max);
+                                   expect(results[obsType].max.timestamp)
+                                       .toEqual(record_array1_summary[obsType].maxtime);
+                               }
+                               done();
+                           });
+    });
 });
+
