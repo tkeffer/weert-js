@@ -6,7 +6,8 @@
 
 import moment from 'moment/moment';
 import {combineReducers} from 'redux';
-import {findFirstGood, isDevelopment} from './utility';
+import * as _ from 'lodash';
+import {findFirstGood, insertSorted} from './utility';
 
 import {
     SELECT_TAGS,
@@ -25,7 +26,7 @@ import {
 
 const initialTags = {
     platform: "default_platform",
-    stream  : "default_stream"
+    stream  : "default_stream",
 };
 
 const initialTimeSpan = 'recent';
@@ -38,7 +39,7 @@ const initialTimeSpanState = {
         options    : {
             maxAge            : 3600000,        // = 1 hour in milliseconds
             selectedTimeDetail: 5,              // 5 | 10 | 20 | 60
-        }
+        },
     },
     day   : {
         isFetching : false,
@@ -56,7 +57,7 @@ const initialTimeSpanState = {
         options    : {
             start      : moment().startOf('week').valueOf(),
             aggregation: '1h',
-        }
+        },
     },
     month : {
         isFetching : false,
@@ -65,7 +66,7 @@ const initialTimeSpanState = {
         options    : {
             start      : moment().startOf('month').valueOf(),
             aggregation: '3h',
-        }
+        },
     },
     year  : {
         isFetching : false,
@@ -74,7 +75,7 @@ const initialTimeSpanState = {
         options    : {
             start      : moment().startOf('year').valueOf(),
             aggregation: '6h',
-        }
+        },
     },
 };
 
@@ -82,22 +83,22 @@ const initialStatsState = {
     day  : {
         isFetching : false,
         measurement: "wxpackets",
-        data       : {}
+        data       : {},
     },
     week : {
         isFetching : false,
         measurement: "wxrecords",
-        data       : {}
+        data       : {},
     },
     month: {
         isFetching : false,
         measurement: "wxrecords",
-        data       : {}
+        data       : {},
     },
     year : {
         isFetching : false,
         measurement: "wxrecords",
-        data       : {}
+        data       : {},
     },
 };
 
@@ -113,7 +114,7 @@ function reduceTags(state = initialTags, action) {
 function reduceSelectedTimeSpan(state = initialTimeSpan, action) {
     switch (action.type) {
         case SELECT_TIME_SPAN:
-            if (action.timeSpan === state.selectedTimeSpan){
+            if (action.timeSpan === state.selectedTimeSpan) {
                 return state;
             }
             return action.timeSpan;
@@ -125,7 +126,7 @@ function reduceSelectedTimeSpan(state = initialTimeSpan, action) {
 function reduceTimeSpans(state = initialTimeSpanState, action) {
     switch (action.type) {
         case SELECT_TIME_DETAIL:
-            if (action.timeDetail === state.recent.options.selectedTimeDetail){
+            if (action.timeDetail === state.recent.options.selectedTimeDetail) {
                 return state;
             }
             return {
@@ -134,9 +135,9 @@ function reduceTimeSpans(state = initialTimeSpanState, action) {
                     ...state.recent,
                     options: {
                         ...state.recent.options,
-                        selectedTimeDetail: action.timeDetail
-                    }
-                }
+                        selectedTimeDetail: action.timeDetail,
+                    },
+                },
             };
         case FETCH_TIMESPAN_IN_PROGRESS:
             return {
@@ -144,7 +145,7 @@ function reduceTimeSpans(state = initialTimeSpanState, action) {
                 [action.timeSpan]: {
                     ...state[action.timeSpan],
                     isFetching: true,
-                }
+                },
             };
         case FETCH_TIMESPAN_SUCCESS:
             return {
@@ -153,7 +154,7 @@ function reduceTimeSpans(state = initialTimeSpanState, action) {
                     ...state[action.timeSpan],
                     isFetching: false,
                     packets   : action.packets,
-                }
+                },
             };
         case NEW_PACKET:
             return pushPacketOnTimeSpans(state, action);
@@ -170,7 +171,7 @@ function reduceStats(state = initialStatsState, action) {
                 [action.timeSpan]: {
                     ...state[action.timeSpan],
                     isFetching: true,
-                }
+                },
             };
         case FETCH_STATS_SUCCESS:
             return {
@@ -179,7 +180,7 @@ function reduceStats(state = initialStatsState, action) {
                     ...state[action.timeSpan],
                     isFetching: false,
                     data      : action.stats,
-                }
+                },
             };
         case FETCH_STATS_FAILURE:
         default:
@@ -216,13 +217,11 @@ function pushPacketOnTimeSpans(state, action) {
         // Does this time span use the incoming measurement? Also, we cannot handle aggregations
         if (state[timeSpan].measurement === measurement && options.aggregation === undefined) {
 
-            // Find the first packet we are going to keep. This will be all the packets for time spans other
-            // than 'recent':
-            const firstGood    = findFirstGood(packets, options.maxAge);
-            // Make a copy of the packets we are going to keep, then add the new packet to the end
+            // The new state will be the old state, with the packet array replaced with an
+            // array that has the packet inserted into the proper spot.
             newState[timeSpan] = {
                 ...state[timeSpan],
-                packets: [...packets.slice(firstGood), packet]
+                packets: insertSorted(packets, packet, options.maxAge),
             };
         } else {
             // This time span does not use the measurement. Just use the old state.

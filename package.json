@@ -5,7 +5,7 @@
   "description": "Logging for real-time data streams",
   "scripts": {
     "start": "node ./server/server",
-    "test": "jasmine",
+    "test": "jasmine --config=spec/support/jasmine.json",
     "env": "env"
   },
   "author": {
@@ -22,6 +22,7 @@
     "body-parser": "^1.18.2",
     "classnames": "^2.2.5",
     "compression": "^1.7.2",
+    "cron": "^1.3.0",
     "debug": "^2.2.0",
     "express": "^4.13.3",
     "faye": "^1.2.4",

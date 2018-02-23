@@ -25,7 +25,7 @@ class MeasurementManager {
     /**
      * Insert a packet into the database
      * @param {string} measurement - The name of the measurement into which the packet is to be inserted.
-     * @param {string} deep_packet - The deep packet to be inserted
+     * @param {DeepPacket} deep_packet - The deep packet to be inserted
      * @returns {promise<DeepPacket>} - A promise to insert the packet. The promise resolves to the final,
      * inserted packet. Its fields may have been modified.
      */

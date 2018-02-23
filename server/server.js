@@ -92,24 +92,13 @@ influx.getDatabaseNames()
           return Promise.all(ps);
       })
       .then((result) => {
-          debug(`Set up ${result.length} retention policies`);
-
-          return Promise.resolve();
-          // // Create the continuous queries for any measurements.
-          // return subsampling.create_all_cqs(influx, measurement_config)
-          //                   .then(result => {
-          //                       debug(`Set up ${result.length} continuous queries`);
-          //                       return Promise.resolve();
-          //                   })
-          //                   .catch(err => {
-          //                       debug("Error creating CQs:", err);
-          //                       return Promise.reject(err);
-          //                   });
-      })
-      .then(() => {
+          debug(`Finished setting up ${result.length} retention policies`);
 
           // Create a manager for the measurements, using the influx driver
           const measurement_manager = new MeasurementManager(influx, measurement_config);
+
+          // Arrange to have all cron tasks run. This includes running subsampling at regular intervals.
+          subsampling.setup_cron(measurement_manager);
 
           // // Arrange to be notified after each continuous query has been run
           // subsampling.setup_all_notices(measurement_manager, faye_client, measurement_config);

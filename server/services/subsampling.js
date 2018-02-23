@@ -8,9 +8,31 @@
 
 const debug = require('debug')('weert:subsampling');
 const async = require('async');
+const cron  = require('cron');
 
 const config   = require('../config/config');
 const auxtools = require('../auxtools');
+
+const ss_policies = require('../config/ss_policies');
+
+function setup_cron(measurement_manager) {
+
+    let jobs = [];
+    for (let ss_job_spec of ss_policies) {
+        const skip = ss_job_spec.interval / 60000;
+        let job    = new cron.CronJob(`* */${skip} * * * *`,
+                                      () => {
+                                          subsample(measurement_manager, ss_job_spec, );
+                                          //                                                let packet = result[0];
+                                          //                                                let d      = new Date(packet.timestamp);
+                                          //                                                debug(`Publishing packet from ${cq_destination} for ` +
+                                          //                                                      `time ${d} (${packet.timestamp})`);
+                                          //                                                return pub_sub.publish(`/${cq_destination}`, packet);
+                                      });
+        jobs.push(job);
+    }
+    return jobs;
+}
 
 /**
  * Subsample a measurement using a subsampling strategy
@@ -23,8 +45,12 @@ const auxtools = require('../auxtools');
  * @param {number|undefined} options.end_ts - Generate subsamples up through this time. If not given,
  *                                            the present time will be used. The final number is ceiled
  *                                            with the interval.
+ * @param {function} callback - Optional callback that will be called with new, aggregated records
+ * as they are created.
+ * @returns {Promise<number>[]} - An array of promises, one for each series. They will resolve to the number
+ * of new records created for each series.
  */
-function subsample(measurement_manager, options) {
+function subsample(measurement_manager, options, callback) {
 
     const {source} = options;
 
@@ -35,7 +61,7 @@ function subsample(measurement_manager, options) {
                                   // Then for each tag, subsample it.
                                   for (let tag of all_tags) {
                                       // Push the new promise on to the array of promises
-                                      pAll.push(subsample_series(measurement_manager, options, tag));
+                                      pAll.push(subsample_series(measurement_manager, options, tag, callback));
                                   }
                                   // Now return a promise to resolve them all
                                   return Promise.all(pAll);
@@ -44,7 +70,22 @@ function subsample(measurement_manager, options) {
 }
 
 
-function subsample_series(measurement_manager, options, tag) {
+/**
+ * Subsample a specific series within a measurement
+ * @param {MeasurementManager} measurement_manager - Instance of a MeasurementManager
+ * @param {object} options - An object containing the subsampling options to use
+ * @param {string} options.source - The source measurement
+ * @param {string} options.destination - The destination measurement
+ * @param {number} options.interval - How often to subsample in milliseconds
+ * @param {object[]} options.strategy - An array of subsampling strategies to use
+ * @param {number|undefined} options.end_ts - Generate subsamples up through this time. If not given,
+ *                                            the present time will be used. The final number is ceiled
+ *                                            with the interval.
+ * @param {function} callback - This callback will be called with new, aggregated records
+ * as they are created.
+ * @returns {Promise<number>} - Returns a promise to resolve to the number of records created and inserted.
+ */
+function subsample_series(measurement_manager, options, tag, callback) {
 
     const {source, destination, interval, strategy} = options;
 
@@ -77,6 +118,8 @@ function subsample_series(measurement_manager, options, tag) {
                    // Do all the aggregations and insertions asynchronously.
                    // Get a queue function from async.queue that does what we need.
                    let queue = async.queue((interval, done) => {
+                       // We are going to aggregate all the packets of 'source' in the interval (start, stop], then
+                       // insert it into 'destination.'
                        const {start, stop} = interval;
                        const options       = {
                            ...tag,
@@ -88,22 +131,30 @@ function subsample_series(measurement_manager, options, tag) {
                        measurement_manager.find_packets(source, options)
                                           .then(agg_packets => {
                                               if (agg_packets.length) {
-                                                  const agg_packet = {
+                                                  if (agg_packets > 1) {
+                                                      throw new Error(
+                                                          `Internal error in subsample_series (${agg_packets.length})`);
+                                                  }
+                                                  // Extract the single, aggregated record
+                                                  const record = {
                                                       ...agg_packets[0],
                                                       tags: tag,
                                                   };
                                                   // Return a promise to insert the aggregated packet.
                                                   // The promise will resolve to the final, inserted packet
-                                                  return measurement_manager.insert_packet(destination, agg_packet);
+                                                  return measurement_manager.insert_packet(destination, record);
                                               } else {
                                                   // No aggregated packet. Just return a promise to resolve
-                                                  // to an empty packet.
+                                                  // to an empty record.
                                                   return Promise.resolve({});
                                               }
                                           })
-                                          .then(packet => {
-                                              // If packet has a timestamp, it's not empty.
-                                              if (packet.timestamp) {N += 1;}
+                                          .then(record => {
+                                              // If the record has a timestamp, it's not empty.
+                                              if (record.timestamp) {
+                                                  if (callback) {callback(record);}
+                                                  N += 1;
+                                              }
                                               done();
                                           })
                                           .catch(error => {
@@ -121,7 +172,7 @@ function subsample_series(measurement_manager, options, tag) {
                    }
 
                    // Wait until all the workers are done, then call the resolve function with
-                   // the number of records created.
+                   // the number of new records.
                    queue.drain = () => {
                        resolve(N);
                    };
@@ -130,65 +181,65 @@ function subsample_series(measurement_manager, options, tag) {
 }
 
 
-// Create all the Continuous Queries specified
-// in the measurement configuration. Returns an array
-// of promises, one for each CQ to be set up.
-function create_all_cqs(influx, measurement_configs) {
-
-    let all_promises = [];
-
-    // Iterate over all measurements
-    for (let measurement in measurement_configs) {
-        let measurement_config = measurement_configs[measurement];
-        // Check to see if any CQs have been specified.
-        if (measurement_config.cqs) {
-            // Iterate over all the Continuous Query configurations for this measurement
-            for (let cq_config of measurement_config.cqs) {
-                // For each CQ configuration, promise to create the query.
-                all_promises.push(_create_cq(influx,
-                                             measurement_config,
-                                             measurement,
-                                             cq_config));
-            }
-        }
-    }
-
-    // Return a promise to settle the array of promises:
-    return Promise.all(all_promises);
-}
-
-// Returns a promise to set up a continuous query for a measurement.
-function _create_cq(influx, measurement_config, measurement, cq_config) {
-
-    // Get the needed query
-    const influx_sql = _form_cq_stmt(measurement_config, measurement, cq_config);
-    // Now get and return a promise to run it
-    return influx.query(influx_sql);
-}
-
-// Form a continuous query statement suitable for the specific
-// CQ specified in cq_config
-function _form_cq_stmt(measurement_config, measurement, cq_config) {
-
-    let database = measurement_config.database;
-
-    // From the collection of cq policies, select the one specified
-    // in the cq_config object
-    let cq_policy = cq_policies[cq_config.cq_policy];
-    // Using the aggregation strategy specified in that policy, form an aggregation clause.
-    // This will be something like "mean(out_temperature) as out_temperature, sum(rain_rain) as rain_rain ..."
-    let agg_clause  = form_agg_clause(cq_policy.aggregation, true);
-    // Then get the fully qualified measurement name
-    let from_clause = auxtools.get_query_from(measurement, measurement_config);
-
-    // Put it all together:
-    let influx_sql =
-            `CREATE CONTINUOUS QUERY ${cq_config.cq_name} ON ${database} ` +
-            `BEGIN SELECT ${agg_clause} INTO ${cq_config.cq_destination} ` +
-            `FROM ${from_clause} GROUP BY time(${cq_policy.interval}), * END`;
-
-    return influx_sql;
-}
+// // Create all the Continuous Queries specified
+// // in the measurement configuration. Returns an array
+// // of promises, one for each CQ to be set up.
+// function create_all_cqs(influx, measurement_configs) {
+//
+//     let all_promises = [];
+//
+//     // Iterate over all measurements
+//     for (let measurement in measurement_configs) {
+//         let measurement_config = measurement_configs[measurement];
+//         // Check to see if any CQs have been specified.
+//         if (measurement_config.cqs) {
+//             // Iterate over all the Continuous Query configurations for this measurement
+//             for (let cq_config of measurement_config.cqs) {
+//                 // For each CQ configuration, promise to create the query.
+//                 all_promises.push(_create_cq(influx,
+//                                              measurement_config,
+//                                              measurement,
+//                                              cq_config));
+//             }
+//         }
+//     }
+//
+//     // Return a promise to settle the array of promises:
+//     return Promise.all(all_promises);
+// }
+//
+// // Returns a promise to set up a continuous query for a measurement.
+// function _create_cq(influx, measurement_config, measurement, cq_config) {
+//
+//     // Get the needed query
+//     const influx_sql = _form_cq_stmt(measurement_config, measurement, cq_config);
+//     // Now get and return a promise to run it
+//     return influx.query(influx_sql);
+// }
+//
+// // Form a continuous query statement suitable for the specific
+// // CQ specified in cq_config
+// function _form_cq_stmt(measurement_config, measurement, cq_config) {
+//
+//     let database = measurement_config.database;
+//
+//     // From the collection of cq policies, select the one specified
+//     // in the cq_config object
+//     let cq_policy = cq_policies[cq_config.cq_policy];
+//     // Using the aggregation strategy specified in that policy, form an aggregation clause.
+//     // This will be something like "mean(out_temperature) as out_temperature, sum(rain_rain) as rain_rain ..."
+//     let agg_clause  = form_agg_clause(cq_policy.aggregation, true);
+//     // Then get the fully qualified measurement name
+//     let from_clause = auxtools.get_query_from(measurement, measurement_config);
+//
+//     // Put it all together:
+//     let influx_sql =
+//             `CREATE CONTINUOUS QUERY ${cq_config.cq_name} ON ${database} ` +
+//             `BEGIN SELECT ${agg_clause} INTO ${cq_config.cq_destination} ` +
+//             `FROM ${from_clause} GROUP BY time(${cq_policy.interval}), * END`;
+//
+//     return influx_sql;
+// }
 
 /**
  * Form the set of aggregated observation types to be used in an InfluxDB SELECT statement.
@@ -226,50 +277,51 @@ function notice(ms, callback) {
     }, diff);
 }
 
-function setup_all_notices(measurement_manager, pub_sub, measurement_configs) {
-    // TODO: This strategy fails if the server is suspended (as on a laptop) for some reason.
-    // Iterate over all measurement names in the config file
-    for (let measurement in measurement_configs) {
-
-        let measurement_config = measurement_configs[measurement];
-
-        if (measurement_config.cqs) {
-            for (let cq_config of measurement_config.cqs) {
-                let cq_policy      = cq_policies[cq_config.cq_policy];
-                let interval_ms    = auxtools.epoch_to_ms(cq_policy.interval);
-                let cq_destination = cq_config.cq_destination;
-
-                debug(`Set up notice for CQ destination ${cq_destination} every ${interval_ms}ms`);
-
-                // Arrange to publish every interval_ms milliseconds
-                notice(interval_ms, function () {
-                    // Find the latest record in the CQ destination0
-                    measurement_manager.find_packets(cq_destination, {limit: 1, direction: 'desc'})
-                                       .then(result => {
-                                           if (result.length) {
-                                               let packet = result[0];
-                                               let d      = new Date(packet.timestamp);
-                                               debug(`Publishing packet from ${cq_destination} for ` +
-                                                     `time ${d} (${packet.timestamp})`);
-                                               return pub_sub.publish(`/${cq_destination}`, packet);
-                                           }
-                                           return Promise.resolve();
-                                       })
-                                       .then(result => {
-                                       })
-                                       .catch(err => {
-                                           debug(`Error updating CQ destination ${cq_destination}: ${err}`);
-                                       });
-                });
-            }
-        }
-    }
-}
+// function setup_all_notices(measurement_manager, pub_sub, measurement_configs) {
+//     // TODO: This strategy fails if the server is suspended (as on a laptop) for some reason.
+//     // Iterate over all measurement names in the config file
+//     for (let measurement in measurement_configs) {
+//
+//         let measurement_config = measurement_configs[measurement];
+//
+//         if (measurement_config.cqs) {
+//             for (let cq_config of measurement_config.cqs) {
+//                 let cq_policy      = cq_policies[cq_config.cq_policy];
+//                 let interval_ms    = auxtools.epoch_to_ms(cq_policy.interval);
+//                 let cq_destination = cq_config.cq_destination;
+//
+//                 debug(`Set up notice for CQ destination ${cq_destination} every ${interval_ms}ms`);
+//
+//                 // Arrange to publish every interval_ms milliseconds
+//                 notice(interval_ms, function () {
+//                     // Find the latest record in the CQ destination0
+//                     measurement_manager.find_packets(cq_destination, {limit: 1, direction: 'desc'})
+//                                        .then(result => {
+//                                            if (result.length) {
+//                                                let packet = result[0];
+//                                                let d      = new Date(packet.timestamp);
+//                                                debug(`Publishing packet from ${cq_destination} for ` +
+//                                                      `time ${d} (${packet.timestamp})`);
+//                                                return pub_sub.publish(`/${cq_destination}`, packet);
+//                                            }
+//                                            return Promise.resolve();
+//                                        })
+//                                        .then(result => {
+//                                        })
+//                                        .catch(err => {
+//                                            debug(`Error updating CQ destination ${cq_destination}: ${err}`);
+//                                        });
+//                 });
+//             }
+//         }
+//     }
+// }
 
 module.exports = {
+    setup_cron,
     subsample,
     subsample_series,
-    create_all_cqs   : create_all_cqs,
-    setup_all_notices: setup_all_notices,
-    form_agg_clause  : form_agg_clause,
+    // create_all_cqs   : create_all_cqs,
+    // setup_all_notices: setup_all_notices,
+    form_agg_clause: form_agg_clause,
 };

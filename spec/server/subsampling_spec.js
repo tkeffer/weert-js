@@ -176,6 +176,12 @@ const record_array2 = expected_records(packet_array2, 'platform2');
 const packet_array1_summary = packet_array1.reduce(summary_reducer, {});
 const record_array1_summary = record_array1.reduce(summary_reducer, {});
 
+// These will be Sets holding the records
+const record_sets = {
+    platform1: record_array1.reduce((set, record) => set.add(record), new Set()),
+    platform2: record_array2.reduce((set, record) => set.add(record), new Set()),
+};
+
 function populate_db(measurement_manager, packet_array) {
     let N = 0;
     return new Promise(function (resolve) {
@@ -228,11 +234,18 @@ describe('While checking subsampling', function () {
     });
 
     it('should subsample', function (done) {
-        const options = {
+        const seen_records = {
+            platform1: new Set(),
+            platform2: new Set(),
+        };
+        const options      = {
             ...ss_policies[0],
             end_ts: timestamp(nPackets - 1),
         };
-        subsampling.subsample(measurement_manager, options)
+        subsampling.subsample(measurement_manager, options, (record) => {
+                       // Keep track of all timestamps that have been inserted
+                       seen_records[record.tags.platform].add(record);
+                   })
                    .then((N_array) => {
                        const [N1, N2] = N_array;
                        expect(N1).toEqual(nRecords);
@@ -242,11 +255,13 @@ describe('While checking subsampling', function () {
                        measurement_manager.find_packets(test_record_measurement, {platform: 'platform1'})
                                           .then(records => {
                                               expect(records).toEqual(record_array1);
+                                              expect(seen_records.platform1).toEqual(record_sets.platform1);
                                               return measurement_manager.find_packets(test_record_measurement,
                                                                                       {platform: 'platform2'});
                                           })
                                           .then(records => {
                                               expect(records).toEqual(record_array2);
+                                              expect(seen_records.platform2).toEqual(record_sets.platform2);
                                           });
                        done();
                    });

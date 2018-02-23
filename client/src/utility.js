@@ -4,6 +4,8 @@
  * See the file LICENSE for your full rights.
  */
 
+import * as _ from 'lodash';
+
 export function findFirstGood(packets, maxAge) {
 
     if (packets.length && maxAge !== undefined) {
@@ -19,6 +21,22 @@ export function findFirstGood(packets, maxAge) {
     } else {
         return 0;
     }
+}
+
+export function insertSorted(packets, packet, maxAge){
+    // Find the first packet we are going to keep. This will be all the packets for time spans other
+    // than 'recent':
+    const firstGood    = findFirstGood(packets, maxAge);
+    // Find the insertion point
+    const insertPoint  = _.sortedIndexBy(packets, packet, (p) => p.timestamp);
+    // Drop the stale packets at the front, keep the other packets, inserting
+    // the new packet in the proper spot.
+    const new_packets = [
+            ...packets.slice(firstGood, insertPoint),
+            packet,
+            ...packets.slice(insertPoint),
+        ];
+    return new_packets;
 }
 
 export function isDevelopment() {
