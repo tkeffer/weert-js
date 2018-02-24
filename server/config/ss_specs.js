@@ -10,7 +10,7 @@
  * such as daily, could be added.
  */
 
-var obs_types = require('./obs_types');
+const obs_types = require('./obs_types');
 
 module.exports = [
     {

@@ -12,22 +12,22 @@ const cron  = require('cron');
 
 const auxtools      = require('../auxtools');
 const config        = require('../config/config');
-const ss_policies   = require('../config/ss_policies');
+const ss_specs      = require('../config/ss_specs');
 const event_emitter = require('./event_emitter');
 
 function setup_cron(measurement_manager) {
 
     let jobs = [];
-    for (let ss_job_spec of ss_policies) {
-        if ((ss_job_spec.interval % 60000) != 0) {
+    for (let ss_spec of ss_specs) {
+        if ((ss_spec.interval % 60000) != 0) {
             throw new Error("Subsampling interval must be multiple of 60000ms");
         }
-        const skip        = ss_job_spec.interval / 60000;
+        const skip        = ss_spec.interval / 60000;
         const cronOptions = {
             cronTime: `5 */${skip} * * * *`,    // 5 seconds after the minute
             onTick  : () => {
                 debug(`Starting subsampling at ${new Date()}.`);
-                subsample(measurement_manager, ss_job_spec)
+                subsample(measurement_manager, ss_spec)
                     .then(nArray => {
                         const nTotal = nArray.reduce((s, N) => s + N, 0);
                         debug(`Finished subsampling at ${new Date()}. ${nTotal} record(s) created.`);
@@ -47,20 +47,20 @@ function setup_cron(measurement_manager) {
  * the database. It also emits a NEW_AGGREGATE event for each produced record. These events
  * are not emitted in any particular order.
  * @param {MeasurementManager} measurement_manager - Instance of a MeasurementManager
- * @param {object} options - An object containing the subsampling options to use
- * @param {string} options.source - The source measurement
- * @param {string} options.destination - The destination measurement
- * @param {number} options.interval - How often to subsample in milliseconds
- * @param {object[]} options.strategy - An array of subsampling strategies to use
- * @param {number|undefined} options.end_ts - Generate subsamples up through this time. If not given,
+ * @param {object} ss_spec - An object containing the subsampling options to use.
+ * @param {string} ss_spec.source - The source measurement
+ * @param {string} ss_spec.destination - The destination measurement
+ * @param {number} ss_spec.interval - How often to subsample in milliseconds
+ * @param {object[]} ss_spec.strategy - An array of subsampling strategies to use
+ * @param {number|undefined} ss_spec.end_ts - Generate subsamples up through this time. If not given,
  *                                            the present time will be used. The final number is ceiled
  *                                            with the interval.
  * @returns {Promise<number>[]} - An array of promises, one for each series. They will resolve to the number
  * of new records created for each series.
  */
-function subsample(measurement_manager, options) {
+function subsample(measurement_manager, ss_spec) {
 
-    const {source} = options;
+    const {source} = ss_spec;
 
     // Find all the tags in the source measurement and process them separately
     return measurement_manager.get_measurement_info(source)
@@ -69,7 +69,7 @@ function subsample(measurement_manager, options) {
                                   // Then for each tag, subsample it.
                                   for (let tag of all_tags) {
                                       // Push the new promise on to the array of promises
-                                      pAll.push(subsample_series(measurement_manager, options, tag));
+                                      pAll.push(subsample_series(measurement_manager, ss_spec, tag));
                                   }
                                   // Now return a promise to resolve them all
                                   return Promise.all(pAll);
@@ -81,21 +81,21 @@ function subsample(measurement_manager, options) {
 /**
  * Subsample a specific series within a measurement
  * @param {MeasurementManager} measurement_manager - Instance of a MeasurementManager
- * @param {object} options - An object containing the subsampling options to use
- * @param {string} options.source - The source measurement
- * @param {string} options.destination - The destination measurement
- * @param {number} options.interval - How often to subsample in milliseconds
- * @param {object[]} options.strategy - An array of subsampling strategies to use
- * @param {number|undefined} options.end_ts - Generate subsamples up through this time. If not given,
+ * @param {object} ss_spec - An object containing the subsampling options to use
+ * @param {string} ss_spec.source - The source measurement
+ * @param {string} ss_spec.destination - The destination measurement
+ * @param {number} ss_spec.interval - How often to subsample in milliseconds
+ * @param {object[]} ss_spec.strategy - An array of subsampling strategies to use
+ * @param {number|undefined} ss_spec.end_ts - Generate subsamples up through this time. If not given,
  *                                            the present time will be used. The final number is ceiled
  *                                            with the interval.
  * @returns {Promise<number>} - Returns a promise to resolve to the number of records created and inserted.
  */
-function subsample_series(measurement_manager, options, tag) {
+function subsample_series(measurement_manager, ss_spec, tag) {
 
-    const {source, destination, interval, strategy} = options;
+    const {source, destination, interval, strategy} = ss_spec;
 
-    const end_ts = auxtools.ceil(options.end_ts || Date.now(), interval);
+    const end_ts = auxtools.ceil(ss_spec.end_ts || Date.now(), interval);
 
     const agg_clause = form_agg_clause(strategy, true);
 
@@ -188,66 +188,6 @@ function subsample_series(measurement_manager, options, tag) {
 }
 
 
-// // Create all the Continuous Queries specified
-// // in the measurement configuration. Returns an array
-// // of promises, one for each CQ to be set up.
-// function create_all_cqs(influx, measurement_configs) {
-//
-//     let all_promises = [];
-//
-//     // Iterate over all measurements
-//     for (let measurement in measurement_configs) {
-//         let measurement_config = measurement_configs[measurement];
-//         // Check to see if any CQs have been specified.
-//         if (measurement_config.cqs) {
-//             // Iterate over all the Continuous Query configurations for this measurement
-//             for (let cq_config of measurement_config.cqs) {
-//                 // For each CQ configuration, promise to create the query.
-//                 all_promises.push(_create_cq(influx,
-//                                              measurement_config,
-//                                              measurement,
-//                                              cq_config));
-//             }
-//         }
-//     }
-//
-//     // Return a promise to settle the array of promises:
-//     return Promise.all(all_promises);
-// }
-//
-// // Returns a promise to set up a continuous query for a measurement.
-// function _create_cq(influx, measurement_config, measurement, cq_config) {
-//
-//     // Get the needed query
-//     const influx_sql = _form_cq_stmt(measurement_config, measurement, cq_config);
-//     // Now get and return a promise to run it
-//     return influx.query(influx_sql);
-// }
-//
-// // Form a continuous query statement suitable for the specific
-// // CQ specified in cq_config
-// function _form_cq_stmt(measurement_config, measurement, cq_config) {
-//
-//     let database = measurement_config.database;
-//
-//     // From the collection of cq policies, select the one specified
-//     // in the cq_config object
-//     let cq_policy = cq_policies[cq_config.cq_policy];
-//     // Using the aggregation strategy specified in that policy, form an aggregation clause.
-//     // This will be something like "mean(out_temperature) as out_temperature, sum(rain_rain) as rain_rain ..."
-//     let agg_clause  = form_agg_clause(cq_policy.aggregation, true);
-//     // Then get the fully qualified measurement name
-//     let from_clause = auxtools.get_query_from(measurement, measurement_config);
-//
-//     // Put it all together:
-//     let influx_sql =
-//             `CREATE CONTINUOUS QUERY ${cq_config.cq_name} ON ${database} ` +
-//             `BEGIN SELECT ${agg_clause} INTO ${cq_config.cq_destination} ` +
-//             `FROM ${from_clause} GROUP BY time(${cq_policy.interval}), * END`;
-//
-//     return influx_sql;
-// }
-
 /**
  * Form the set of aggregated observation types to be used in an InfluxDB SELECT statement.
  * @param {object[]} agg_obj_array - An array of objects, each of which specify the type of aggregation to be done
@@ -270,64 +210,8 @@ function form_agg_clause(agg_obj_array, as = false) {
     return agg_clause;
 }
 
-// Call a callback every ms, on an even boundary plus a delay
-function notice(ms, callback) {
-    let now         = Date.now();
-    let next_notice = (Math.floor(now / ms) + 1) * ms + config.influxdb.cq_delay;
-    let diff        = next_notice - now;
-    // Set a timer to set up the regular notices
-    setTimeout(function () {
-        // The first notice has arrived. Call the callback, then set a timer
-        // to keep calling the callback every ms milliseconds
-        callback();
-        setInterval(callback, ms);
-    }, diff);
-}
-
-// function setup_all_notices(measurement_manager, pub_sub, measurement_configs) {
-//     // TODO: This strategy fails if the server is suspended (as on a laptop) for some reason.
-//     // Iterate over all measurement names in the config file
-//     for (let measurement in measurement_configs) {
-//
-//         let measurement_config = measurement_configs[measurement];
-//
-//         if (measurement_config.cqs) {
-//             for (let cq_config of measurement_config.cqs) {
-//                 let cq_policy      = cq_policies[cq_config.cq_policy];
-//                 let interval_ms    = auxtools.epoch_to_ms(cq_policy.interval);
-//                 let cq_destination = cq_config.cq_destination;
-//
-//                 debug(`Set up notice for CQ destination ${cq_destination} every ${interval_ms}ms`);
-//
-//                 // Arrange to publish every interval_ms milliseconds
-//                 notice(interval_ms, function () {
-//                     // Find the latest record in the CQ destination0
-//                     measurement_manager.find_packets(cq_destination, {limit: 1, direction: 'desc'})
-//                                        .then(result => {
-//                                            if (result.length) {
-//                                                let packet = result[0];
-//                                                let d      = new Date(packet.timestamp);
-//                                                debug(`Publishing packet from ${cq_destination} for ` +
-//                                                      `time ${d} (${packet.timestamp})`);
-//                                                return pub_sub.publish(`/${cq_destination}`, packet);
-//                                            }
-//                                            return Promise.resolve();
-//                                        })
-//                                        .then(result => {
-//                                        })
-//                                        .catch(err => {
-//                                            debug(`Error updating CQ destination ${cq_destination}: ${err}`);
-//                                        });
-//                 });
-//             }
-//         }
-//     }
-// }
-
 module.exports = {
     setup_cron,
     subsample,
-    // create_all_cqs   : create_all_cqs,
-    // setup_all_notices: setup_all_notices,
-    form_agg_clause: form_agg_clause,
+    form_agg_clause,
 };
