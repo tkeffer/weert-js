@@ -27,9 +27,10 @@ const propTypes = {
                                            top   : PropTypes.number,
                                            right : PropTypes.number,
                                            left  : PropTypes.number,
-                                           bottom: PropTypes.number
+                                           bottom: PropTypes.number,
                                        }),
     stroke           : PropTypes.string,
+    strokeWidth      : PropTypes.number,
     debounce         : PropTypes.number,
     componentClass   : PropTypes.string,
 };
@@ -45,6 +46,7 @@ const defaultProps = {
     height           : 200,
     margin           : {top: 5, right: 10, left: 10, bottom: 5},
     stroke           : '#8884d8',
+    strokeWidth      : 2,
     debounce         : 200,
     componentClass   : 'div',
 };
@@ -75,8 +77,9 @@ export default class PlotGroup extends React.PureComponent {
                   height,
                   margin,
                   stroke,
+                  strokeWidth,
                   debounce,
-                  componentClass: Component
+                  componentClass: Component,
               } = this.props;
 
 
@@ -107,7 +110,9 @@ export default class PlotGroup extends React.PureComponent {
                                              ticks={xTicks}
                                              tickFormatter={timeFormatter}
                                          />
-                                         <YAxis/>
+                                         <YAxis
+                                             domain={['auto', 'auto']}
+                                         />
                                          <CartesianGrid
                                              strokeDasharray='3 3'
                                          />
@@ -121,6 +126,7 @@ export default class PlotGroup extends React.PureComponent {
                                                isAnimationActive={false}
                                                animationDuration={animationDuration}
                                                animationEasing='linear'
+                                               strokeWidth={strokeWidth}
                                          />
                                      </LineChart>
                                  </ResponsiveContainer>
