@@ -28,8 +28,9 @@ function setup_cron(measurement_manager) {
             onTick  : () => {
                 debug(`Starting subsampling at ${new Date()}.`);
                 subsample(measurement_manager, ss_job_spec)
-                    .then(N => {
-                        debug(`Finished subsampling at ${new Date()}. ${N} records created.`);
+                    .then(nArray => {
+                        const nTotal = nArray.reduce((s, N) => s + N, 0);
+                        debug(`Finished subsampling at ${new Date()}. ${nTotal} record(s) created.`);
                     });
             },
             start   : true,
