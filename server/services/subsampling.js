@@ -147,9 +147,12 @@ function subsample_series(measurement_manager, ss_spec, tag) {
                                                       ...agg_packets[0],
                                                       tags: tag,
                                                   };
+
+                                                  const final_record = calc_derived(record, strategies);
+
                                                   // Return a promise to insert the aggregated packet.
                                                   // The promise will resolve to the final, inserted packet
-                                                  return measurement_manager.insert_packet(destination, record);
+                                                  return measurement_manager.insert_packet(destination, final_record);
                                               } else {
                                                   // No aggregated packet. Just return a promise to resolve
                                                   // to an empty record.
@@ -211,6 +214,23 @@ function form_agg_clause(strategies, as = false) {
 
     let agg_clause = aggs.join(', ');
     return agg_clause;
+}
+
+function calc_derived(deep_record, strategies) {
+    // Return a copy, adding new, calculated types to the fields.
+    const final = {
+        ...deep_record,
+        fields: {
+            ...deep_record.fields,
+            ...strategies.filter(strategy => _.isFunction(strategy.subsample))
+                         .reduce((fields, strategy) => {
+                             fields[strategy.obs_type] = strategy.subsample(fields);
+                             return fields;
+                         }, deep_record.fields),
+        },
+    };
+
+    return final;
 }
 
 module.exports = {

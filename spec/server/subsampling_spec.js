@@ -8,6 +8,7 @@
 
 const async = require('async');
 const _     = require('lodash');
+//const jasmine = require('jasmine');
 
 const event_emitter      = require('../../server/services/event_emitter');
 const config             = require('../../server/config/config');
@@ -21,7 +22,10 @@ const influx = new Influx.InfluxDB(config.influxdb);
 const measurement_config = {};
 
 // Just subsample some of the types. This keeps the test packets manageable.
-const keep_types = ['out_temperature', 'wind_speed', 'windgust_speed', 'unit_system'];
+const keep_types = [
+    'out_temperature', 'wind_speed', 'windgust_speed', 'wind_dir',
+    'x_wind_speed', 'y_wind_speed', 'unit_system',
+];
 const obs_types  = require('../../server/config/obs_types')
     .filter(ss => keep_types.includes(ss.obs_type));
 
@@ -59,19 +63,29 @@ function timestamp(i) {
     return start + loop_interval * i;
 }
 
+function toRadians(d) {return d * Math.PI / 180;}
+
+function toDegrees(r) {return r * 180 / Math.PI;}
+
 // Arbitrary values added to the packet fields, to differentiate the two platforms
 const baseValues = {
     'platform1': 0,
     'platform2': 5,
 };
+
 // Made up functions for the data. The platform number is just added to the returned
 // value, to allow the data for each series to be unique.
-const valFns = {
-    out_temperature: (t, platform) => Math.sin(2.0 * Math.PI * (t - start) / period) + baseValues[platform],
-    wind_speed     : (t, platform) => Math.cos(2.0 * Math.PI * (t - start) / period) + baseValues[platform],
-    unit_system    : () => 16,
-};
-
+function form_fields(t, platform) {
+    const fields           = {
+        out_temperature: (() => Math.sin(2.0 * Math.PI * (t - start) / period) + baseValues[platform])(),
+        wind_speed     : (() => Math.cos(2.0 * Math.PI * (t - start) / period) + baseValues[platform])(),
+        wind_dir       : (() => (360.0 * (t - start) / period + toDegrees(baseValues[platform])) % 360.0)(),
+        unit_system    : 16,
+    };
+    fields['x_wind_speed'] = fields.wind_speed * Math.cos(toRadians(90.0 - fields.wind_dir));
+    fields['y_wind_speed'] = fields.wind_speed * Math.sin(toRadians(90.0 - fields.wind_dir));
+    return fields;
+}
 
 function form_deep_packet(t, platform) {
 
@@ -79,10 +93,7 @@ function form_deep_packet(t, platform) {
         tags     : {
             platform: platform,
         },
-        fields   : Object.keys(valFns).reduce((packet, obsType) => {
-            packet[obsType] = valFns[obsType](t, platform);
-            return packet;
-        }, {}),
+        fields   : form_fields(t, platform),
         timestamp: t,
     };
     return obj;
@@ -166,10 +177,18 @@ function expected_records(packet_array, platform) {
                         wind_speed     : summary.wind_speed.count ?
                             summary.wind_speed.sum / summary.wind_speed.count : null,
                         windgust_speed : summary.wind_speed.max,
+                        x_wind_speed   : summary.x_wind_speed.count ?
+                            summary.x_wind_speed.sum / summary.x_wind_speed.count : null,
+                        y_wind_speed   : summary.y_wind_speed.count ?
+                            summary.y_wind_speed.sum / summary.y_wind_speed.count : null,
                         unit_system    : 16,
                     },
                     timestamp: end_of_interval,
                 };
+
+                record.fields.wind_dir = 90.0 - toDegrees(Math.atan2(record.fields.y_wind_speed,
+                                                                     record.fields.x_wind_speed));
+                if (record.fields.wind_dir < 0) record.fields.wind_dir += 360;
                 return record;
             });
 }
@@ -181,12 +200,6 @@ const record_array2 = expected_records(packet_array2, 'platform2');
 
 const packet_array1_summary = packet_array1.reduce(summary_reducer, {});
 const record_array1_summary = record_array1.reduce(summary_reducer, {});
-
-// These will be Sets holding the records
-const record_sets = {
-    platform1: record_array1.reduce((set, record) => set.add(record), new Set()),
-    platform2: record_array2.reduce((set, record) => set.add(record), new Set()),
-};
 
 function populate_db(measurement_manager, packet_array) {
     let N = 0;
@@ -242,8 +255,8 @@ describe('While checking subsampling', function () {
     it('should subsample', function (done) {
 
         const seen_records = {
-            platform1: new Set(),
-            platform2: new Set(),
+            platform1: [],
+            platform2: [],
         };
 
         // Listen for the NEW_AGGREGATION events being emitted from the subsampler,
@@ -251,7 +264,7 @@ describe('While checking subsampling', function () {
         event_emitter.on('NEW_AGGREGATION', (record, measurement) => {
             if (!_.isEmpty(record)) {
                 expect(measurement).toEqual(test_record_measurement);
-                seen_records[record.tags.platform].add(record);
+                seen_records[record.tags.platform].push(record);
             }
         });
 
@@ -269,14 +282,18 @@ describe('While checking subsampling', function () {
                    .then(() => {
                        measurement_manager.find_packets(test_record_measurement, {platform: 'platform1'})
                                           .then(records => {
-                                              expect(records).toEqual(record_array1);
-                                              expect(seen_records.platform1).toEqual(record_sets.platform1);
+                                              check_records(records, record_array1);
+                                              // The "seen" array may be in a random order. Sort before comparing
+                                              seen_records.platform1.sort((left, right) => left.timestamp - right.timestamp);
+                                              check_records(seen_records.platform1, record_array1);
                                               return measurement_manager.find_packets(test_record_measurement,
                                                                                       {platform: 'platform2'});
                                           })
                                           .then(records => {
-                                              expect(records).toEqual(record_array2);
-                                              expect(seen_records.platform2).toEqual(record_sets.platform2);
+                                              check_records(records, record_array2);
+                                              // The "seen" array may be in a random order. Sort before comparing
+                                              seen_records.platform2.sort((left, right) => left.timestamp - right.timestamp);
+                                              check_records(seen_records.platform2, record_array2);
                                           });
                        done();
                    });
@@ -306,3 +323,18 @@ describe('While checking subsampling', function () {
     });
 });
 
+function check_records(actuals, expecteds) {
+    expect(actuals.length).toEqual(expecteds.length);
+    actuals.forEach((actual, i) => {
+        check_record(actual, expecteds[i]);
+    });
+}
+
+function check_record(actual, expected) {
+    expect(actual.timestamp).toEqual(expected.timestamp);
+    expect(actual.tags).toEqual(expected.tags);
+    expect(Object.keys(actual.fields).sort()).toEqual(Object.keys(expected.fields).sort());
+    for (let obs_type of Object.keys(actual.fields)) {
+        expect(actual.fields[obs_type]).toBeCloseTo(expected.fields[obs_type], 4);
+    }
+}

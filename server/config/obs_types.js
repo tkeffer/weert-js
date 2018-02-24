@@ -101,6 +101,18 @@ module.exports = [
         stats    : ["min", "max"],
     },
     {
+        obs_type : "wind_dir",
+        subsample: fields => {
+            const {x_wind_speed, y_wind_speed} = fields;
+            if (x_wind_speed == null || y_wind_speed == null) {
+                return null;
+            }
+            let d = 90.0 - (180 / Math.PI) * (Math.atan2(y_wind_speed, x_wind_speed));
+            if (d < 0) d += 360.0;
+            return d
+        },
+    },
+    {
         obs_type : "wind_speed",
         subsample: "MEAN(wind_speed)",
         stats    : ["min", "max", "mean"],
