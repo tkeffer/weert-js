@@ -11,7 +11,7 @@ export const unitSystem_US = {
     "group_data"       : "byte",
     "group_degree_day" : "degree_F_day",
     "group_deltatime"  : "second",
-    "group_direction"  : "degree_compass",
+    "group_dir"        : "degree_compass",
     "group_distance"   : "mile",
     "group_elapsed"    : "second",
     "group_energy"     : "watt_hour",
@@ -30,7 +30,7 @@ export const unitSystem_US = {
     "group_timestamp"  : "unix_epoch",
     "group_uv"         : "uv_index",
     "group_volt"       : "volt",
-    "group_volume"     : "gallon"
+    "group_volume"     : "gallon",
 };
 
 export const unitSystem_Metric = {
@@ -40,7 +40,7 @@ export const unitSystem_Metric = {
     "group_data"       : "byte",
     "group_degree_day" : "degree_C_day",
     "group_deltatime"  : "second",
-    "group_direction"  : "degree_compass",
+    "group_dir"        : "degree_compass",
     "group_distance"   : "km",
     "group_elapsed"    : "second",
     "group_energy"     : "watt_hour",
@@ -59,7 +59,7 @@ export const unitSystem_Metric = {
     "group_timestamp"  : "unix_epoch",
     "group_uv"         : "uv_index",
     "group_volt"       : "volt",
-    "group_volume"     : "litre"
+    "group_volume"     : "litre",
 };
 
 // unitSystem_MetricWX is just the same as unitSystem_Metric, except for the rain and speed groups
@@ -69,7 +69,7 @@ export const unitSystem_MetricWX = Object.assign({},
                                                      "group_rain"    : "mm",
                                                      "group_rainrate": "mm_per_hour",
                                                      "group_speed"   : "meter_per_second",
-                                                     "group_speed2"  : "meter_per_second2"
+                                                     "group_speed2"  : "meter_per_second2",
                                                  });
 
 export const obsLabels_en = {
@@ -158,7 +158,7 @@ export const unitLabels = {
     "watt"                  : " W",
     "watt_hour"             : " Wh",
     "watt_per_meter_squared": " W/m\u00b2",
-    "NONE"                  : ""
+    "NONE"                  : "",
 };
 
 // This uses formatting supplied by sprintf-js.
@@ -210,5 +210,5 @@ export const unitFormats = {
     "watt"                  : "%.1f",
     "watt_hour"             : "%.1f",
     "watt_per_meter_squared": "%.0f",
-    "NONE"                  : "   N/A"
+    "NONE"                  : "   N/A",
 };
