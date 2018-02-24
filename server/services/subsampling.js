@@ -6,6 +6,7 @@
 
 'use strict';
 
+const _     = require('lodash');
 const debug = require('debug')('weert:subsampling');
 const async = require('async');
 const cron  = require('cron');
@@ -51,7 +52,7 @@ function setup_cron(measurement_manager) {
  * @param {string} ss_spec.source - The source measurement
  * @param {string} ss_spec.destination - The destination measurement
  * @param {number} ss_spec.interval - How often to subsample in milliseconds
- * @param {object[]} ss_spec.strategy - An array of subsampling strategies to use
+ * @param {object[]} ss_spec.strategies - An array of subsampling strategies to use
  * @param {number|undefined} ss_spec.end_ts - Generate subsamples up through this time. If not given,
  *                                            the present time will be used. The final number is ceiled
  *                                            with the interval.
@@ -85,7 +86,7 @@ function subsample(measurement_manager, ss_spec) {
  * @param {string} ss_spec.source - The source measurement
  * @param {string} ss_spec.destination - The destination measurement
  * @param {number} ss_spec.interval - How often to subsample in milliseconds
- * @param {object[]} ss_spec.strategy - An array of subsampling strategies to use
+ * @param {object[]} ss_spec.strategies - An array of subsampling strategies to use
  * @param {number|undefined} ss_spec.end_ts - Generate subsamples up through this time. If not given,
  *                                            the present time will be used. The final number is ceiled
  *                                            with the interval.
@@ -93,11 +94,11 @@ function subsample(measurement_manager, ss_spec) {
  */
 function subsample_series(measurement_manager, ss_spec, tag) {
 
-    const {source, destination, interval, strategy} = ss_spec;
+    const {source, destination, interval, strategies} = ss_spec;
 
     const end_ts = auxtools.ceil(ss_spec.end_ts || Date.now(), interval);
 
-    const agg_clause = form_agg_clause(strategy, true);
+    const agg_clause = form_agg_clause(strategies, true);
 
     return new Promise(function (resolve, reject) {
 
@@ -131,7 +132,7 @@ function subsample_series(measurement_manager, ss_spec, tag) {
                            ...tag,
                            start_time: start,
                            stop_time : stop,
-                           aggregates: strategy,
+                           aggregates: strategies,
                        };
 
                        measurement_manager.find_packets(source, options)
@@ -190,20 +191,22 @@ function subsample_series(measurement_manager, ss_spec, tag) {
 
 /**
  * Form the set of aggregated observation types to be used in an InfluxDB SELECT statement.
- * @param {object[]} agg_obj_array - An array of objects, each of which specify the type of aggregation to be done
+ * @param {object[]} strategies - An array of objects, each of which specify the type of aggregation to be done
  * for a specific observation type.
- * @param {string} agg_obj_array[].obs_type - The observation type (e.g., 'out_temperature')
- * @param {string} agg_obj_array[].subsample - An InfluxDB expression to be used for this type.
- *                                             Something like 'mean(out_temperature')
+ * @param {string} strategies[].obs_type - The observation type (e.g., 'out_temperature')
+ * @param {string} strategies[].subsample - An InfluxDB expression to be used for this observation type. Something
+ *     like 'mean(out_temperature'). If this is anything other than a string, the observation type is ignored.
  * @param {boolean} as - True to include 'as' clause. Otherwise, false.
  * @returns {string} - The aggregation clause. It will look something like "avg(out_temperature),sum(rain_rain)..."
  */
-function form_agg_clause(agg_obj_array, as = false) {
+function form_agg_clause(strategies, as = false) {
     let aggs = [];
-    for (let agg_obj of agg_obj_array) {
-        let agg_str = agg_obj.subsample;
-        if (as) agg_str += ` AS ${agg_obj.obs_type}`;
-        aggs.push(agg_str);
+    for (let agg_obj of strategies) {
+        if (_.isString(agg_obj.subsample)) {
+            let agg_str = agg_obj.subsample;
+            if (as) agg_str += ` AS ${agg_obj.obs_type}`;
+            aggs.push(agg_str);
+        }
     }
 
     let agg_clause = aggs.join(', ');

@@ -19,6 +19,6 @@ module.exports = [
         destination: "wxrecords",
         // This allows one to specify a generalized subsampling policy, but we
         //  will just use the subsampling specified in obs_types.
-        strategy   : obs_types,
+        strategies : obs_types,
     },
 ];
