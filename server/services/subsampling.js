@@ -19,17 +19,24 @@ function setup_cron(measurement_manager) {
 
     let jobs = [];
     for (let ss_job_spec of ss_policies) {
-        const skip = ss_job_spec.interval / 60000;
-        let job    = new cron.CronJob(`* */${skip} * * * *`,
-                                      () => {
-                                          debug(`Starting subsampling at ${new Date()}.`);
-                                          subsample(measurement_manager, ss_job_spec)
-                                              .then(N => {
-                                                  debug(`Finished creating ${N} subsamples at ${new Date()}.`);
-                                              });
-                                      });
+        if ((ss_job_spec.interval % 60000) != 0) {
+            throw new Error("Subsampling interval must be multiple of 60000ms");
+        }
+        const skip        = ss_job_spec.interval / 60000;
+        const cronOptions = {
+            cronTime: `5 */${skip} * * * *`,    // 5 seconds after the minute
+            onTick  : () => {
+                debug(`Starting subsampling at ${new Date()}.`);
+                subsample(measurement_manager, ss_job_spec)
+                    .then(N => {
+                        debug(`Finished subsampling at ${new Date()}. ${N} records created.`);
+                    });
+            },
+            start   : true,
+        };
+        let job           = new cron.CronJob(cronOptions);
         jobs.push(job);
-        debug(`Created cron job`)
+        debug(`Created cron job`);
     }
     return jobs;
 }
@@ -150,8 +157,8 @@ function subsample_series(measurement_manager, options, tag) {
                                           .then(record => {
                                               // If the record has a timestamp, it's not empty.
                                               if (record.timestamp) {
-                                                  event_emitter.emit("NEW_AGGREGATION", record);
-                                                  debug(`Emitted record with timestamp ${new Date(record.timestamp)}`)
+                                                  event_emitter.emit("NEW_AGGREGATION", record, destination);
+                                                  debug(`Emitted record with timestamp ${new Date(record.timestamp)}`);
                                                   N += 1;
                                               }
                                               done();

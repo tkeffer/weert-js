@@ -15,8 +15,9 @@ const debug   = require('debug')('weert:routes');
 const express = require('express');
 
 const auxtools = require('../auxtools');
+const event_emitter = require('../services/event_emitter')
 
-const PacketRouterFactory = function (measurement_manager, pub_sub) {
+const PacketRouterFactory = function (measurement_manager) {
 
     const router = express.Router();
 
@@ -36,14 +37,7 @@ const PacketRouterFactory = function (measurement_manager, pub_sub) {
                     const resource_url = auxtools.resourcePath(req, final_packet.timestamp);
                     res.location(resource_url)
                        .sendStatus(201);
-                    // Notify any subscribers via the pub-sub facility
-                    pub_sub.publish(`/${measurement}`, final_packet)
-                           .then(function () {
-                                     debug(`PUBlished packet ${new Date(final_packet.timestamp)} to ${measurement}`);
-                                 },
-                                 function (err) {
-                                     debug(`POST /measurements/${measurement}/packets PUB-SUB error:`, err.message);
-                                 });
+                    event_emitter.emit('NEW_PACKET', final_packet, measurement)
                 })
                 .catch(function (err) {
                     debug(`POST /measurements/${measurement}/packets error:`, err.message);

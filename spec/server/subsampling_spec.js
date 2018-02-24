@@ -248,8 +248,9 @@ describe('While checking subsampling', function () {
 
         // Listen for the NEW_AGGREGATION events being emitted from the subsampler,
         // so we can test them as well.
-        event_emitter.on('NEW_AGGREGATION', record => {
+        event_emitter.on('NEW_AGGREGATION', (record, measurement) => {
             if (!_.isEmpty(record)) {
+                expect(measurement).toEqual(test_record_measurement);
                 seen_records[record.tags.platform].add(record);
             }
         });

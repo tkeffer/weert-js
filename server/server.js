@@ -52,21 +52,6 @@ const retention_policies    = require('./config/retention_policies');
 // but for now, retrieve it from a JSON file
 const measurement_config = require('./meta_data/measurement_config');
 
-// Set up the sub-pub facility
-const faye   = require('faye');
-const bayeux = new faye.NodeAdapter({mount: config.faye.endpoint, timeout: 45});
-// Monitor pub-sub clients
-bayeux.on('subscribe', function (clientId, channel) {
-    debug(`Client ${clientId} subscribed on channel ${channel}`);
-});
-bayeux.on('unsubscribe', function (clientId, channel) {
-    debug(`Client ${clientId} unsubscribed on channel ${channel}`);
-});
-bayeux.on('disconnect', function (clientId) {
-    debug(`Client ${clientId} disconnected`);
-});
-const faye_client = new faye.Client(`http://localhost:${config.server.port}${config.faye.endpoint}`);
-
 // Set up the database and its managers
 const Influx = require('influx');
 const influx = new Influx.InfluxDB(config.influxdb);
@@ -97,8 +82,11 @@ influx.getDatabaseNames()
           // Create a manager for the measurements, using the influx driver
           const measurement_manager = new MeasurementManager(influx, measurement_config);
 
-          // Arrange to have all cron tasks run. This includes running subsampling at regular intervals.
+          // Arrange to have all cron tasks run. (This includes running subsampling at regular intervals.)
           subsampling.setup_cron(measurement_manager);
+
+          // Set up the system to notify remote clients using faye.
+          const bayeux = require('./services/client_notifier').setup();
 
           // // Arrange to be notified after each continuous query has been run
           // subsampling.setup_all_notices(measurement_manager, faye_client, measurement_config);
@@ -107,7 +95,7 @@ influx.getDatabaseNames()
           app.use(config.server.api, auth_router_factory(config.users));
 
           // Set up the packet routes
-          app.use(config.server.api, packet_router_factory(measurement_manager, faye_client));
+          app.use(config.server.api, packet_router_factory(measurement_manager));
 
           // Set up the statistics routes
           app.use(config.server.api, stats_router_factory(measurement_manager));
