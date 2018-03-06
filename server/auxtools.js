@@ -37,17 +37,6 @@ const fromError = function (code, err) {
     return e;
 };
 
-// Create a deep packet from a set of parameters.
-const create_deep_packet = function (measurement, platform, stream, timestamp, fields) {
-    const packet = {
-        'timestamp'  : timestamp,
-        'measurement': measurement,
-        'tags'       : {'platform': platform, 'stream': stream},
-        'fields'     : fields,
-    };
-    return packet;
-};
-
 // Convert a flat_packet into a deep packet
 const flat_to_deep = function (flat_packet) {
     let deep_packet = {
@@ -124,24 +113,6 @@ const epoch_to_ms = function (epoch) {
     }
 };
 
-// Given a measurement configuration and measurement name, form
-// the "from" part of an InfluxDB query
-const get_query_from = function (measurement, measurement_config) {
-    let rp = '';
-    let db = '';
-    if (measurement_config) {
-        if ('rp' in measurement_config) {
-            rp = `"${measurement_config.rp}".`;
-        }
-        if ('database' in measurement_config) {
-            db = `"${measurement_config.database}".`;
-            if (!rp) rp = '.';
-        }
-    }
-    const from_clause = db + rp + measurement;
-    return from_clause;
-};
-
 const isDevelopment = function () {
     return !process.env.NODE_ENV || process.env.NODE_ENV === 'development';
 };
@@ -161,14 +132,10 @@ const ceil = function (x, interval) {
 };
 
 module.exports = {
-    locationPath,
     resourcePath,
     fromError,
-    create_deep_packet,
     flat_to_deep,
     epoch_to_ms,
-    get_query_from,
-    raw_to_deep,
     raws_to_deeps,
     isDevelopment,
     getNested,

@@ -57,7 +57,7 @@ class MeasurementManager {
 
     find_packet(measurement, timestamp, {platform = undefined, stream = undefined} = {}) {
 
-        const from_clause = auxtools.get_query_from(measurement, this.measurement_config[measurement]);
+        const from_clause = this.get_query_from(measurement);
 
         let query_string = `SELECT * FROM ${from_clause} WHERE time=${timestamp}ms`;
         if (platform)
@@ -142,7 +142,7 @@ class MeasurementManager {
         // If aggregation was specified, get the aggregation clause. This will be something like
         // "avg(out_temperature) as out_temperature,SUM(rain_rain) as rain_rain, ..."
         const agg_clause  = aggregates == null ? '*' : sub_sampling.form_agg_clause(aggregates, true);
-        const from_clause = auxtools.get_query_from(measurement, this.measurement_config[measurement]);
+        const from_clause = this.get_query_from(measurement);
 
         let query_string;
         if (start_time) {
@@ -216,11 +216,11 @@ class MeasurementManager {
                        // We are not aggregating, or we're grouping by time.
                        // If we're grouping by time, we need to shift the timestamps to the *end*
                        // of each interval
-                       if (group){
-                           const shift = auxtools.epoch_to_ms(group)
-                           const final = packet_arrays[0].map(packet =>{
+                       if (group) {
+                           const shift = auxtools.epoch_to_ms(group);
+                           const final = packet_arrays[0].map(packet => {
                                packet.timestamp += shift;
-                           })
+                           });
                            return Promise.resolve(final);
                        }
                        return Promise.resolve(packet_arrays[0]);
@@ -229,7 +229,7 @@ class MeasurementManager {
 
     delete_packet(measurement, timestamp, {platform = undefined, stream = undefined} = {}) {
 
-        const from_clause = auxtools.get_query_from(measurement, this.measurement_config[measurement]);
+        const from_clause = this.get_query_from(measurement);
 
         let delete_stmt = `DELETE FROM ${from_clause} WHERE time=${timestamp}ms`;
         if (platform)
@@ -240,7 +240,7 @@ class MeasurementManager {
     }
 
     get_measurement_info(measurement) {
-        const from_clause = auxtools.get_query_from(measurement, this.measurement_config[measurement]);
+        const from_clause = this.get_query_from(measurement);
 
         return this.influx.query(`SHOW SERIES FROM ${from_clause};`)
                    .then(result_set => {
@@ -290,7 +290,7 @@ class MeasurementManager {
         let stop          = +now_moment.endOf(span);
         let queries       = [];
         let ordering      = [];
-        const from_clause = auxtools.get_query_from(measurement, this.measurement_config[measurement]);
+        const from_clause = this.get_query_from(measurement);
 
         // First, build all the queries that will be needed.
         // One for each measurement and aggregation type
@@ -322,27 +322,22 @@ class MeasurementManager {
         return this.influx.queryRaw(queries, {precision: 'ms'})
                    .then(result_set => {
 
-                       // If this measurement has timestamps marking the *beginning* of an interval instead
-                       // of the more normal end, shift the timestamp.
-                       const timeshift = this._get_timeshift(measurement);
-
                        // This will be what gets returned:
-                       let final_results = {};
+                       let stats_summary = {};
 
                        // Process the result set, one query at a time
                        for (let i = 0; i < result_set.results.length; i++) {
 
-                           const obs_type = ordering[i][0];
-                           const agg_type = ordering[i][1];
+                           const [obs_type, agg_type] = ordering[i];
                            // If we haven't seen this observation type before then initialize it
-                           if (final_results[obs_type] === undefined)
-                               final_results[obs_type] = {};
+                           if (stats_summary[obs_type] === undefined)
+                               stats_summary[obs_type] = {};
                            // Initialize the aggregation type
-                           final_results[obs_type][agg_type] = {"value": null};
-                           // Aggregation types 'count' and 'sum' do not have a timestamp
-                           // associated with them.
-                           if (agg_type !== 'count' && agg_type !== 'sum')
-                               final_results[obs_type][agg_type]['timestamp'] = null;
+                           stats_summary[obs_type][agg_type] = {"value": null};
+                           // These aggregation types have a timestamp associated with them.
+                           if (['min', 'max', 'last', 'first'].includes(agg_type)) {
+                               stats_summary[obs_type][agg_type].timestamp = null;
+                           }
 
 
                            // Simplify what follows by extracting this particular result
@@ -366,16 +361,39 @@ class MeasurementManager {
                                    }
                                }
                                if (agg_type !== agg_name) {
-                                   throw new Error("Internal error. Aggregation types do not match");
+                                   // Internal logic error...
+                                   throw new Error(`Requested aggregation type ${agg_type} ` +
+                                                   `does not match received type ${agg_name}`);
                                }
                                // OK, we've found the aggregation value and time. Set the final result
                                // accordingly
-                               final_results[obs_type][agg_type]['value'] = agg_value;
-                               if (agg_type !== 'count' && agg_type !== 'sum')
-                                   final_results[obs_type][agg_type]['timestamp'] = time + timeshift;
+                               stats_summary[obs_type][agg_type].value = agg_value;
+                               if (['min', 'max', 'last', 'first'].includes(agg_type)) {
+                                   stats_summary[obs_type][agg_type].timestamp = time;
+                               }
                            }
                        }
-                       return Promise.resolve(final_results);
+                       return Promise.resolve(stats_summary);
+                   })
+                   .then(stats_summary => {
+                       // Goal here is to add wind direction to the max gust. It would be nice
+                       // to specify the following in a config file somewhere rather than hard coding it
+                       // into the more general MeasurementManager, but I haven't thought of a way of doing that. Yet.
+                       if (stats_summary.wind_speed != null) {
+                           // Get the time of the max wind speed
+                           const maxtime = stats_summary.wind_speed.max.timestamp;
+                           // Find the packet with that time stamp
+                           return this.find_packet(measurement, maxtime, {platform, stream})
+                                      .then(packets => {
+                                          if (packets) {
+                                              // If there was a result, extract the direction and put i
+                                              // in the stats summary
+                                              stats_summary.wind_speed.max.dir = packets[0].fields.wind_dir;
+                                          }
+                                          return Promise.resolve(stats_summary);
+                                      });
+                       }
+                       return Promise.resolve(stats_summary);
                    });
     }
 
@@ -390,15 +408,25 @@ class MeasurementManager {
         };
     }
 
-    _get_timeshift(measurement) {
-        // This is to correct a flaw in continuous queries. They timestamp their result with the
-        // beginning of the aggregation period, while we want the end. So, for measurements
-        // that are the result of a CQ, shift the time.
-        let timeshift = auxtools.getNested(['measurement_config', measurement, 'timeshift'], this);
-        if (timeshift == null)
-            timeshift = 0;
-        return timeshift;
-    }
+    // Given a measurement configuration and measurement name, form
+    // the "from" part of an InfluxDB query
+    get_query_from(measurement) {
+        let rp = '';
+        let db = '';
+        if (this.measurement_config[measurement]) {
+            if ('rp' in this.measurement_config[measurement]) {
+                rp = `"${this.measurement_config[measurement].rp}".`;
+            }
+            if ('database' in this.measurement_config[measurement]) {
+                db = `"${this.measurement_config[measurement].database}".`;
+                if (!rp) rp = '.';
+            }
+        }
+        const from_clause = db + rp + measurement;
+        return from_clause;
+    };
+
+
 }
 
 module.exports = MeasurementManager;
