@@ -8,10 +8,10 @@
 
 const async = require('async');
 const _     = require('lodash');
-//const jasmine = require('jasmine');
 
 const event_emitter      = require('../../server/services/event_emitter');
 const config             = require('../../server/config/config');
+const stats_policies     = require('../../server/config/stats_policies');
 const MeasurementManager = require('../../server/services/measurement_manager');
 const subsampling        = require('../../server/services/subsampling');
 
@@ -20,14 +20,6 @@ const influx = new Influx.InfluxDB(config.influxdb);
 
 // Null measurement config needed for these tests.
 const measurement_config = {};
-
-// Just subsample some of the types. This keeps the test packets manageable.
-const keep_types = [
-    'out_temperature', 'wind_speed', 'windgust_speed', 'wind_dir',
-    'x_wind_speed', 'y_wind_speed', 'unit_system',
-];
-const obs_types  = require('../../server/config/obs_types')
-    .filter(ss => keep_types.includes(ss.obs_type));
 
 // The name of the measurement to be used for the testing packets.
 const test_packet_measurement = 'test_packets';
@@ -50,9 +42,23 @@ const ss_policies = [
         interval   : record_interval,
         source     : test_packet_measurement,
         destination: test_record_measurement,
-        // This allows one to specify a generalized subsampling policy, but we
-        //  will just use the subsampling specified in obs_types.
-        strategies : obs_types,
+        aggregates : {
+            'out_temperature': 'MEAN(out_temperature)',
+            'unit_system'    : 'LAST(unit_system)',
+            'wind_dir'       : fields => {
+                const {x_wind_speed, y_wind_speed} = fields;
+                if (x_wind_speed == null || y_wind_speed == null) {
+                    return null;
+                }
+                let d = 90.0 - (180 / Math.PI) * (Math.atan2(y_wind_speed, x_wind_speed));
+                if (d < 0) d += 360.0;
+                return d;
+            },
+            'wind_speed'     : 'MEAN(wind_speed)',
+            'windgust_speed' : 'MAX(wind_speed)',
+            'x_wind_speed'   : 'MEAN(x_wind_speed)',
+            'y_wind_speed'   : 'MEAN(y_wind_speed)',
+        },
     },
 ];
 
@@ -78,7 +84,7 @@ const baseValues = {
 function form_fields(t, platform) {
     const fields           = {
         out_temperature: (() => Math.sin(2.0 * Math.PI * (t - start) / period) + baseValues[platform])(),
-        wind_speed     : (() => Math.cos(2.0 * Math.PI * (t - start) / period) + baseValues[platform])(),
+        wind_speed     : (() => Math.cos(2.0 * Math.PI * (t - start) / period) + 1.0 + baseValues[platform])(),
         wind_dir       : (() => (360.0 * (t - start) / period + toDegrees(baseValues[platform])) % 360.0)(),
         unit_system    : 16,
     };
@@ -106,25 +112,6 @@ function expected_packets(platform) {
             });
 }
 
-function reduce_packets(packets) {
-    return packets.reduce((summary, packet) => {
-        for (let obsType of Object.keys(packets)) {
-            // If we have not seen this type before, initialize
-            if (summary[obsType] == null) {
-                summary[obsType] = {sum: 0.0, count: 0, max: null};
-            }
-            if (packet[obsType] != null) {
-                summary.sum += packet[obsType];
-                summary.count += 1;
-                if (summary.max == null || packet[obsType] > summary.max) {
-                    summary.max = packet[obsType];
-                }
-            }
-        }
-        return summary;
-    }, {});
-}
-
 /**
  * Updates a running summary with a packet
  * @param {object} summary - The running summary
@@ -145,6 +132,9 @@ function summary_reducer(summary, packet) {
             if (summary[obsType].max == null || fields[obsType] > summary[obsType].max) {
                 summary[obsType].max     = fields[obsType];
                 summary[obsType].maxtime = packet.timestamp;
+                if (obsType === 'wind_speed') {
+                    summary[obsType].dir = packet.fields.wind_dir;
+                }
             }
             if (summary[obsType].min == null || fields[obsType] < summary[obsType].min) {
                 summary[obsType].min     = fields[obsType];
@@ -284,7 +274,8 @@ describe('While checking subsampling', function () {
                                           .then(records => {
                                               check_records(records, record_array1);
                                               // The "seen" array may be in a random order. Sort before comparing
-                                              seen_records.platform1.sort((left, right) => left.timestamp - right.timestamp);
+                                              seen_records.platform1.sort(
+                                                  (left, right) => left.timestamp - right.timestamp);
                                               check_records(seen_records.platform1, record_array1);
                                               return measurement_manager.find_packets(test_record_measurement,
                                                                                       {platform: 'platform2'});
@@ -292,7 +283,8 @@ describe('While checking subsampling', function () {
                                           .then(records => {
                                               check_records(records, record_array2);
                                               // The "seen" array may be in a random order. Sort before comparing
-                                              seen_records.platform2.sort((left, right) => left.timestamp - right.timestamp);
+                                              seen_records.platform2.sort(
+                                                  (left, right) => left.timestamp - right.timestamp);
                                               check_records(seen_records.platform2, record_array2);
                                           });
                        done();
@@ -304,7 +296,7 @@ describe('While checking subsampling', function () {
             platform: 'platform1',
             now     : start,
         };
-        measurement_manager.run_stats(test_record_measurement, obs_types, options)
+        measurement_manager.run_stats(test_record_measurement, stats_policies, options)
                            .then(results => {
                                for (let obsType of ['out_temperature', 'wind_speed', 'windgust_speed', 'unit_system']) {
                                    if (obsType !== 'windgust_speed') {
@@ -317,6 +309,10 @@ describe('While checking subsampling', function () {
                                        .toEqual(record_array1_summary[obsType].max);
                                    expect(results[obsType].max.timestamp)
                                        .toEqual(record_array1_summary[obsType].maxtime);
+                                   if (obsType === 'wind_speed') {
+                                       expect(results[obsType].max.dir)
+                                           .toEqual(record_array1_summary[obsType].dir);
+                                   }
                                }
                                done();
                            });

@@ -8,8 +8,9 @@
 const moment       = require('moment');
 const _            = require('lodash');
 const auxtools     = require('../auxtools');
-const obs_types    = require('../config/obs_types');
 const sub_sampling = require('./subsampling');
+
+const default_aggregation_policy = require('../config/aggregate_policies');
 
 /*
  * Class to manage the InfluxDB database
@@ -136,12 +137,12 @@ class MeasurementManager {
         // Group by time requested. This requires an aggregation strategy.
         // Supply one if none was given.
         if (group && aggregates == null) {
-            aggregates = obs_types;
+            aggregates = default_aggregation_policy;
         }
 
         // If aggregation was specified, get the aggregation clause. This will be something like
         // "avg(out_temperature) as out_temperature,SUM(rain_rain) as rain_rain, ..."
-        const agg_clause  = aggregates == null ? '*' : sub_sampling.form_agg_clause(aggregates, true);
+        const agg_clause  = aggregates == null ? '*' : sub_sampling.form_agg_clause(aggregates);
         const from_clause = this.get_query_from(measurement);
 
         let query_string;
@@ -294,30 +295,23 @@ class MeasurementManager {
 
         // First, build all the queries that will be needed.
         // One for each measurement and aggregation type
-        for (let stats_spec of stats_specs) {
-            const obs_type = stats_spec.obs_type;
-            const stats    = stats_spec.stats;
-            if (stats) {
-                for (let agg of stats) {
-                    let agg_lc = agg.toLowerCase();
-                    if (agg_lc === 'avg')
-                        agg_lc = 'mean';
-                    let query_string = `SELECT ${agg_lc}(${obs_type}) ` +
-                                       `FROM ${from_clause} WHERE time>${start}ms AND time<=${stop}ms`;
-
-                    if (platform)
-                        query_string += ` AND platform = '${platform}'`;
-                    if (stream)
-                        query_string += ` AND stream = '${stream}'`;
-
-                    queries.push(query_string);
-
-                    // Remember the observation types and aggregation type for each query
-                    ordering.push([obs_type, agg_lc]);
-                }
+        for (let obs_type of Object.keys(stats_specs)) {
+            const stats    = stats_specs[obs_type];
+            for (let agg of stats) {
+                let agg_uc = agg.toUpperCase();
+                if (agg_uc === 'AVG')
+                    agg_uc = 'MEAN';
+                let query_string = `SELECT ${agg_uc}(${obs_type}) ` +
+                                   `FROM ${from_clause} WHERE time>${start}ms AND time<=${stop}ms`;
+                if (platform)
+                    query_string += ` AND platform = '${platform}'`;
+                if (stream)
+                    query_string += ` AND stream = '${stream}'`;
+                queries.push(query_string);
+                // Remember the observation types and aggregation type for each query
+                ordering.push([obs_type, agg_uc.toLowerCase()]);
             }
         }
-
         // Now run the query and process the results.
         return this.influx.queryRaw(queries, {precision: 'ms'})
                    .then(result_set => {
@@ -328,15 +322,15 @@ class MeasurementManager {
                        // Process the result set, one query at a time
                        for (let i = 0; i < result_set.results.length; i++) {
 
-                           const [obs_type, agg_type] = ordering[i];
+                           const [obs_type, agg_lc] = ordering[i];
                            // If we haven't seen this observation type before then initialize it
                            if (stats_summary[obs_type] === undefined)
                                stats_summary[obs_type] = {};
                            // Initialize the aggregation type
-                           stats_summary[obs_type][agg_type] = {"value": null};
+                           stats_summary[obs_type][agg_lc] = {"value": null};
                            // These aggregation types have a timestamp associated with them.
-                           if (['min', 'max', 'last', 'first'].includes(agg_type)) {
-                               stats_summary[obs_type][agg_type].timestamp = null;
+                           if (['min', 'max', 'last', 'first'].includes(agg_lc)) {
+                               stats_summary[obs_type][agg_lc].timestamp = null;
                            }
 
 
@@ -360,16 +354,16 @@ class MeasurementManager {
                                        agg_value = val;
                                    }
                                }
-                               if (agg_type !== agg_name) {
+                               if (agg_lc !== agg_name) {
                                    // Internal logic error...
-                                   throw new Error(`Requested aggregation type ${agg_type} ` +
+                                   throw new Error(`Requested aggregation type ${agg_lc} ` +
                                                    `does not match received type ${agg_name}`);
                                }
                                // OK, we've found the aggregation value and time. Set the final result
                                // accordingly
-                               stats_summary[obs_type][agg_type].value = agg_value;
-                               if (['min', 'max', 'last', 'first'].includes(agg_type)) {
-                                   stats_summary[obs_type][agg_type].timestamp = time;
+                               stats_summary[obs_type][agg_lc].value = agg_value;
+                               if (['min', 'max', 'last', 'first'].includes(agg_lc)) {
+                                   stats_summary[obs_type][agg_lc].timestamp = time;
                                }
                            }
                        }

@@ -13,7 +13,7 @@ const cron  = require('cron');
 
 const auxtools      = require('../auxtools');
 const config        = require('../config/config');
-const ss_specs      = require('../config/ss_specs');
+const ss_specs      = require('../config/ss_policies');
 const event_emitter = require('./event_emitter');
 
 function setup_cron(measurement_manager) {
@@ -52,7 +52,8 @@ function setup_cron(measurement_manager) {
  * @param {string} ss_spec.source - The source measurement
  * @param {string} ss_spec.destination - The destination measurement
  * @param {number} ss_spec.interval - How often to subsample in milliseconds
- * @param {object[]} ss_spec.strategies - An array of subsampling strategies to use
+ * @param {object} ss_spec.aggregates - An object holding the subsampling strategy to be
+ * used for each type.
  * @param {number|undefined} ss_spec.end_ts - Generate subsamples up through this time. If not given,
  *                                            the present time will be used. The final number is ceiled
  *                                            with the interval.
@@ -86,7 +87,8 @@ function subsample(measurement_manager, ss_spec) {
  * @param {string} ss_spec.source - The source measurement
  * @param {string} ss_spec.destination - The destination measurement
  * @param {number} ss_spec.interval - How often to subsample in milliseconds
- * @param {object[]} ss_spec.strategies - An array of subsampling strategies to use
+ * @param {object} ss_spec.aggregates - An object holding the subsampling strategy to be
+ * used for each type.
  * @param {number|undefined} ss_spec.end_ts - Generate subsamples up through this time. If not given,
  *                                            the present time will be used. The final number is ceiled
  *                                            with the interval.
@@ -94,11 +96,11 @@ function subsample(measurement_manager, ss_spec) {
  */
 function subsample_series(measurement_manager, ss_spec, tag) {
 
-    const {source, destination, interval, strategies} = ss_spec;
+    const {source, destination, interval, aggregates} = ss_spec;
 
     const end_ts = auxtools.ceil(ss_spec.end_ts || Date.now(), interval);
 
-    const agg_clause = form_agg_clause(strategies, true);
+    const agg_clause = form_agg_clause(aggregates);
 
     return new Promise(function (resolve, reject) {
 
@@ -132,7 +134,7 @@ function subsample_series(measurement_manager, ss_spec, tag) {
                            ...tag,
                            start_time: start,
                            stop_time : stop,
-                           aggregates: strategies,
+                           aggregates,
                        };
 
                        measurement_manager.find_packets(source, options)
@@ -148,7 +150,7 @@ function subsample_series(measurement_manager, ss_spec, tag) {
                                                       tags: tag,
                                                   };
 
-                                                  const final_record = calc_derived(record, strategies);
+                                                  const final_record = calc_derived(record, aggregates);
 
                                                   // Return a promise to insert the aggregated packet.
                                                   // The promise will resolve to the final, inserted packet
@@ -194,20 +196,17 @@ function subsample_series(measurement_manager, ss_spec, tag) {
 
 /**
  * Form the set of aggregated observation types to be used in an InfluxDB SELECT statement.
- * @param {object[]} strategies - An array of objects, each of which specify the type of aggregation to be done
- * for a specific observation type.
- * @param {string} strategies[].obs_type - The observation type (e.g., 'out_temperature')
- * @param {string} strategies[].subsample - An InfluxDB expression to be used for this observation type. Something
- *     like 'mean(out_temperature'). If this is anything other than a string, the observation type is ignored.
- * @param {boolean} as - True to include 'as' clause. Otherwise, false.
+ * @param {object} aggregates - An object holding the aggregation strategy for each type. The
+ * key is the type, the value an IQL expression (such as, "MEAN(out_temperature)").
  * @returns {string} - The aggregation clause. It will look something like "avg(out_temperature),sum(rain_rain)..."
  */
-function form_agg_clause(strategies, as = false) {
-    let aggs = [];
-    for (let agg_obj of strategies) {
-        if (_.isString(agg_obj.subsample)) {
-            let agg_str = agg_obj.subsample;
-            if (as) agg_str += ` AS ${agg_obj.obs_type}`;
+function form_agg_clause(aggregates) {
+    const aggs = [];
+    let agg_str;
+    for (let out_type of Object.keys(aggregates)) {
+        agg_str = aggregates[out_type];
+        if (_.isString(agg_str)) {
+            agg_str += ` AS ${out_type}`;
             aggs.push(agg_str);
         }
     }
@@ -216,17 +215,18 @@ function form_agg_clause(strategies, as = false) {
     return agg_clause;
 }
 
-function calc_derived(deep_record, strategies) {
+function calc_derived(deep_record, aggregates) {
     // Return a copy, adding new, calculated types to the fields.
     const final = {
         ...deep_record,
         fields: {
             ...deep_record.fields,
-            ...strategies.filter(strategy => _.isFunction(strategy.subsample))
-                         .reduce((fields, strategy) => {
-                             fields[strategy.obs_type] = strategy.subsample(fields);
-                             return fields;
-                         }, deep_record.fields),
+            ...Object.keys(aggregates)
+                     .filter(obsType => _.isFunction(aggregates[obsType]))
+                     .reduce((derived, obsType) => {
+                         derived[obsType] = aggregates[obsType](deep_record.fields);
+                         return derived;
+                     }, {}),
         },
     };
 
