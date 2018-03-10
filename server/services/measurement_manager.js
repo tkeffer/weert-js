@@ -379,7 +379,7 @@ class MeasurementManager {
                            // Find the packet with that time stamp
                            return this.find_packet(measurement, maxtime, {platform, stream})
                                       .then(packets => {
-                                          if (packets) {
+                                          if (packets.length) {
                                               // If there was a result, extract the direction and put i
                                               // in the stats summary
                                               stats_summary.wind_speed.max.dir = packets[0].fields.wind_dir;
