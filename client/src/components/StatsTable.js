@@ -16,13 +16,13 @@ const propTypes = {
     isFetching    : PropTypes.bool.isRequired,
     header        : PropTypes.string,
     timeFormat    : PropTypes.string,
-    componentClass: PropTypes.string
+    componentClass: PropTypes.string,
 };
 
 const defaultProps = {
     header        : "Need a header!",
     timeFormat    : "HH:mm:ss D-MMM",
-    componentClass: 'div'
+    componentClass: 'div',
 };
 
 function Line(props) {
@@ -36,12 +36,18 @@ function Line(props) {
             {`${units.getValueString(obsType,
                                      utility.getNested([obsType, stats, "value"],
                                                        statsData),
-                                     unitSystem)} at ` +
-             `${units.getValueString("timestamp",
-                                     utility.getNested([obsType, stats, "timestamp"],
-                                                       statsData),
-                                     unitSystem,
-                                     timeFormat)}`
+                                     unitSystem)}`}
+
+            {obsType === 'wind_speed' && ` from ${units.getValueString('wind_dir',
+                                                                       utility.getNested(['wind_speed', stats, "dir"],
+                                                                                         statsData),
+                                                                       unitSystem)}`}
+
+            {` at ${units.getValueString("timestamp",
+                                        utility.getNested([obsType, stats, "timestamp"],
+                                                          statsData),
+                                        unitSystem,
+                                        timeFormat)}`
             }
         </Component>
     );
@@ -61,7 +67,7 @@ function MinMaxColumn(props) {
     );
 }
 
-function MinMaxRow(props){
+function MinMaxRow(props) {
     const {obsType} = props;
     return (
         <tr>
@@ -71,7 +77,7 @@ function MinMaxRow(props){
             />
         </tr>
 
-    )
+    );
 }
 
 /*
