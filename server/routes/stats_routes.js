@@ -15,7 +15,7 @@ const debug   = require('debug')('weert:routes');
 const express = require('express');
 
 const auxtools  = require('../auxtools');
-const obs_types = require('../config/obs_types');
+const stats_policies = require('../config/stats_policies')
 
 const StatsRouterFactory = function (measurement_manager) {
 
@@ -32,7 +32,7 @@ const StatsRouterFactory = function (measurement_manager) {
                .send("No time span specified");
         }
 
-        measurement_manager.run_stats(measurement, obs_types, {
+        measurement_manager.run_stats(measurement, stats_policies, {
                                platform,
                                stream,
                                now,
