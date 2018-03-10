@@ -120,28 +120,12 @@ When new LOOP packets come into WeeRT through the POST interface, they
 are published using Faye. Interested clients can subscribe to these
 publications.
 
-### Continuous queries
+### Subsampling
 
-The WeeRT server arranges to have a continuous query run on each LOOP
-measurement, which will subsample the data, typically every 5
-minutes. See file `config/cq_policies.js` for the subsampling
-policies.  File `meta_data/measurement_config.json` sets which policy
-each LOOP measurement uses.
-
-The resulting aggregated record is put in a new measurement whose name
-is set in `meta_data/measurement_config.json`. Unfortunately, InfluxDB
-does not have a trigger mechanism for when new records
-appear. Instead, we have to set up a timer, which goes off a few seconds
-after a new aggregation is due. This is then used to send out a notice
-to any subscriber through Faye.
-
-Another limitation is that when continuous queries run and aggregate
-data, they use a timestamp at the *beginning* of the aggregation. For
-example, if aggregating all LOOP packets between 0930 and 0935, they
-will be timestamped 0930. When it comes time to plot the resulting
-data, they will be displayed five minutes too early. The WeeRT server
-includes a hack to shift the timestamp of series resulting from CQs
-(option `timeshift` in `meta_data/measurement_config.json`.
+Every 5 minutes (configurable), the WeeRT server subsamples the raw, loop, data,
+converting it into evenly spaced records. See file `config/ss_policies.js` for the subsampling
+policies. By default, it is run every 5 minutes, uses measurement 'wxpackets' for its source,
+and measurement 'wxrecords' as its destination.
 
 ### Retention policy
 
@@ -307,14 +291,15 @@ that might be necessary. Both incoming and outgoing data use this format.
 
 [//]: # (# The following commands will set up the database)
 [//]: # (curl -XPOST 'http://localhost:8086/query?db=weert' --data-urlencode 'q=DROP MEASUREMENT "examples"')
-[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=barn,stream=accurite out_temperature=55.2,sealevel_pressure=29.812 1506713140000000000')
-[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=barn,stream=accurite out_temperature=55.3,sealevel_pressure=29.839 1506713200000000000')
-[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=barn,stream=accurite out_temperature=55.5,sealevel_pressure=29.840 1506713260000000000')
-[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=barn,stream=accurite out_temperature=55.6,sealevel_pressure=29.838 1506713320000000000')
-[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=barn,stream=loft out_temperature=61.2,sealevel_pressure=29.881 1506713140000000000')
-[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=barn,stream=loft out_temperature=61.3,sealevel_pressure=29.901 1506713200000000000')
-[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=barn,stream=loft out_temperature=61.6,sealevel_pressure=29.908 1506713260000000000')
-[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=barn,stream=loft out_temperature=61.6,sealevel_pressure=29.910 1506713320000000000')
+[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=barn,stream=accurite unit_system=1,out_temperature=55.2,sealevel_pressure=29.812 1506713140000000000')
+[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=barn,stream=accurite unit_system=1,out_temperature=55.3,sealevel_pressure=29.839 1506713200000000000')
+[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=barn,stream=accurite unit_system=1,out_temperature=55.5,sealevel_pressure=29.840 1506713260000000000')
+[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=barn,stream=accurite unit_system=1,out_temperature=55.6,sealevel_pressure=29.838 1506713320000000000')
+[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=barn,stream=loft unit_system=1,out_temperature=61.2,sealevel_pressure=29.881 1506713140000000000')
+[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=barn,stream=loft unit_system=1,out_temperature=61.3,sealevel_pressure=29.901 1506713200000000000')
+[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=barn,stream=loft unit_system=1,out_temperature=61.6,sealevel_pressure=29.908 1506713260000000000')
+[//]: # (curl -XPOST "http://localhost:8086/write?db=weert" --data-binary 'examples,platform=barn,stream=loft unit_system=1,out_temperature=61.6,sealevel_pressure=29.910 1506713320000000000')
+
 
 
 
@@ -376,11 +361,21 @@ Ask for all the packets in the measurement `examples`. This is the entire exampl
 ```shell
 $ curl -i --silent -X GET 'http://localhost:3000/api/v1/measurements/examples/packets'
 
-HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 1071ETag: W/"42f-Kqaqvg6Zcis8mLWGZNFjK+EkxYg"Vary: Accept-EncodingDate: Tue, 20 Feb 2018 12:41:00 GMTConnection: keep-alive[
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Content-Length: 1199
+ETag: W/"4af-L0UIsq5sC4PTfrENfRMN2W/ZRN4"
+Vary: Accept-Encoding
+Date: Sat, 10 Mar 2018 22:53:29 GMT
+Connection: keep-alive
+
+[
     {
         "fields": {
             "out_temperature": 55.2,
-            "sealevel_pressure": 29.812
+            "sealevel_pressure": 29.812,
+            "unit_system": 1
         },
         "tags": {
             "platform": "barn",
@@ -391,7 +386,8 @@ HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=ut
     {
         "fields": {
             "out_temperature": 61.2,
-            "sealevel_pressure": 29.881
+            "sealevel_pressure": 29.881,
+            "unit_system": 1
         },
         "tags": {
             "platform": "barn",
@@ -402,7 +398,8 @@ HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=ut
     {
         "fields": {
             "out_temperature": 55.3,
-            "sealevel_pressure": 29.839
+            "sealevel_pressure": 29.839,
+            "unit_system": 1
         },
         "tags": {
             "platform": "barn",
@@ -413,7 +410,8 @@ HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=ut
     {
         "fields": {
             "out_temperature": 61.3,
-            "sealevel_pressure": 29.901
+            "sealevel_pressure": 29.901,
+            "unit_system": 1
         },
         "tags": {
             "platform": "barn",
@@ -424,7 +422,8 @@ HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=ut
     {
         "fields": {
             "out_temperature": 55.5,
-            "sealevel_pressure": 29.84
+            "sealevel_pressure": 29.84,
+            "unit_system": 1
         },
         "tags": {
             "platform": "barn",
@@ -435,7 +434,8 @@ HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=ut
     {
         "fields": {
             "out_temperature": 61.6,
-            "sealevel_pressure": 29.908
+            "sealevel_pressure": 29.908,
+            "unit_system": 1
         },
         "tags": {
             "platform": "barn",
@@ -446,7 +446,8 @@ HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=ut
     {
         "fields": {
             "out_temperature": 55.6,
-            "sealevel_pressure": 29.838
+            "sealevel_pressure": 29.838,
+            "unit_system": 1
         },
         "tags": {
             "platform": "barn",
@@ -457,7 +458,8 @@ HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=ut
     {
         "fields": {
             "out_temperature": 61.6,
-            "sealevel_pressure": 29.91
+            "sealevel_pressure": 29.91,
+            "unit_system": 1
         },
         "tags": {
             "platform": "barn",
@@ -475,11 +477,21 @@ to 2 packets:
 ```shell
 $ curl -i --silent -X GET 'http://localhost:3000/api/v1/measurements/examples/packets?stream=loft&limit=2'
 
-HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 265ETag: W/"109-LqS2mHnIuOUVnjNJR4WjlhnE8Pk"Vary: Accept-EncodingDate: Tue, 20 Feb 2018 12:41:00 GMTConnection: keep-alive[
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Content-Length: 297
+ETag: W/"129-idTpnNGWyDv2HF/iWVXjfjypa6c"
+Vary: Accept-Encoding
+Date: Sat, 10 Mar 2018 22:53:29 GMT
+Connection: keep-alive
+
+[
     {
         "fields": {
             "out_temperature": 61.2,
-            "sealevel_pressure": 29.881
+            "sealevel_pressure": 29.881,
+            "unit_system": 1
         },
         "tags": {
             "platform": "barn",
@@ -490,7 +502,8 @@ HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=ut
     {
         "fields": {
             "out_temperature": 61.3,
-            "sealevel_pressure": 29.901
+            "sealevel_pressure": 29.901,
+            "unit_system": 1
         },
         "tags": {
             "platform": "barn",
@@ -508,11 +521,21 @@ Query, constraining by time and stream name, returning results in reverse order:
 ```shell
 $ curl -i -X GET 'http://localhost:3000/api/v1/measurements/examples/packets?start=1506713140000&stop=1506713260000&stream=loft&direction=desc'
 
-HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 265ETag: W/"109-WbGOiOUsyQDiF05s0ikoRFuaqMw"Vary: Accept-EncodingDate: Tue, 20 Feb 2018 12:41:00 GMTConnection: keep-alive[
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Content-Length: 297
+ETag: W/"129-7ngYWuleRY7fPIgWhooZwkCBK0w"
+Vary: Accept-Encoding
+Date: Sat, 10 Mar 2018 22:53:29 GMT
+Connection: keep-alive
+
+[
     {
         "fields": {
             "out_temperature": 61.6,
-            "sealevel_pressure": 29.908
+            "sealevel_pressure": 29.908,
+            "unit_system": 1
         },
         "tags": {
             "platform": "barn",
@@ -523,7 +546,8 @@ HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=ut
     {
         "fields": {
             "out_temperature": 61.3,
-            "sealevel_pressure": 29.901
+            "sealevel_pressure": 29.901,
+            "unit_system": 1
         },
         "tags": {
             "platform": "barn",
@@ -566,11 +590,21 @@ Get all packets at timestamp `1506713200000` on the stream `accurite`.
 ```shell
 $ curl -i -X GET 'http://localhost:3000/api/v1/measurements/examples/packets/1506713200000?stream=accurite'
 
-HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 137ETag: W/"89-ltSDLHrJ9+mg1BWXyNiq2LBCtww"Vary: Accept-EncodingDate: Tue, 20 Feb 2018 12:41:00 GMTConnection: keep-alive[
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Content-Length: 153
+ETag: W/"99-J5xEyWItQGPLhwz5OEdZrKYl/HU"
+Vary: Accept-Encoding
+Date: Sat, 10 Mar 2018 22:53:29 GMT
+Connection: keep-alive
+
+[
     {
         "fields": {
             "out_temperature": 55.3,
-            "sealevel_pressure": 29.839
+            "sealevel_pressure": 29.839,
+            "unit_system": 1
         },
         "tags": {
             "platform": "barn",
@@ -625,10 +659,20 @@ Add a new packet for the platform `barn` and stream `accurite`.
 $ curl -u weert:weert -i --silent -X POST -H Content-type:application/json -d  \
 >   '{"timestamp" : 1506713320000, \
 >   "tags" : {"platform":"barn", "stream":"accurite"}, \
->   "fields" : {"out_temperature":56.1, "sealevel_pressure": 29.881}} ' \
+>   "fields" : {"unit_system":1, "out_temperature":56.1, "sealevel_pressure": 29.881}} ' \
 >   http://localhost:3000/api/v1/measurements/examples/packets
 
-HTTP/1.1 201 CreatedX-Powered-By: ExpressLocation: http://localhost:3000/api/v1/measurements/examples/packets/1506713320000Content-Type: text/plain; charset=utf-8Content-Length: 7ETag: W/"7-rM9AyJuqT6iOan/xHh+AW+7K/T8"Vary: Accept-EncodingDate: Tue, 20 Feb 2018 12:41:00 GMTConnection: keep-aliveCreated
+HTTP/1.1 201 Created
+X-Powered-By: Express
+Location: http://localhost:3000/api/v1/measurements/examples/packets/1506713320000
+Content-Type: text/plain; charset=utf-8
+Content-Length: 7
+ETag: W/"7-rM9AyJuqT6iOan/xHh+AW+7K/T8"
+Vary: Accept-Encoding
+Date: Sat, 10 Mar 2018 22:53:29 GMT
+Connection: keep-alive
+
+Created
 ```
 
 Note how the URL of the new resource is returned in the header `Location`.
@@ -670,7 +714,12 @@ Delete all packets with timestamp `1506713320000`.
 ```shell
 $ curl -u weert:weert -i --silent -X DELETE http://localhost:3000/api/v1/measurements/examples/packets/1506713320000
 
-HTTP/1.1 204 No ContentX-Powered-By: ExpressETag: W/"a-bAsFyilMr4Ra1hIU5PyoyFRunpI"Date: Tue, 20 Feb 2018 12:41:00 GMTConnection: keep-alive
+HTTP/1.1 204 No Content
+X-Powered-By: Express
+ETag: W/"a-bAsFyilMr4Ra1hIU5PyoyFRunpI"
+Date: Sat, 10 Mar 2018 22:53:29 GMT
+Connection: keep-alive
+
 ```
 
 
@@ -700,7 +749,16 @@ Get information about the measurement `examples`.
 ```Shell
 $ curl -i --silent -X GET 'http://localhost:3000/api/v1/measurements/examples'
 
-HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 77ETag: W/"4d-1amwyw0DG1fpJrxME60jbdepTSc"Vary: Accept-EncodingDate: Tue, 20 Feb 2018 12:41:00 GMTConnection: keep-alive[
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Content-Length: 77
+ETag: W/"4d-1amwyw0DG1fpJrxME60jbdepTSc"
+Vary: Accept-Encoding
+Date: Sat, 10 Mar 2018 22:53:29 GMT
+Connection: keep-alive
+
+[
     {
         "platform": "barn",
         "stream": "accurite"
@@ -719,7 +777,16 @@ a 404 "Not Found" status code.
 ```shell
 $ curl -i --silent -X GET http://localhost:3000/api/v1/measurements/foo
 
-HTTP/1.1 404 Not FoundX-Powered-By: ExpressContent-Type: text/plain; charset=utf-8Content-Length: 9ETag: W/"9-0gXL1ngzMqISxa6S1zx3F4wtLyg"Vary: Accept-EncodingDate: Tue, 20 Feb 2018 12:41:00 GMTConnection: keep-aliveNot Found
+HTTP/1.1 404 Not Found
+X-Powered-By: Express
+Content-Type: text/plain; charset=utf-8
+Content-Length: 9
+ETag: W/"9-0gXL1ngzMqISxa6S1zx3F4wtLyg"
+Vary: Accept-Encoding
+Date: Sat, 10 Mar 2018 22:53:29 GMT
+Connection: keep-alive
+
+Not Found
 ```
 
 ## Get statistics
@@ -755,24 +822,27 @@ only which types are to be returned, but also which aggregations are to be run a
 
 For the sample data, most of these types were not inserted into the database. Hence, their statistics are null.
 
-See file `server/config/obs_types.js` for the schema.
+See file `server/config/stats_policies.js` for the schema.
 
 ```shell
 $ curl -i --silent -X GET 'http://localhost:3000/api/v1/measurements/examples/stats?span=day&now=1506713200000'
 
-HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 1857ETag: W/"741-gi9v+MnsnqtBn6hUHB8NufK9kjg"Vary: Accept-EncodingDate: Tue, 20 Feb 2018 12:41:00 GMTConnection: keep-alive{
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Content-Length: 1828
+ETag: W/"724-nvlqRtRGm24tJxyFf+cb85k9IBI"
+Vary: Accept-Encoding
+Date: Sat, 10 Mar 2018 22:53:29 GMT
+Connection: keep-alive
+
+{
     "altimeter_pressure": {
         "max": {
             "timestamp": null,
             "value": null
         },
         "min": {
-            "timestamp": null,
-            "value": null
-        }
-    },
-    "console_voltage": {
-        "last": {
             "timestamp": null,
             "value": null
         }
@@ -894,12 +964,12 @@ HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=ut
     },
     "unit_system": {
         "max": {
-            "timestamp": null,
-            "value": null
+            "timestamp": 1506713140000,
+            "value": 1
         },
         "min": {
-            "timestamp": null,
-            "value": null
+            "timestamp": 1506713140000,
+            "value": 1
         }
     },
     "uv_uv": {
@@ -917,10 +987,6 @@ HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=ut
             "timestamp": null,
             "value": null
         },
-        "mean": {
-            "timestamp": null,
-            "value": null
-        },
         "min": {
             "timestamp": null,
             "value": null
@@ -932,6 +998,12 @@ HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=ut
             "value": null
         },
         "min": {
+            "timestamp": null,
+            "value": null
+        }
+    },
+    "windgust_speed": {
+        "max": {
             "timestamp": null,
             "value": null
         }
@@ -982,7 +1054,12 @@ Delete the measurement `examples`. All packets within the measurement will be de
 ```shell
 $ curl -u weert:weert -i --silent -X DELETE 'http://localhost:3000/api/v1/measurements/examples'
 
-HTTP/1.1 204 No ContentX-Powered-By: ExpressETag: W/"a-bAsFyilMr4Ra1hIU5PyoyFRunpI"Date: Tue, 20 Feb 2018 12:41:00 GMTConnection: keep-alive
+HTTP/1.1 204 No Content
+X-Powered-By: Express
+ETag: W/"a-bAsFyilMr4Ra1hIU5PyoyFRunpI"
+Date: Sat, 10 Mar 2018 22:53:29 GMT
+Connection: keep-alive
+
 ```
 
 
@@ -992,7 +1069,12 @@ return the same status code, 204.
 ```shell
 $ curl -u weert:weert -i --silent -X DELETE 'http://localhost:3000/api/v1/measurements/foo'
 
-HTTP/1.1 204 No ContentX-Powered-By: ExpressETag: W/"a-bAsFyilMr4Ra1hIU5PyoyFRunpI"Date: Tue, 20 Feb 2018 12:41:00 GMTConnection: keep-alive
+HTTP/1.1 204 No Content
+X-Powered-By: Express
+ETag: W/"a-bAsFyilMr4Ra1hIU5PyoyFRunpI"
+Date: Sat, 10 Mar 2018 22:53:29 GMT
+Connection: keep-alive
+
 ```
 
 
