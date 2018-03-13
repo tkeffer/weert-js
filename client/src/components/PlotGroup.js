@@ -7,7 +7,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import moment from 'moment/moment';
-import {LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer} from 'recharts';
+import {Line} from 'recharts';
+import RTPlot from './RTPlot';
 
 import * as units from '../units';
 
@@ -68,18 +69,12 @@ export default class PlotGroup extends React.PureComponent {
                   packets,
                   obsTypes,
                   header,
-                  xDomain,
-                  xTicks,
-                  xTickFormat,
                   animationDuration,
                   dot,
-                  width,
-                  height,
-                  margin,
                   stroke,
                   strokeWidth,
-                  debounce,
                   componentClass: Component,
+                  ...props,
               } = this.props;
 
 
@@ -87,9 +82,9 @@ export default class PlotGroup extends React.PureComponent {
 
         return (
             <Component>
-                {isFetching && !packets && <h3>Loading...</h3>}
-                {!isFetching && !packets && <h3>Empty.</h3>}
-                {packets &&
+                {isFetching && !packets.length && <h3>Loading...</h3>}
+                {!isFetching && !packets.length && <h3>Empty.</h3>}
+                {packets.length &&
                  <div style={{opacity: isFetching ? 0.5 : 1}}>
 
                      <h3>{header}</h3>
@@ -98,38 +93,17 @@ export default class PlotGroup extends React.PureComponent {
                          return (
                              <div key={obsType}>
                                  <h4>{units.getLabel(obsType)}</h4>
-                                 <ResponsiveContainer width={width} height={height} debounce={debounce}>
-                                     <LineChart
-                                         data={packets}
-                                         margin={margin}>
-                                         <XAxis
-                                             dataKey='timestamp'
-                                             domain={xDomain}
-                                             scale='time'
-                                             type='number'
-                                             ticks={xTicks}
-                                             tickFormatter={timeFormatter}
-                                         />
-                                         <YAxis
-                                             domain={['auto', 'auto']}
-                                         />
-                                         <CartesianGrid
-                                             strokeDasharray='3 3'
-                                         />
-                                         <Tooltip
-                                             labelFormatter={timeFormatter}
-                                         />
-                                         <Line type='linear'
-                                               dataKey={obsType}
-                                               stroke={stroke}
-                                               dot={dot}
-                                               isAnimationActive={false}
-                                               animationDuration={animationDuration}
-                                               animationEasing='linear'
-                                               strokeWidth={strokeWidth}
-                                         />
-                                     </LineChart>
-                                 </ResponsiveContainer>
+                                 <RTPlot {...props} packets={packets}>
+                                     <Line type='linear'
+                                           dataKey={obsType}
+                                           stroke={stroke}
+                                           dot={dot}
+                                           isAnimationActive={false}
+                                           animationDuration={animationDuration}
+                                           animationEasing='linear'
+                                           strokeWidth={strokeWidth}
+                                     />
+                                 </RTPlot>
                              </div>
                          );
                      })}
