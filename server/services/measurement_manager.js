@@ -221,6 +221,7 @@ class MeasurementManager {
                            const shift = auxtools.epoch_to_ms(group);
                            const final = packet_arrays[0].map(packet => {
                                packet.timestamp += shift;
+                               return packet;
                            });
                            return Promise.resolve(final);
                        }
