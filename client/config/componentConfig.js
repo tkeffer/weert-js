@@ -8,84 +8,100 @@ export const plotGroupOptions = {
     nXTicks: 5,
     options: {
         recent: {
-            xTickFormat: "HH:mm:ss",
+            xTickFormat: "HH:mm:ss"
         },
-        day   : {
-            xTickFormat: "HH:mm",
+        day: {
+            xTickFormat: "HH:mm"
         },
-        week  : {
-            xTickFormat: "L",
+        week: {
+            xTickFormat: "L"
         },
-        month : {
-            xTickFormat: "L",
+        month: {
+            xTickFormat: "L"
         },
-        year  : {
-            xTickFormat: "L",
-        },
-    },
+        year: {
+            xTickFormat: "L"
+        }
+    }
 };
 
 export const plotOptions = {
-    type             : 'linear',
-    stroke           : "#8884d8",
-    dot              : false,
-    isAnimationActive: false,
+    nXTicks: 5,
+    type: "linear",
+    xTickFormat: "lll",
     animationDuration: 500,
-    animationEasing  : 'linear',
-    strokeWidth      : 2,
-    plotGroups       : {
+    dot: false,
+    isAnimationActive: false,
+    animationEasing: "linear",
+    stroke: "#8884d8",
+    strokeWidth: 2,
+    debounce: 200,
+    plotGroups: {
         recent: {
             xTickFormat: "HH:mm:ss",
-            plots      : [
+            plots: [
                 {
                     plotLines: [
                         {
-                            obsType: 'out_temperature',
+                            obsType: "out_temperature"
                         },
                         {
-                            obsType: 'dewpoint_temperature',
-                            stroke : 'blue',
-                        },
-                    ],
+                            obsType: "dewpoint_temperature",
+                            stroke: "blue"
+                        }
+                    ]
                 },
-            ],
+                {
+                    plotLines: [
+                        {
+                            obsType: "sealevel_pressure"
+                        }
+                    ]
+                }
+            ]
         },
-        day   : {
-            header     : "This day",
+        day: {
+            header: "This day",
             xTickFormat: "HH:mm",
-            plots      : [
+            plots: [
                 {
                     plotLines: [
                         {
-                            obsType: 'out_temperature',
+                            obsType: "out_temperature"
                         },
                         {
-                            obsType: 'dewpoint_temperature',
-                            stroke : 'blue',
-                        },
-                    ],
+                            obsType: "dewpoint_temperature",
+                            stroke: "blue"
+                        }
+                    ]
                 },
-            ],
-        },
-    },
+                {
+                    plotLines: [
+                        {
+                            obsType: "sealevel_pressure"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
 };
 
 export const statsTableOptions = {
-    'day'  : {
-        header    : "Since midnight",
-        timeFormat: "HH:mm:ss",
+    day: {
+        header: "Since midnight",
+        timeFormat: "HH:mm:ss"
     },
-    'week' : {
-        header    : "This week",
-        timeFormat: "HH:mm:ss ddd",
+    week: {
+        header: "This week",
+        timeFormat: "HH:mm:ss ddd"
     },
-    'month': {
-        header    : "This month",
-        timeFormat: "HH:mm:ss Do",
+    month: {
+        header: "This month",
+        timeFormat: "HH:mm:ss Do"
     },
-    'year' : {
-        header    : "This year",
-        timeFormat: "HH:mm:ss D-MMM",
-    },
+    year: {
+        header: "This year",
+        timeFormat: "HH:mm:ss D-MMM"
+    }
 };
-

@@ -7,139 +7,93 @@
 import React from "react";
 import PropTypes from "prop-types";
 import moment from "moment/moment";
-import {Line} from "recharts";
-import RTPlot from "./RTPlot";
 
+import RTPlot from "./RTPlot";
+import { getOptions } from "../utility";
 import * as units from "../units";
 
 const propTypes = {
-    isFetching       : PropTypes.bool.isRequired,
-    packets          : PropTypes.arrayOf(PropTypes.object).isRequired,
-    obsTypes         : PropTypes.arrayOf(PropTypes.string),
-    header           : PropTypes.string,
-    xDomain          : PropTypes.array,
-    xTicks           : PropTypes.arrayOf(PropTypes.number),
-    xTickFormat      : PropTypes.string,
-    animationDuration: PropTypes.number,
-    dot              : PropTypes.bool,
-    width            : PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-    height           : PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-    margin           : PropTypes.shape({
-                                           top   : PropTypes.number,
-                                           right : PropTypes.number,
-                                           left  : PropTypes.number,
-                                           bottom: PropTypes.number,
-                                       }),
-    stroke           : PropTypes.string,
-    strokeWidth      : PropTypes.number,
-    debounce         : PropTypes.number,
-    componentClass   : PropTypes.string,
+    plotGroupOptions: PropTypes.object.isRequired,
+    isFetching: PropTypes.bool.isRequired,
+    packets: PropTypes.arrayOf(PropTypes.object).isRequired,
+    header: PropTypes.string,
+    xDomain: PropTypes.array,
+    xTicks: PropTypes.arrayOf(PropTypes.number).isRequired,
+    componentClass: PropTypes.string
 };
 
 const defaultProps = {
-    obsTypes         : [
-        "wind_speed",
-        "out_temperature",
-        "in_temperature",
-        "radiation_radiation",
-        "sealevel_pressure",
-    ],
-    header           : "Need a header!",
-    xDomain          : ["auto", "auto"],
-    xTickFormat      : "lll",
-    animationDuration: 500,
-    dot              : false,
-    width            : "95%",
-    height           : 200,
-    margin           : {top: 5, right: 10, left: 10, bottom: 5},
-    stroke           : "#8884d8",
-    strokeWidth      : 2,
-    debounce         : 200,
-    componentClass   : "div",
+    header: "Need a header!",
+    xDomain: ["auto", "auto"],
+    componentClass: "div"
 };
 
 export default class PlotGroup extends React.PureComponent {
     constructor(props) {
         super(props);
-        this.state        = {selectedDetail: 5};
-        this.handleChange = this.handleChange.bind(this);
     }
-
-    handleChange(nextSelectedDetail) {
-        this.setState({selectedDetail: nextSelectedDetail});
-    }
-
     render() {
         const {
-                  isFetching,
-                  packets,
-                  obsTypes,
-                  header,
-                  animationDuration,
-                  dot,
-                  stroke,
-                  strokeWidth,
-                  componentClass: Component,
-                  ...props
-              } = this.props;
+            plotGroupOptions,
+            isFetching,
+            packets,
+            header,
+            xDomain,
+            xTicks,
+            componentClass: Component
+        } = this.props;
 
-        const timeFormatter = tick => {
-            return moment(tick).format(xTickFormat);
-        };
+        // const timeFormatter = tick => {
+        //     return moment(tick).format(xTickFormat);
+        // };
+
+        const options = getOptions(plotGroupOptions);
 
         return (
             <Component>
                 {isFetching && !packets.length && <h3>Loading...</h3>}
                 {!isFetching && !packets.length && <h3>Empty.</h3>}
                 {packets.length && (
-                    <div style={{opacity: isFetching ? 0.5 : 1}}>
+                    <div style={{ opacity: isFetching ? 0.5 : 1 }}>
                         <h3>{header}</h3>
-                        <h4>
-                            {units.getLabel("out_temperature")} /{" "}
-                            {units.getLabel("dewpoint_temperature")}
-                        </h4>
-                        <RTPlot {...props} packets={packets}>
-                            <Line
-                                type='linear'
-                                dataKey={"out_temperature"}
-                                stroke={stroke}
-                                dot={dot}
-                                isAnimationActive={false}
-                                animationDuration={animationDuration}
-                                animationEasing='linear'
-                                strokeWidth={strokeWidth}
-                            />
-                            <Line
-                                type='linear'
-                                dataKey={"dewpoint_temperature"}
-                                stroke={stroke}
-                                dot={dot}
-                                isAnimationActive={false}
-                                animationDuration={animationDuration}
-                                animationEasing='linear'
-                                strokeWidth={strokeWidth}
-                            />
-                        </RTPlot>
 
-                        {obsTypes.map((obsType, i) => {
+                        {plotGroupOptions.plots.map(plot => {
+                            const plotOptions = {
+                                ...options,
+                                ...plot
+                            };
+                            // return (<p>options={JSON.stringify(plotOptions, null, 2)}</p>)
                             return (
-                                <div key={obsType}>
-                                    <h4>{units.getLabel(obsType)}</h4>
-                                    <RTPlot {...props} packets={packets}>
-                                        <Line
-                                            type='linear'
-                                            dataKey={obsType}
-                                            stroke={stroke}
-                                            dot={dot}
-                                            isAnimationActive={false}
-                                            animationDuration={animationDuration}
-                                            animationEasing='linear'
-                                            strokeWidth={strokeWidth}
-                                        />
-                                    </RTPlot>
-                                </div>
+                                <RTPlot {...plotOptions} packets={packets} />
                             );
                         })}
+
+                        {/*<h4>*/}
+                        {/*{units.getLabel("out_temperature")} /{" "}*/}
+                        {/*{units.getLabel("dewpoint_temperature")}*/}
+                        {/*</h4>*/}
+                        {/*<RTPlot {...props} packets={packets}>*/}
+                        {/*<Line*/}
+                        {/*dataKey={"out_temperature"}*/}
+                        {/*type={options.type}*/}
+                        {/*stroke={options.stroke}*/}
+                        {/*dot={options.dot}*/}
+                        {/*isAnimationActive={options.false}*/}
+                        {/*animationDuration={options.animationDuration}*/}
+                        {/*animationEasing={options.animationEasing}*/}
+                        {/*strokeWidth={options.strokeWidth}*/}
+                        {/*/>*/}
+                        {/*<Line*/}
+                        {/*dataKey={"dewpoint_temperature"}*/}
+                        {/*type={options.type}*/}
+                        {/*stroke={options.stroke}*/}
+                        {/*dot={options.dot}*/}
+                        {/*isAnimationActive={options.false}*/}
+                        {/*animationDuration={options.animationDuration}*/}
+                        {/*animationEasing={options.animationEasing}*/}
+                        {/*strokeWidth={options.strokeWidth}*/}
+                        {/*/>*/}
+                        {/*</RTPlot>*/}
                     </div>
                 )}
             </Component>
@@ -147,5 +101,5 @@ export default class PlotGroup extends React.PureComponent {
     }
 }
 
-PlotGroup.propTypes    = propTypes;
+PlotGroup.propTypes = propTypes;
 PlotGroup.defaultProps = defaultProps;

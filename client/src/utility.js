@@ -4,7 +4,7 @@
  * See the file LICENSE for your full rights.
  */
 
-import * as _ from 'lodash';
+import * as _ from "lodash";
 
 export function findFirstGood(packets, maxAge) {
 
@@ -23,24 +23,24 @@ export function findFirstGood(packets, maxAge) {
     }
 }
 
-export function insertSorted(packets, packet, maxAge){
+export function insertSorted(packets, packet, maxAge) {
     // Find the first packet we are going to keep. This will be all the packets for time spans other
     // than 'recent':
-    const firstGood    = findFirstGood(packets, maxAge);
+    const firstGood   = findFirstGood(packets, maxAge);
     // Find the insertion point
-    const insertPoint  = _.sortedIndexBy(packets, packet, (p) => p.timestamp);
+    const insertPoint = _.sortedIndexBy(packets, packet, (p) => p.timestamp);
     // Drop the stale packets at the front, keep the other packets, inserting
     // the new packet in the proper spot.
     const new_packets = [
-            ...packets.slice(firstGood, insertPoint),
-            packet,
-            ...packets.slice(insertPoint),
-        ];
+        ...packets.slice(firstGood, insertPoint),
+        packet,
+        ...packets.slice(insertPoint)
+    ];
     return new_packets;
 }
 
 export function isDevelopment() {
-    return !process.env.NODE_ENV || process.env.NODE_ENV === 'development';
+    return !process.env.NODE_ENV || process.env.NODE_ENV === "development";
 }
 
 export function isSame(option1, option2) {
@@ -51,4 +51,14 @@ export function isSame(option1, option2) {
 export function getNested(path, obj) {
     return path.reduce((xs, x) =>
                            ((xs != null) && (xs[x] != null)) ? xs[x] : undefined, obj);
+}
+
+// Extract the top-level, non-object key-value pairs from an object.
+export function getOptions(obj) {
+    return Object.keys(obj).reduce((options, k) => {
+        if (typeof obj[k] !== "object") {
+            options[k] = obj[k];
+        }
+        return options;
+    }, {});
 }
