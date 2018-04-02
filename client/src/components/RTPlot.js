@@ -58,13 +58,14 @@ export default class RTPlot extends React.PureComponent {
             height,
             margin,
             debounce,
-            plotLines,
-            componentClass: Component
+            componentClass: Component,
+            ...props
         } = this.props;
 
         const timeFormatter = tick => {
             return moment(tick).format(xTickFormat);
         };
+        console.log("props=", props);
 
         return (
             <ResponsiveContainer
@@ -84,13 +85,14 @@ export default class RTPlot extends React.PureComponent {
                     <YAxis domain={["auto", "auto"]} />
                     <CartesianGrid strokeDasharray="3 3" />
                     <Tooltip labelFormatter={timeFormatter} />
-                    {plotLines.map(plotLine => {
+                    {props.plotLines.map(plotLine => {
                         const options = {
-                            ...getOptions(plotLines),
+                            ...getOptions(props),
                             ...plotLine
                         };
                         return (
                             <Line
+                                key={options.obsType}
                                 type={options.type}
                                 dataKey={options.obsType}
                                 stroke={options.stroke}

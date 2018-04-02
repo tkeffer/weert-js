@@ -57,43 +57,17 @@ export default class PlotGroup extends React.PureComponent {
                     <div style={{ opacity: isFetching ? 0.5 : 1 }}>
                         <h3>{header}</h3>
 
-                        {plotGroupOptions.plots.map(plot => {
+                        {plotGroupOptions.plots && plotGroupOptions.plots.map((plot, i) => {
                             const plotOptions = {
                                 ...options,
                                 ...plot
                             };
-                            // return (<p>options={JSON.stringify(plotOptions, null, 2)}</p>)
+
                             return (
-                                <RTPlot {...plotOptions} packets={packets} />
+                                <RTPlot key={i} {...plotOptions} packets={packets} />
                             );
                         })}
 
-                        {/*<h4>*/}
-                        {/*{units.getLabel("out_temperature")} /{" "}*/}
-                        {/*{units.getLabel("dewpoint_temperature")}*/}
-                        {/*</h4>*/}
-                        {/*<RTPlot {...props} packets={packets}>*/}
-                        {/*<Line*/}
-                        {/*dataKey={"out_temperature"}*/}
-                        {/*type={options.type}*/}
-                        {/*stroke={options.stroke}*/}
-                        {/*dot={options.dot}*/}
-                        {/*isAnimationActive={options.false}*/}
-                        {/*animationDuration={options.animationDuration}*/}
-                        {/*animationEasing={options.animationEasing}*/}
-                        {/*strokeWidth={options.strokeWidth}*/}
-                        {/*/>*/}
-                        {/*<Line*/}
-                        {/*dataKey={"dewpoint_temperature"}*/}
-                        {/*type={options.type}*/}
-                        {/*stroke={options.stroke}*/}
-                        {/*dot={options.dot}*/}
-                        {/*isAnimationActive={options.false}*/}
-                        {/*animationDuration={options.animationDuration}*/}
-                        {/*animationEasing={options.animationEasing}*/}
-                        {/*strokeWidth={options.strokeWidth}*/}
-                        {/*/>*/}
-                        {/*</RTPlot>*/}
                     </div>
                 )}
             </Component>
