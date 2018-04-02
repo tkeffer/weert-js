@@ -57,17 +57,23 @@ export default class PlotGroup extends React.PureComponent {
                     <div style={{ opacity: isFetching ? 0.5 : 1 }}>
                         <h3>{header}</h3>
 
-                        {plotGroupOptions.plots && plotGroupOptions.plots.map((plot, i) => {
-                            const plotOptions = {
-                                ...options,
-                                ...plot
-                            };
+                        {plotGroupOptions.plots &&
+                            plotGroupOptions.plots.map((plot, i) => {
+                                const plotOptions = {
+                                    xDomain,
+                                    xTicks,
+                                    ...options,
+                                    ...plot
+                                };
 
-                            return (
-                                <RTPlot key={i} {...plotOptions} packets={packets} />
-                            );
-                        })}
-
+                                return (
+                                    <RTPlot
+                                        key={i}
+                                        {...plotOptions}
+                                        packets={packets}
+                                    />
+                                );
+                            })}
                     </div>
                 )}
             </Component>
