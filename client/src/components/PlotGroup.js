@@ -10,7 +10,6 @@ import moment from "moment/moment";
 
 import RTPlot from "./RTPlot";
 import { getOptions } from "../utility";
-import * as units from "../units";
 
 const propTypes = {
     plotGroupOptions: PropTypes.object.isRequired,

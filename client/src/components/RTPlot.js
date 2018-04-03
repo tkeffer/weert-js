@@ -18,6 +18,7 @@ import {
 } from "recharts";
 
 import { getOptions } from "../utility";
+import * as units from "../units";
 
 const propTypes = {
     packets: PropTypes.arrayOf(PropTypes.object).isRequired,
@@ -68,44 +69,64 @@ export default class RTPlot extends React.PureComponent {
         console.log("props=", props);
 
         return (
-            <ResponsiveContainer
-                width={width}
-                height={height}
-                debounce={debounce}
-            >
-                <LineChart data={packets} margin={margin}>
-                    <XAxis
-                        dataKey="timestamp"
-                        domain={xDomain}
-                        scale="time"
-                        type="number"
-                        ticks={xTicks}
-                        tickFormatter={timeFormatter}
-                    />
-                    <YAxis domain={["auto", "auto"]} />
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <Tooltip labelFormatter={timeFormatter} />
+            <div>
+                <h4>
                     {props.plotLines.map(plotLine => {
                         const options = {
                             ...getOptions(props),
                             ...plotLine
                         };
                         return (
-                            <Line
-                                key={options.obsType}
-                                type={options.type}
-                                dataKey={options.obsType}
-                                stroke={options.stroke}
-                                dot={options.dot}
-                                isAnimationActive={options.isAnimationActive}
-                                animationDuration={options.animationDuration}
-                                animationEasing={options.animationEasing}
-                                strokeWidth={options.strokeWidth}
-                            />
+                            <span style={{ color: options.stroke }}>
+                                {(plotLine.obsLabel ||
+                                    units.getLabel(plotLine.obsType)) + " "}
+                            </span>
                         );
                     })}
-                </LineChart>
-            </ResponsiveContainer>
+                </h4>
+                <ResponsiveContainer
+                    width={width}
+                    height={height}
+                    debounce={debounce}
+                >
+                    <LineChart data={packets} margin={margin}>
+                        <XAxis
+                            dataKey="timestamp"
+                            domain={xDomain}
+                            scale="time"
+                            type="number"
+                            ticks={xTicks}
+                            tickFormatter={timeFormatter}
+                        />
+                        <YAxis domain={["auto", "auto"]} />
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <Tooltip labelFormatter={timeFormatter} />
+                        {props.plotLines.map(plotLine => {
+                            const options = {
+                                ...getOptions(props),
+                                ...plotLine
+                            };
+                            return (
+                                <Line
+                                    key={options.obsType}
+                                    type={options.type}
+                                    dataKey={options.obsType}
+                                    stroke={options.stroke}
+                                    dot={options.dot}
+                                    isAnimationActive={
+                                        options.isAnimationActive
+                                    }
+                                    animationDuration={
+                                        options.animationDuration
+                                    }
+                                    animationEasing={options.animationEasing}
+                                    strokeWidth={options.strokeWidth}
+                                />
+                            );
+                        })}
+                    </LineChart>
+                </ResponsiveContainer>
+            </div>
         );
     }
 }
