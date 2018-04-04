@@ -24,27 +24,12 @@ const propTypes = {
     packets: PropTypes.arrayOf(PropTypes.object).isRequired,
     xDomain: PropTypes.array,
     xTicks: PropTypes.arrayOf(PropTypes.number),
-    xTickFormat: PropTypes.string,
-    width: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-    height: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-    margin: PropTypes.shape({
-        top: PropTypes.number,
-        right: PropTypes.number,
-        left: PropTypes.number,
-        bottom: PropTypes.number
-    }),
-    debounce: PropTypes.number,
     plotLines: PropTypes.arrayOf(PropTypes.object),
     componentClass: PropTypes.string
 };
 
 const defaultProps = {
     xDomain: ["auto", "auto"],
-    xTickFormat: "lll",
-    width: "95%",
-    height: 200,
-    margin: { top: 5, right: 10, left: 10, bottom: 5 },
-    debounce: 200,
     componentClass: "div"
 };
 
@@ -84,28 +69,23 @@ export default class RTPlot extends React.PureComponent {
             packets,
             xDomain,
             xTicks,
-            xTickFormat,
-            width,
-            height,
-            margin,
-            debounce,
             componentClass: Component,
             ...props
         } = this.props;
 
         const timeFormatter = tick => {
-            return moment(tick).format(xTickFormat);
+            return moment(tick).format(props.xTickFormat);
         };
 
         return (
             <div>
                 {this.renderLabels(props)}
                 <ResponsiveContainer
-                    width={width}
-                    height={height}
-                    debounce={debounce}
+                    width={props.width}
+                    height={props.height}
+                    debounce={props.debounce}
                 >
-                    <LineChart data={packets} margin={margin}>
+                    <LineChart data={packets} margin={props.margin}>
                         <XAxis
                             dataKey="timestamp"
                             domain={xDomain}

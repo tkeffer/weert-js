@@ -5,6 +5,9 @@
  */
 
 export const plotOptions = {
+    width: "95%",
+    height: 200,
+    margin: { top: 5, right: 5, left: 5, bottom: 5 },
     nXTicks: 5,
     type: "linear",
     xTickFormat: "lll",
@@ -20,7 +23,14 @@ export const plotOptions = {
             xTickFormat: "HH:mm:ss",
             plots: [
                 {
-                    yUnit : "°",
+                    plotLines: [
+                        {
+                            obsType: "wind_speed"
+                        }
+                    ]
+                },
+                {
+                    yUnit: "°",
                     plotLines: [
                         {
                             obsType: "out_temperature"
@@ -28,6 +38,13 @@ export const plotOptions = {
                         {
                             obsType: "dewpoint_temperature",
                             stroke: "blue"
+                        }
+                    ]
+                },
+                {
+                    plotLines : [
+                        {
+                            obsType: "radiation_radiation"
                         }
                     ]
                 },
@@ -45,7 +62,14 @@ export const plotOptions = {
             xTickFormat: "HH:mm",
             plots: [
                 {
-                    yUnit : "°",
+                    plotLines: [
+                        {
+                            obsType: "wind_speed"
+                        }
+                    ]
+                },
+                {
+                    yUnit: "°",
                     plotLines: [
                         {
                             obsType: "out_temperature"
@@ -53,6 +77,13 @@ export const plotOptions = {
                         {
                             obsType: "dewpoint_temperature",
                             stroke: "blue"
+                        }
+                    ]
+                },
+                {
+                    plotLines : [
+                        {
+                            obsType: "radiation_radiation"
                         }
                     ]
                 },
