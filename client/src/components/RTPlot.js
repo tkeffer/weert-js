@@ -17,7 +17,7 @@ import {
     ResponsiveContainer
 } from "recharts";
 
-import { getOptions } from "../utility";
+import * as utility from "../utility";
 import * as units from "../units";
 
 const propTypes = {
@@ -49,6 +49,36 @@ const defaultProps = {
 };
 
 export default class RTPlot extends React.PureComponent {
+    getUnitLabel() {
+        const { packets, plotLines } = this.props;
+        const obsType = plotLines && plotLines[0] ? plotLines[0].obsType : null;
+        const unitSystem = packets.length ? packets[0].unit_system : null;
+        const unitLabel = units.getUnitLabel(obsType, unitSystem);
+        return unitLabel;
+    }
+
+    renderLabels(props) {
+        return (
+            <h4 style={{ textAlign: "center" }}>
+                <span style={{ float: "left" }}>{this.getUnitLabel()}</span>
+                <span>
+                    {props.plotLines.map((plotLine, i) => {
+                        const options = {
+                            ...utility.getOptions(props),
+                            ...plotLine
+                        };
+                        return (
+                            <span key={i} style={{ color: options.stroke }}>
+                                {(plotLine.obsLabel ||
+                                    units.getLabel(plotLine.obsType)) + " "}
+                            </span>
+                        );
+                    })}
+                </span>
+            </h4>
+        );
+    }
+
     render() {
         const {
             packets,
@@ -66,24 +96,10 @@ export default class RTPlot extends React.PureComponent {
         const timeFormatter = tick => {
             return moment(tick).format(xTickFormat);
         };
-        console.log("props=", props);
 
         return (
             <div>
-                <h4>
-                    {props.plotLines.map(plotLine => {
-                        const options = {
-                            ...getOptions(props),
-                            ...plotLine
-                        };
-                        return (
-                            <span style={{ color: options.stroke }}>
-                                {(plotLine.obsLabel ||
-                                    units.getLabel(plotLine.obsType)) + " "}
-                            </span>
-                        );
-                    })}
-                </h4>
+                {this.renderLabels(props)}
                 <ResponsiveContainer
                     width={width}
                     height={height}
@@ -98,17 +114,17 @@ export default class RTPlot extends React.PureComponent {
                             ticks={xTicks}
                             tickFormatter={timeFormatter}
                         />
-                        <YAxis domain={["auto", "auto"]} />
+                        <YAxis domain={["auto", "auto"]} unit={props.yUnit} />
                         <CartesianGrid strokeDasharray="3 3" />
                         <Tooltip labelFormatter={timeFormatter} />
-                        {props.plotLines.map(plotLine => {
+                        {props.plotLines.map((plotLine, i) => {
                             const options = {
-                                ...getOptions(props),
+                                ...utility.getOptions(props),
                                 ...plotLine
                             };
                             return (
                                 <Line
-                                    key={options.obsType}
+                                    key={i}
                                     type={options.type}
                                     dataKey={options.obsType}
                                     stroke={options.stroke}

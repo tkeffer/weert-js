@@ -54,7 +54,7 @@ export default class PlotGroup extends React.PureComponent {
                 {!isFetching && !packets.length && <h3>Empty.</h3>}
                 {packets.length && (
                     <div style={{ opacity: isFetching ? 0.5 : 1 }}>
-                        <h3>{header}</h3>
+                        <h2>{header}</h2>
 
                         {plotGroupOptions.plots &&
                             plotGroupOptions.plots.map((plot, i) => {

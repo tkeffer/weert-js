@@ -97,7 +97,7 @@ export default class StatsTable extends React.PureComponent {
 
         return (
             <Component>
-                <h3>{header}</h3>
+                <h2>{header}</h2>
                 {isFetching && _.isEmpty(statsData) && <h3>Loading...</h3>}
                 {!isFetching && _.isEmpty(statsData) && <h3>Empty stats place holder</h3>}
                 {!_.isEmpty(statsData) &&

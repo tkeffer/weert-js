@@ -42,7 +42,7 @@ export function getUnitFormat(obsType, unitSystem) {
 }
 
 
-export function getUnitLabel(obsType, unitSystem, val) {
+export function getUnitLabel(obsType, unitSystem, plural) {
     const unitGroup = getUnitGroup(obsType);
     const unit      = getUnit(unitGroup, unitSystem);
     const unitLabel = unitConfig.unitLabels[unit];
@@ -50,10 +50,10 @@ export function getUnitLabel(obsType, unitSystem, val) {
     if (unitLabel === undefined) return "";
     // Check if this is a unit that has a singular / plural form
     if (Array.isArray(unitLabel)) {
-        if (val === 1)
-            return unitLabel[0];
-        else
+        if (plural)
             return unitLabel[1];
+        else
+            return unitLabel[0];
     }
     return unitLabel;
 }

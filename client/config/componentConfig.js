@@ -41,6 +41,7 @@ export const plotOptions = {
             xTickFormat: "HH:mm:ss",
             plots: [
                 {
+                    yUnit : "°",
                     plotLines: [
                         {
                             obsType: "out_temperature"
@@ -65,6 +66,7 @@ export const plotOptions = {
             xTickFormat: "HH:mm",
             plots: [
                 {
+                    yUnit : "°",
                     plotLines: [
                         {
                             obsType: "out_temperature"

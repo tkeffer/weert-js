@@ -36,7 +36,7 @@ export default class PacketTable extends React.PureComponent {
         const {componentClass: Component, obsTypes, header, isFetching, packet} = this.props;
         return (
             <Component>
-                <h3>{header}</h3>
+                <h2>{header}</h2>
                 {isFetching && _.isEmpty(packet) && <h3>Loading...</h3>}
                 {!isFetching && _.isEmpty(packet) && <h3>Empty.</h3>}
                 {!_.isEmpty(packet) &&
