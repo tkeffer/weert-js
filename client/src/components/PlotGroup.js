@@ -6,10 +6,9 @@
 
 import React from "react";
 import PropTypes from "prop-types";
-import moment from "moment/moment";
 
 import RTPlot from "./RTPlot";
-import { getOptions } from "../utility";
+import * as utility from "../utility";
 
 const propTypes = {
     plotGroupOptions: PropTypes.object.isRequired,
@@ -42,11 +41,7 @@ export default class PlotGroup extends React.PureComponent {
             componentClass: Component
         } = this.props;
 
-        // const timeFormatter = tick => {
-        //     return moment(tick).format(xTickFormat);
-        // };
-
-        const options = getOptions(plotGroupOptions);
+        const options = utility.getOptions(plotGroupOptions);
 
         return (
             <Component>
