@@ -4,27 +4,6 @@
  * See the file LICENSE for your full rights.
  */
 
-export const plotGroupOptions = {
-    nXTicks: 5,
-    options: {
-        recent: {
-            xTickFormat: "HH:mm:ss"
-        },
-        day: {
-            xTickFormat: "HH:mm"
-        },
-        week: {
-            xTickFormat: "L"
-        },
-        month: {
-            xTickFormat: "L"
-        },
-        year: {
-            xTickFormat: "L"
-        }
-    }
-};
-
 export const plotOptions = {
     nXTicks: 5,
     type: "linear",
