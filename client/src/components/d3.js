@@ -13,8 +13,8 @@ import * as scale from "d3-scale";
 import * as transition from "d3-transition";
 
 export default {
-    ...ease,
-    ...interpolate,
-    ...scale,
-    ...transition,
+  ...ease,
+  ...interpolate,
+  ...scale,
+  ...transition
 };

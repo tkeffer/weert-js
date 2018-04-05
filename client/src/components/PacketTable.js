@@ -5,53 +5,66 @@
  */
 
 // Render and format a packet
-import React from 'react';
-import PropTypes from 'prop-types';
-import * as _ from 'lodash';
-import Table from 'react-bootstrap/lib/Table';
+import React from "react";
+import PropTypes from "prop-types";
+import * as _ from "lodash";
+import Table from "react-bootstrap/lib/Table";
 
-import ObsRow from './ObsRow';
+import ObsRow from "./ObsRow";
 
 const propTypes = {
-    packet        : PropTypes.object,
-    obsTypes      : PropTypes.arrayOf(PropTypes.string),
-    header        : PropTypes.string,
-    isFetching    : PropTypes.bool,
-    componentClass: PropTypes.string,
+  packet: PropTypes.object,
+  obsTypes: PropTypes.arrayOf(PropTypes.string),
+  header: PropTypes.string,
+  isFetching: PropTypes.bool,
+  componentClass: PropTypes.string
 };
 
 const defaultProps = {
-    packet        : undefined,
-    obsTypes      : [
-        "timestamp", "wind_speed", "out_temperature", "in_temperature",
-        "radiation_radiation", "sealevel_pressure",
-    ],
-    header        : "Current values",
-    isFetching    : true,
-    componentClass: 'div',
+  packet: undefined,
+  obsTypes: [
+    "timestamp",
+    "wind_speed",
+    "out_temperature",
+    "in_temperature",
+    "radiation_radiation",
+    "sealevel_pressure"
+  ],
+  header: "Current values",
+  isFetching: true,
+  componentClass: "div"
 };
 
 export default class PacketTable extends React.PureComponent {
-    render() {
-        const {componentClass: Component, obsTypes, header, isFetching, packet} = this.props;
-        return (
-            <Component>
-                <h2>{header}</h2>
-                {isFetching && _.isEmpty(packet) && <h3>Loading...</h3>}
-                {!isFetching && _.isEmpty(packet) && <h3>Empty.</h3>}
-                {!_.isEmpty(packet) &&
-                 <div style={{opacity: isFetching ? 0.5 : 1}}>
-                     <Table bordered hover>
-                         <tbody>
-                         {/* Include a key. See https://reactjs.org/docs/reconciliation.html#keys */}
-                         {obsTypes.map((obsType) => <ObsRow obsType={obsType} packet={packet} key={obsType}/>)}
-                         </tbody>
-                     </Table>
-                 </div>}
-            </Component>
-        );
-    }
+  render() {
+    const {
+      componentClass: Component,
+      obsTypes,
+      header,
+      isFetching,
+      packet
+    } = this.props;
+    return (
+      <Component>
+        <h2>{header}</h2>
+        {isFetching && _.isEmpty(packet) && <h3>Loading...</h3>}
+        {!isFetching && _.isEmpty(packet) && <h3>Empty.</h3>}
+        {!_.isEmpty(packet) && (
+          <div style={{ opacity: isFetching ? 0.5 : 1 }}>
+            <Table bordered hover>
+              <tbody>
+                {/* Include a key. See https://reactjs.org/docs/reconciliation.html#keys */}
+                {obsTypes.map(obsType => (
+                  <ObsRow obsType={obsType} packet={packet} key={obsType} />
+                ))}
+              </tbody>
+            </Table>
+          </div>
+        )}
+      </Component>
+    );
+  }
 }
 
-PacketTable.propTypes    = propTypes;
+PacketTable.propTypes = propTypes;
 PacketTable.defaultProps = defaultProps;

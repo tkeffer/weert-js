@@ -5,7 +5,8 @@
   "scripts": {
     "build": "webpack --progress -p --config=./webpack.prod.js",
     "watch": "webpack --progress --watch",
-    "debug": "webpack --progress --profile --display-modules --display-reasons --display-error-details --sort-modules-by size",
+    "debug":
+      "webpack --progress --profile --display-modules --display-reasons --display-error-details --sort-modules-by size",
     "clean": "rm -r dist"
   },
   "author": {

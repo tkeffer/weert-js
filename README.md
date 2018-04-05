@@ -1,5 +1,7 @@
 # WeeRT
 
+[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
+
 WeeRT consists of two, independent parts:
 - A real-time logging and display server, written with [Node](https://nodejs.org/en/),
 [Express](http://expressjs.com/), and [InfluxDB](https://www.influxdata.com/).
@@ -1076,7 +1078,6 @@ Date: Sat, 10 Mar 2018 22:53:29 GMT
 Connection: keep-alive
 
 ```
-
 
 
 
