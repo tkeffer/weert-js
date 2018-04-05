@@ -97,6 +97,123 @@ export const plotOptions = {
           ]
         }
       ]
+    },
+    week: {
+      header: "This week",
+      xTickFormat: "ddd",
+      plots: [
+        {
+          plotLines: [
+            {
+              obsType: "wind_speed"
+            }
+          ]
+        },
+        {
+          yUnit: "°",
+          plotLines: [
+            {
+              obsType: "out_temperature"
+            },
+            {
+              obsType: "dewpoint_temperature",
+              stroke: "blue"
+            }
+          ]
+        },
+        {
+          plotLines: [
+            {
+              obsType: "radiation_radiation"
+            }
+          ]
+        },
+        {
+          plotLines: [
+            {
+              obsType: "sealevel_pressure"
+            }
+          ]
+        }
+      ]
+    },
+    month: {
+      header: "This month",
+      xTickFormat: "M/D",
+      plots: [
+        {
+          plotLines: [
+            {
+              obsType: "wind_speed"
+            }
+          ]
+        },
+        {
+          yUnit: "°",
+          plotLines: [
+            {
+              obsType: "out_temperature"
+            },
+            {
+              obsType: "dewpoint_temperature",
+              stroke: "blue"
+            }
+          ]
+        },
+        {
+          plotLines: [
+            {
+              obsType: "radiation_radiation"
+            }
+          ]
+        },
+        {
+          plotLines: [
+            {
+              obsType: "sealevel_pressure"
+            }
+          ]
+        }
+      ]
+    },
+    year: {
+      header: "This year",
+      xTickFormat: "M/D/YY",
+      plots: [
+        {
+          plotLines: [
+            {
+              obsType: "wind_speed"
+            }
+          ]
+        },
+        {
+          yUnit: "°",
+          plotLines: [
+            {
+              obsType: "out_temperature"
+            },
+            {
+              obsType: "dewpoint_temperature",
+              stroke: "blue"
+            }
+          ]
+        },
+        {
+          plotLines: [
+            {
+              obsType: "radiation_radiation"
+            }
+          ]
+        },
+        {
+          plotLines: [
+            {
+              obsType: "sealevel_pressure"
+            }
+          ]
+        }
+      ]
     }
   }
 };
