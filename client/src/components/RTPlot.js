@@ -7,6 +7,8 @@
 import React from "react";
 import PropTypes from "prop-types";
 import moment from "moment/moment";
+import * as _ from 'lodash';
+import { sprintf } from "sprintf-js";
 import {
   Line,
   LineChart,
@@ -40,6 +42,19 @@ export default class RTPlot extends React.PureComponent {
     const unitSystem = packets.length ? packets[0].unit_system : null;
     const unitLabel = units.getUnitLabel(obsType, unitSystem);
     return unitLabel;
+  }
+
+  getYTickFormatter() {
+    let { yTickFormat } = this.props;
+    if (yTickFormat == null)
+      return undefined;
+    const { packets, plotLines } = this.props;
+    if (!_.isString(yTickFormat)) {
+      const obsType = plotLines && plotLines[0] ? plotLines[0].obsType : null;
+      const unitSystem = packets.length ? packets[0].unit_system : null;
+      yTickFormat = units.getUnitFormat(obsType, unitSystem);
+    }
+    return tick => sprintf(yTickFormat, tick);
   }
 
   renderLabels(props) {
@@ -93,7 +108,12 @@ export default class RTPlot extends React.PureComponent {
               ticks={xTicks}
               tickFormatter={timeFormatter}
             />
-            <YAxis domain={["auto", "auto"]} unit={props.yUnit} />
+            <YAxis
+              domain={["auto", "auto"]}
+              unit={props.yUnit}
+              interval="props.yInterval"
+              tickFormatter={this.getYTickFormatter()}
+            />
             <CartesianGrid strokeDasharray="3 3" />
             <Tooltip labelFormatter={timeFormatter} />
             {props.plotLines.map((plotLine, i) => {

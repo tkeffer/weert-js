@@ -11,6 +11,8 @@ export const plotOptions = {
   nXTicks: 5,
   type: "linear",
   xTickFormat: "lll",
+  yTickFormat: undefined,
+  yInterval: "preserveStartEnd",
   animationDuration: 500,
   dot: false,
   isAnimationActive: false,
