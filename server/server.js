@@ -27,7 +27,7 @@ app.set('view engine', 'hbs');
 
 // Log all requests to the server to the console
 //app.use(logger('combined'));
-app.use(logger('dev'));
+app.use(logger('common'));
 
 // Using compression can result in an order-of-magnitude savings for
 // longer packet arrays
