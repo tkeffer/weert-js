@@ -9,7 +9,7 @@
  */
 
 const HtmlWebpackPlugin = require("html-webpack-plugin");
-
+const DuplicatePackageCheckerPlugin = require("duplicate-package-checker-webpack-plugin");
 // const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
 module.exports = {
@@ -44,7 +44,9 @@ module.exports = {
       template: "./src/index.html",
       filename: "./index.html",
       inject: "body"
-    })
+    }),
+
+    new DuplicatePackageCheckerPlugin({ verbose: true }),
 
     // Comment out to include moment locales, uncomment to exclude them.
     // new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
