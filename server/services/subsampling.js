@@ -164,7 +164,7 @@ function subsample_series(measurement_manager, ss_spec, tag) {
                                           .then(record => {
                                               // If the record has a timestamp, it's not empty.
                                               if (record.timestamp) {
-                                                  event_emitter.emit("NEW_AGGREGATION", record, destination);
+                                                  event_emitter.emit("NEW_AGGREGATE", record, destination);
                                                   debug(`Emitted record with timestamp ${new Date(record.timestamp)}`);
                                                   N += 1;
                                               }
