@@ -84,6 +84,7 @@ import StringIO
 weert_defaults = configobj.ConfigObj(StringIO.StringIO(defaults_ini))
 del StringIO
 
+
 class WeeRT(weewx.restx.StdRESTful):
     """Upload using to the WeeRT server."""
 
@@ -110,7 +111,7 @@ class WeeRT(weewx.restx.StdRESTful):
 
         # Get the database manager dictionary:
         manager_dict = weewx.manager.get_manager_dict_from_config(config_dict,
-                                                                 'wx_binding')
+                                                                  'wx_binding')
 
         self.loop_queue = Queue.Queue()
         self.archive_thread = WeeRTThread(self.loop_queue, manager_dict,
@@ -118,11 +119,12 @@ class WeeRT(weewx.restx.StdRESTful):
         self.archive_thread.start()
 
         self.bind(weewx.NEW_LOOP_PACKET, self.new_loop_packet)
-        syslog.syslog(syslog.LOG_INFO, "weert: LOOP packets will be posted to %s:%s" % 
+        syslog.syslog(syslog.LOG_INFO, "weert: LOOP packets will be posted to %s:%s" %
                       (weert_config['host'], weert_config['port']))
 
     def new_loop_packet(self, event):
         self.loop_queue.put(event.packet)
+
 
 class WeeRTThread(weewx.restx.RESTThread):
     """Thread that posts to an InfluxDB server"""
@@ -181,16 +183,16 @@ class WeeRTThread(weewx.restx.RESTThread):
         self.measurement = measurement
         self.platform = platform
         self.stream = stream
-        
+
         # Compile the filter functions for the loop packets:
         self.filter_funcs = _compile_filters(loop_filters)
 
-    def format_url(self, packet):
+    def format_url(self, _):
         """Return the URL used to post to the WeeRT server"""
 
         url = "http://%s:%s/api/v1/measurements/%s/packets" % (self.host, self.port, self.measurement)
         return url
-    
+
     def get_request(self, url):
         """Override and add user and password"""
         # Get the basic Request from my superclass
@@ -216,12 +218,13 @@ class WeeRTThread(weewx.restx.RESTThread):
                 pass
 
         body = {"measurement": self.measurement,
-                     "tags"       : {"platform": self.platform, "stream"  : self.stream},
-                     "timestamp"   : int(packet["dateTime"] * 1000),  # Convert to milliseconds
-                     "fields"     : out_packet
-                    }
+                "tags": {"platform": self.platform, "stream": self.stream},
+                "timestamp": int(packet["dateTime"] * 1000),  # Convert to milliseconds
+                "fields": out_packet
+                }
         json_body = json.dumps(body)
-        return (json_body, 'application/json')
+        return tuple(json_body, 'application/json')
+
 
 def _compile_filters(loop_filters):
     """Compile the filter statements"""
