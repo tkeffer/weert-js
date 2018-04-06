@@ -31,6 +31,7 @@ import PlotContainer from "./PlotContainer";
 import PacketTable from "../components/PacketTable";
 import WindCompass from "../components/WindCompass";
 import StatsTable from "../components/StatsTable";
+import About from "../components/About";
 import * as config from "../../config/componentConfig";
 
 const propTypes = {
@@ -178,6 +179,9 @@ class AppContainer extends React.PureComponent {
                 statsData={selectedStats.data}
                 isFetching={selectedStats.isFetching}
               />
+            </div>
+            <div>
+              <About/>
             </div>
           </Col>
 
