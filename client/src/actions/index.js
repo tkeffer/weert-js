@@ -4,16 +4,12 @@
  * See the file LICENSE for your full rights.
  */
 
-import moment from "moment/moment";
-
 import * as api from "../Api";
 import * as utility from "../utility";
 
 export const SELECT_TAGS = "SELECT_TAGS";
 export const SELECT_TIME_SPAN = "SELECT_TIME_SPAN";
-export const SELECT_NEW_START_TIME = "SELECT_NEW_START_TIME";
 export const SELECT_TIME_DETAIL = "SELECT_TIME_DETAIL";
-export const START_NEW_TIMESPAN = "START_NEW_TIMESPAN";
 export const FETCH_TIMESPAN_IN_PROGRESS = "FETCH_TIMESPAN_IN_PROGRESS";
 export const FETCH_TIMESPAN_SUCCESS = "FETCH_TIMESPAN_SUCCESS";
 export const FETCH_TIMESPAN_FAILURE = "FETCH_TIMESPAN_FAILURE";
@@ -22,6 +18,7 @@ export const FETCH_STATS_SUCCESS = "FETCH_STATS_SUCCESS";
 export const FETCH_STATS_FAILURE = "FETCH_STATS_FAILURE";
 export const NEW_PACKET = "NEW_PACKET";
 
+// Select a new set of tags (such as platform or stream).
 export function selectTags(tags) {
   return {
     type: SELECT_TAGS,
@@ -37,33 +34,11 @@ export function selectTimeSpan(timeSpan) {
   };
 }
 
-// Select a new starting time for a time span. This allows changing the displayed date.
-export function selectNewStartTime(timeSpan, start) {
-  if (utility.isDevelopment()) {
-    if (timeSpan === "recent") {
-      throw new Error("Attempt to change start time for recent");
-    }
-  }
-  return {
-    type: SELECT_NEW_START_TIME,
-    timeSpan,
-    start
-  };
-}
-
 // Select a new time detail (e.g., 5, 10, 20 minutes) to display
 export function selectTimeDetail(timeDetail) {
   return {
     type: SELECT_TIME_DETAIL,
     timeDetail
-  };
-}
-
-// Issued at the start of a new day, week, month, year
-export function startNewTimeSpan(timeSpan) {
-  return {
-    type: START_NEW_TIMESPAN,
-    timeSpan
   };
 }
 
@@ -99,16 +74,10 @@ function receiveTimeSpanFailed(timeSpan, err) {
 
 function fetchTimeSpan(measurement, tags, timeSpan, options) {
   return dispatch => {
-    let start, stop;
     // Let the world know that a fetch is in progress
     dispatch(fetchTimeSpanInProgress(timeSpan));
-    if (timeSpan === "recent") {
-      start = Date.now() - options.maxAge;
-      stop = undefined;
-    } else {
-      start = options.start;
-      stop = getStopTime(options.start, timeSpan);
-    }
+    const start = Date.now() - options.maxAge;
+    const stop = undefined;
     return api
       .getPackets(measurement, tags, start, stop, options.aggregation)
       .then(packets => dispatch(receiveTimeSpan(timeSpan, packets)))
@@ -218,16 +187,4 @@ export function fetchStatsIfNeeded(timeSpan) {
       return dispatch(fetchStats(measurement, selectedTags, timeSpan));
     }
   };
-}
-
-/*
- * Utility functions
- */
-
-function getStopTime(start, timeSpan) {
-  if (timeSpan)
-    return moment(start)
-      .startOf(timeSpan)
-      .add(1, timeSpan);
-  else return undefined;
 }

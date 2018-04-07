@@ -42,7 +42,7 @@ const state = {
       isFetching: false,
       measurement: "wxrecords",
       options: {
-        start: 1517472000000,
+        maxAge: 97200000,   // = 27 hours in milliseconds
         aggregation: undefined
       },
       packets: [
@@ -67,8 +67,8 @@ const state = {
       isFetching: false,
       measurement: "wxrecords",
       options: {
-        start: 1517742000000,
-        aggregation: 10800000 // = 3 hours in milliseconds
+        maxAge: 604800000,      // = 7 days in milliseconds
+        aggregation: 10800000   // = 3 hours in milliseconds
       },
       packets: [
         {

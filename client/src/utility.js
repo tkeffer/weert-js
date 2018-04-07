@@ -23,19 +23,17 @@ export function findFirstGood(packets, maxAge) {
 }
 
 export function insertSorted(packets, packet, maxAge) {
-  // Find the first packet we are going to keep. This will be all the packets for time spans other
-  // than 'recent':
+  // Find the first packet we are going to keep:
   const firstGood = findFirstGood(packets, maxAge);
   // Find the insertion point
   const insertPoint = _.sortedIndexBy(packets, packet, p => p.timestamp);
   // Drop the stale packets at the front, keep the other packets, inserting
   // the new packet in the proper spot.
-  const new_packets = [
+  return [
     ...packets.slice(firstGood, insertPoint),
     packet,
     ...packets.slice(insertPoint)
   ];
-  return new_packets;
 }
 
 export function isDevelopment() {
@@ -43,9 +41,10 @@ export function isDevelopment() {
 }
 
 export function isSame(option1, option2) {
-  option1.maxAge === option2.maxAge &&
-    option1.start === option2.start &&
-    option1.aggregation === option2.aggregation;
+  return (
+    option1.maxAge === option2.maxAge &&
+    option1.aggregation === option2.aggregation
+  );
 }
 
 // Access a deeply nested value, with thanks to A. Sharif (https://goo.gl/f924sP)

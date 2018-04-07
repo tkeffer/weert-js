@@ -6,7 +6,6 @@
 
 import React from "react";
 import PropTypes from "prop-types";
-import moment from "moment/moment";
 
 import d3 from "../components/d3";
 import * as utility from "../utility";
@@ -27,31 +26,30 @@ export default class PlotContainer extends React.PureComponent {
   }
 
   render() {
-    let packets, header, tMin, tMax, xDomain, xTicks;
+    let header, tMin, tMax, xDomain, xTicks;
 
-    const options = utility.getOptions(this.state.plotOptions);
+    const plotOptions = utility.getOptions(this.state.plotOptions);
 
     const { selectedTimeSpan, selectedState } = this.props;
 
-    // First, get the packets we will plot, as well as their min and max timestamp. Oh, and also a header.
-    if (selectedTimeSpan === "recent") {
-      const firstGood = utility.findFirstGood(
-        selectedState.packets,
-        selectedState.options.selectedTimeDetail * 60000
-      );
-      packets = selectedState.packets.slice(firstGood);
-      if (packets.length) {
-        tMin = packets[0].timestamp;
-        tMax = packets[packets.length - 1].timestamp;
-      }
+    const maxAge =
+      selectedTimeSpan === "recent"
+        ? selectedState.options.selectedTimeDetail * 60000
+        : selectedState.options.maxAge;
 
+    const firstGood = utility.findFirstGood(selectedState.packets, maxAge);
+    const packets = selectedState.packets.slice(firstGood);
+
+    if (packets.length) {
+      tMin = packets[0].timestamp;
+      tMax = packets[packets.length - 1].timestamp;
+    }
+
+    if (selectedTimeSpan === "recent") {
       header = `Last ${selectedState.options.selectedTimeDetail} minutes`;
     } else {
-      packets = selectedState.packets;
-      tMin = moment(selectedState.options.start).startOf(selectedTimeSpan);
-      tMax = moment(selectedState.options.start).endOf(selectedTimeSpan);
-
-      header = `This ${selectedTimeSpan}`;
+      header = `${selectedTimeSpan.charAt(0).toUpperCase() +
+        selectedTimeSpan.slice(1)}`;
       if (selectedState.options.aggregation) {
         header += ` (${selectedState.options.aggregation} aggregation)`;
       }
@@ -65,7 +63,9 @@ export default class PlotContainer extends React.PureComponent {
       // Use d3 to pick a nice domain function.
       const domainFn = d3.scaleTime().domain([new Date(tMin), new Date(tMax)]);
       // Use the function to pick sensible tick marks
-      xTicks = domainFn.ticks(options.nXTicks).map(t => new Date(t).getTime());
+      xTicks = domainFn
+        .ticks(plotOptions.nXTicks)
+        .map(t => new Date(t).getTime());
       // And get the domain array from the function. This will be as two strings, each holding a time
       const domainStr = domainFn.domain();
       // Convert the strings to numbers, which is what react-charts expect
@@ -76,7 +76,7 @@ export default class PlotContainer extends React.PureComponent {
     }
 
     const plotGroupOptions = {
-      ...options,
+      ...plotOptions,
       ...this.state.plotOptions.plotGroups[selectedTimeSpan]
     };
     return (

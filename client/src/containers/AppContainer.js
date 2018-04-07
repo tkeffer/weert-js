@@ -18,11 +18,8 @@ import NavItem from "react-bootstrap/lib/NavItem";
 import MenuItem from "react-bootstrap/lib/MenuItem";
 
 import {
-  selectTags,
   selectTimeSpan,
-  selectNewStartTime,
   selectTimeDetail,
-  startNewTimeSpan,
   fetchTimeSpanIfNeeded,
   subscribeMeasurement,
   fetchStatsIfNeeded
@@ -39,8 +36,7 @@ const propTypes = {
     platform: PropTypes.string,
     stream: PropTypes.string
   }).isRequired,
-  selectedTimeSpan: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
-    .isRequired,
+  selectedTimeSpan: PropTypes.string.isRequired,
   timeSpans: PropTypes.object.isRequired,
   dispatch: PropTypes.func.isRequired
 };
@@ -181,7 +177,7 @@ class AppContainer extends React.PureComponent {
               />
             </div>
             <div>
-              <About/>
+              <About />
             </div>
           </Col>
 

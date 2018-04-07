@@ -4,20 +4,15 @@
  * See the file LICENSE for your full rights.
  */
 
-import moment from "moment/moment";
 import { combineReducers } from "redux";
-import * as _ from "lodash";
-import { findFirstGood, insertSorted } from "./utility";
+import * as utility from "./utility";
 
 import {
   SELECT_TAGS,
   SELECT_TIME_SPAN,
-  SELECT_NEW_START_TIME,
   SELECT_TIME_DETAIL,
-  START_NEW_TIMESPAN,
   FETCH_TIMESPAN_IN_PROGRESS,
   FETCH_TIMESPAN_SUCCESS,
-  FETCH_TIMESPAN_FAILURE,
   FETCH_STATS_IN_PROGRESS,
   FETCH_STATS_SUCCESS,
   FETCH_STATS_FAILURE,
@@ -46,9 +41,7 @@ const initialTimeSpanState = {
     measurement: "wxrecords",
     packets: [],
     options: {
-      start: moment()
-        .startOf("day")
-        .valueOf(),
+      maxAge: 27 * 3600000, // = 27 hours in milliseconds
       aggregation: undefined
     }
   },
@@ -57,9 +50,7 @@ const initialTimeSpanState = {
     measurement: "wxrecords",
     packets: [],
     options: {
-      start: moment()
-        .startOf("week")
-        .valueOf(),
+      maxAge: 7 * 24 * 3600000, // = 7 days in milliseconds
       aggregation: "1h"
     }
   },
@@ -68,9 +59,7 @@ const initialTimeSpanState = {
     measurement: "wxrecords",
     packets: [],
     options: {
-      start: moment()
-        .startOf("month")
-        .valueOf(),
+      maxAge: 30 * 24 * 3600000, // = 30 days in milliseconds
       aggregation: "3h"
     }
   },
@@ -79,9 +68,7 @@ const initialTimeSpanState = {
     measurement: "wxrecords",
     packets: [],
     options: {
-      start: moment()
-        .startOf("year")
-        .valueOf(),
+      maxAge: 365 * 24 * 3600000, // = 365 days in milliseconds
       aggregation: "6h"
     }
   }
@@ -230,7 +217,7 @@ function pushPacketOnTimeSpans(state, action) {
       // array that has the packet inserted into the proper spot.
       newState[timeSpan] = {
         ...state[timeSpan],
-        packets: insertSorted(packets, packet, options.maxAge)
+        packets: utility.insertSorted(packets, packet, options.maxAge)
       };
     } else {
       // This time span does not use the measurement. Just use the old state.
