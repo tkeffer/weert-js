@@ -171,7 +171,7 @@ class AppContainer extends React.PureComponent {
 
             <div>
               <StatsTable
-                {...this.state.statsTableOptions[selectedStatsSpan]}
+                {...statsTableOptions[selectedStatsSpan]}
                 statsData={selectedStats.data}
                 isFetching={selectedStats.isFetching}
               />
@@ -193,10 +193,10 @@ class AppContainer extends React.PureComponent {
                   <MenuItem eventKey="recent.30">30 minutes</MenuItem>
                   <MenuItem eventKey="recent.60">60 minutes</MenuItem>
                 </NavDropdown>
-                <NavItem eventKey="day">Today</NavItem>
-                <NavItem eventKey="week">This week</NavItem>
-                <NavItem eventKey="month">This month</NavItem>
-                <NavItem eventKey="year">This year</NavItem>
+                <NavItem eventKey="day">Day</NavItem>
+                <NavItem eventKey="week">Week</NavItem>
+                <NavItem eventKey="month">Month</NavItem>
+                <NavItem eventKey="year">Year</NavItem>
               </Nav>
             </Tabs>
             <PlotContainer
