@@ -110,7 +110,7 @@ not support the POST method used by the uploader.
   using [Faye](http://faye.jcoglan.com).
 - The client asks for the necessary data through the API, then subscribes to any updates.
 - The client view is managed by React.
-- The client data state is managed by Reflux.
+- The client data state is managed by Redux.
 - Realtime plots are done using [Recharts](http://recharts.org). This is a charting library that uses
   React to create DOM elements. As of 15-Feb-2018 it is still in beta, but seems reasonably stable.
 
