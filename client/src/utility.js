@@ -64,3 +64,34 @@ export function getOptions(obj) {
     return options;
   }, {});
 }
+
+// Perform a fetch, but with a timeout. Thanks to David Walsh (https://goo.gl/SFoSvW)
+export function fetchWithTimeout(url, timeout) {
+  if (timeout == null) timeout = 5000;
+  let didTimeOut = false;
+
+  return new Promise(function(resolve, reject) {
+    const timeout = setTimeout(function() {
+      didTimeOut = true;
+      reject(new Error("Fetch request timed out"));
+    }, timeout);
+
+    fetch(url)
+      .then(function(response) {
+        // Clear the timeout as cleanup
+        clearTimeout(timeout);
+        // It's possible that the timeout occurred, and then a late response
+        // came in. In this case, didTimeOut will be true and we need to ignore the response.
+        // Otherwise, this is the response we're looking for.
+        if (!didTimeOut) {
+          resolve(response);
+        }
+      })
+      .catch(function(err) {
+        // Rejection already happened with setTimeout
+        if (didTimeOut) return;
+        // Reject with error
+        reject(err);
+      });
+  });
+}

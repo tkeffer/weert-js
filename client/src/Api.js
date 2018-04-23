@@ -6,6 +6,8 @@
 
 import * as faye from "faye";
 
+import * as utility from './utility';
+
 const fayeEndpoint = "/api/v1/faye";
 
 export function getPackets(measurement, tags, start, stop, aggregation) {
