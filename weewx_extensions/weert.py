@@ -223,7 +223,7 @@ class WeeRTThread(weewx.restx.RESTThread):
                 "fields": out_packet
                 }
         json_body = json.dumps(body)
-        return tuple(json_body, 'application/json')
+        return json_body, 'application/json'
 
 
 def _compile_filters(loop_filters):
