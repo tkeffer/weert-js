@@ -4,18 +4,12 @@
  * See the file LICENSE for your full rights.
  */
 
-import * as faye from "faye";
-
-import * as utility from './utility';
-
-const fayeEndpoint = "/api/v1/faye";
+import io from "socket.io-client";
 
 export function getPackets(measurement, tags, start, stop, aggregation) {
   const { platform, stream } = tags;
 
-  const url = `http://${
-    window.location.host
-  }/api/v1/measurements/${measurement}/packets`;
+  const url = `http://${window.location.host}/api/v1/measurements/${measurement}/packets`;
   let params = `?start=${start}`;
   if (stop) params += `&stop=${stop}`;
   if (aggregation) params += `&group=${aggregation}`;
@@ -36,9 +30,7 @@ export function getPackets(measurement, tags, start, stop, aggregation) {
 export function getStats(measurement, tags, span) {
   const { platform, stream } = tags;
 
-  const url = `http://${
-    window.location.host
-  }/api/v1/measurements/${measurement}/stats`;
+  const url = `http://${window.location.host}/api/v1/measurements/${measurement}/stats`;
   let params = `?span=${span}`;
   if (platform) params += `&platform=${platform}`;
   if (stream) params += `&stream=${stream}`;
@@ -52,13 +44,11 @@ export function getStats(measurement, tags, span) {
 }
 
 export function subscribe(measurement, tags, callback) {
-  // TODO: this puts all platforms and streams in the same channel. They should be separated.
-  const faye_client = new faye.Client(
-    "http://" + window.location.host + fayeEndpoint
-  );
-  return faye_client.subscribe("/" + measurement, callback);
+  const socket = io();
+  socket.on("/" + measurement, callback);
 }
 
 export function unsubscribe(subscription) {
-  subscription.cancel();
+  // TODO: With socket.io, do we need to do anything here?
+  // subscription.cancel();
 }

@@ -85,12 +85,6 @@ influx.getDatabaseNames()
           // Arrange to have all cron tasks run. (This includes running subsampling at regular intervals.)
           subsampling.setup_cron(measurement_manager);
 
-          // Set up the system to notify remote clients using faye.
-          const bayeux = require('./services/client_notifier').setup();
-
-          // // Arrange to be notified after each continuous query has been run
-          // subsampling.setup_all_notices(measurement_manager, faye_client, measurement_config);
-
           // Set up the basic authorization
           app.use(config.server.api, auth_router_factory(config.users));
 
@@ -137,9 +131,9 @@ influx.getDatabaseNames()
           /*
            * Start the server
            */
-          let server = http.createServer(app);
+          let httpServer = http.createServer(app);
           // Trap any error events and exit
-          server.on('error', (err) => {
+          httpServer.on('error', (err) => {
               console.log('Unable to start server');
               switch (err.errno) {
                   case 'EADDRINUSE':
@@ -151,11 +145,11 @@ influx.getDatabaseNames()
               process.exit(1);
           });
 
-          // Attach the Faye pub-sub engine
-          bayeux.attach(server);
+          // Set up the system to notify remote clients using socket.io.
+          require('./services/client_notifier').setup(httpServer);
 
           // Start listening!
-          server.listen(config.server.port);
+          httpServer.listen(config.server.port);
           console.log('Listening on port', config.server.port);
       })
       .catch(err => {

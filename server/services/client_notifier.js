@@ -4,59 +4,41 @@
  * See the file LICENSE for your full rights.
  */
 
-'use strict';
+"use strict";
 
-const debug         = require('debug')('weert:client_notifier');
-const faye          = require('faye');
-const config        = require('../config/config');
-const event_emitter = require('./event_emitter');
+const Server = require("socket.io");
+const debug = require("debug")("weert:client_notifier");
 
-// Set up the sub-pub facility
-const setup = function () {
+const config = require("../config/config");
+const event_emitter = require("./event_emitter");
 
-    const faye_client = new faye.Client(`http://localhost:${config.server.port}${config.faye.endpoint}`);
+// Set up the pub-sub facility
+const setup = function(httpServer) {
+  let io = new Server(httpServer, config.socket_io);
 
-    event_emitter.on('NEW_PACKET', (packet, measurement) => {
-        // Notify any subscribers via the pub-sub facility
-        faye_client.publish(`/${measurement}`, packet)
-                   .then(() => {
-                       debug(`Published new packet ${new Date(packet.timestamp)} ` +
-                             `to ${measurement}`);
-                   })
-                   .catch((err) => {
-                       debug(`Error publishing new packet ${new Date(packet.timestamp)} ` +
-                             `to ${measurement}. (${err.message})`);
-                   });
+  io.on("connection", function(socket) {
+    debug(`Client ${socket.id} connected`);
+
+    socket.on("disconnect", () => {
+      debug(`Client ${socket.id} disconnected`);
     });
 
-    event_emitter.on('NEW_AGGREGATE', (record, measurement) => {
-        // Notify any subscribers via the pub-sub facility
-        faye_client.publish(`/${measurement}`, record)
-                   .then(() => {
-                       debug(`Published new aggregated record ${new Date(record.timestamp)} ` +
-                             `to ${measurement}`);
-                   })
-                   .catch((err) => {
-                       debug(`Error publishing new aggregated record ${new Date(record.timestamp)} ` +
-                             `to ${measurement}. (${err.message})`);
-                   });
+    socket.on("error", (err)=>{
+      debug(`Socket.io error ${err} on client ${socket.id}`)
+    })
+
+    event_emitter.on("NEW_PACKET", (packet, measurement) => {
+      // TODO: Rather than the measurement being the event name, it should be "NEW_PACKET"
+      socket.emit(`/${measurement}`, packet);
     });
 
-    const bayeux = new faye.NodeAdapter({mount: config.faye.endpoint, timeout: 45});
-    // Monitor pub-sub clients
-    bayeux.on('subscribe', function (clientId, channel) {
-        debug(`Client ${clientId} subscribed on channel ${channel}`);
+    event_emitter.on("NEW_AGGREGATE", (record, measurement) => {
+      // TODO: Rather than the measurement being the event name, it should be "NEW_PACKET"
+      socket.emit(`/${measurement}`, record);
     });
-    bayeux.on('unsubscribe', function (clientId, channel) {
-        debug(`Client ${clientId} unsubscribed on channel ${channel}`);
-    });
-    bayeux.on('disconnect', function (clientId) {
-        debug(`Client ${clientId} disconnected`);
-    });
-    return bayeux;
+  });
 };
 
-module.exports =
-    {
-        setup,
-    };
+module.exports = {
+  setup
+};
