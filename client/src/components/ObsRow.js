@@ -6,7 +6,7 @@
 
 import React from "react";
 import PropTypes from "prop-types";
-import * as _ from "lodash";
+import isEmpty from "lodash/isEmpty";
 
 import ObsLabel from "./ObsLabel";
 import ObsValue from "./ObsValue";
@@ -20,7 +20,7 @@ export default class ObsRow extends React.PureComponent {
   render() {
     const { packet, obsType } = this.props;
     let value, unitSystem;
-    if (!_.isEmpty(packet)) {
+    if (!isEmpty(packet)) {
       value = packet[obsType];
       unitSystem = packet["unit_system"];
     }

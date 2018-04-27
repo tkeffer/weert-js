@@ -4,7 +4,7 @@
  * See the file LICENSE for your full rights.
  */
 
-import * as _ from "lodash";
+import sortedIndexBy from "lodash/sortedIndexBy";
 
 export function findFirstGood(packets, maxAge) {
   if (packets.length && maxAge !== undefined) {
@@ -26,7 +26,7 @@ export function insertSorted(packets, packet, maxAge) {
   // Find the first packet we are going to keep:
   const firstGood = findFirstGood(packets, maxAge);
   // Find the insertion point
-  const insertPoint = _.sortedIndexBy(packets, packet, p => p.timestamp);
+  const insertPoint = sortedIndexBy(packets, packet, p => p.timestamp);
   // Drop the stale packets at the front, keep the other packets, inserting
   // the new packet in the proper spot.
   return [

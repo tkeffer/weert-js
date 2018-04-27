@@ -6,7 +6,7 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import * as _ from 'lodash';
+import isEmpty from 'lodash/isEmpty';
 import Table from 'react-bootstrap/lib/Table';
 import * as units from '../units';
 import * as utility from '../utility';
@@ -98,9 +98,9 @@ export default class StatsTable extends React.PureComponent {
         return (
             <Component>
                 <h2>{header}</h2>
-                {isFetching && _.isEmpty(statsData) && <h3>Loading...</h3>}
-                {!isFetching && _.isEmpty(statsData) && <h3>Empty stats place holder</h3>}
-                {!_.isEmpty(statsData) &&
+                {isFetching && isEmpty(statsData) && <h3>Loading...</h3>}
+                {!isFetching && isEmpty(statsData) && <h3>Empty stats place holder</h3>}
+                {!isEmpty(statsData) &&
                  <div style={{opacity: isFetching ? 0.5 : 1}}>
                      <Table bordered hover>
                          <tbody>

@@ -7,7 +7,7 @@
 // Render and format a packet
 import React from "react";
 import PropTypes from "prop-types";
-import * as _ from "lodash";
+import isEmpty from "lodash/isEmpty";
 import Table from "react-bootstrap/lib/Table";
 
 import ObsRow from "./ObsRow";
@@ -47,9 +47,9 @@ export default class PacketTable extends React.PureComponent {
     return (
       <Component>
         <h2>{header}</h2>
-        {isFetching && _.isEmpty(packet) && <h3>Loading...</h3>}
-        {!isFetching && _.isEmpty(packet) && <h3>Empty.</h3>}
-        {!_.isEmpty(packet) && (
+        {isFetching && isEmpty(packet) && <h3>Loading...</h3>}
+        {!isFetching && isEmpty(packet) && <h3>Empty.</h3>}
+        {!isEmpty(packet) && (
           <div style={{ opacity: isFetching ? 0.5 : 1 }}>
             <Table bordered hover>
               <tbody>

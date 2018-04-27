@@ -7,7 +7,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import moment from "moment/moment";
-import * as _ from 'lodash';
+import isString from "lodash/isString";
 import { sprintf } from "sprintf-js";
 import {
   Line,
@@ -48,7 +48,7 @@ export default class RTPlot extends React.PureComponent {
     if (yTickFormat == null)
       return undefined;
     const { packets, plotLines } = this.props;
-    if (!_.isString(yTickFormat)) {
+    if (!isString(yTickFormat)) {
       const obsType = plotLines && plotLines[0] ? plotLines[0].obsType : null;
       const unitSystem = packets.length ? packets[0].unit_system : null;
       yTickFormat = units.getUnitFormat(obsType, unitSystem);
