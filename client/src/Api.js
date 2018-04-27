@@ -46,9 +46,9 @@ export function getStats(measurement, tags, span) {
 export function subscribe(measurement, tags, callback) {
   const socket = io();
   socket.on("/" + measurement, callback);
+  return socket;
 }
 
-export function unsubscribe(subscription) {
-  // TODO: With socket.io, do we need to do anything here?
-  // subscription.cancel();
+export function unsubscribe(socket) {
+  socket.close();
 }

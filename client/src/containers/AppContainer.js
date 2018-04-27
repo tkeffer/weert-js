@@ -30,6 +30,7 @@ import WindCompass from "../components/WindCompass";
 import StatsTable from "../components/StatsTable";
 import About from "../components/About";
 import * as config from "../../config/componentConfig";
+import * as api from "../Api";
 
 const propTypes = {
   selectedTags: PropTypes.shape({
@@ -70,7 +71,7 @@ class AppContainer extends React.PureComponent {
   componentWillUnmount() {
     // Cancel all subscriptions
     for (let subscription of Object.values(this.state.subscriptions)) {
-      subscription.cancel();
+      api.unsubscribe(subscription);
     }
     // Reset the collection of subscriptions.
     this.setState({ ...this.state, subscriptions: {} });
