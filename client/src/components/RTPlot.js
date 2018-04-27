@@ -110,7 +110,7 @@ export default class RTPlot extends React.PureComponent {
             <YAxis
               domain={["auto", "auto"]}
               unit={props.yUnit}
-              interval="props.yInterval"
+              interval={props.yInterval}
               tickFormatter={this.getYTickFormatter()}
             />
             <CartesianGrid strokeDasharray="3 3" />
