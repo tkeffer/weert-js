@@ -11,13 +11,13 @@
 
 "use strict";
 
-var debug   = require('debug')('weert:auth');
-var express = require('express');
-var auth    = require('basic-auth');
+const debug   = require('debug')('weert:auth');
+const express = require('express');
+const auth    = require('basic-auth');
 
-var AuthRouterFactory = function (users) {
+const AuthRouterFactory = function (users) {
 
-    var router = express.Router();
+    const router = express.Router();
 
     // Check the authorization
     router.use('/*', function (req, res, next) {
@@ -54,7 +54,7 @@ var AuthRouterFactory = function (users) {
     return router;
 };
 
-var unauthorized = function (req, res, user_info) {
+const unauthorized = function (req, res, user_info) {
     res.status(403).send("Unauthorized");
     debug(`IP ${req.ip} unauthorized for ${req.method} to ${req.originalUrl}`);
 };

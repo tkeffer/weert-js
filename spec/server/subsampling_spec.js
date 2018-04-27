@@ -95,15 +95,14 @@ function form_fields(t, platform) {
 
 function form_deep_packet(t, platform) {
 
-    const obj = {
+    return {
         tags     : {
             platform: platform,
         },
         fields   : form_fields(t, platform),
         timestamp: t,
     };
-    return obj;
-};
+}
 
 function expected_packets(platform) {
     return _.range(nPackets)
@@ -143,7 +142,7 @@ function summary_reducer(summary, packet) {
         }
     }
     return summary;
-};
+}
 
 function expected_records(packet_array, platform) {
     let records = [];

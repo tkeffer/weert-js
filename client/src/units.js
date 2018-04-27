@@ -30,8 +30,7 @@ export function getUnitGroup(obsType) {
 
 export function getUnit(unitGroup, unitSystem) {
     const system = groupMap[unitSystem];
-    const unit   = system ? system[unitGroup] : undefined;
-    return unit;
+    return  system ? system[unitGroup] : undefined;
 }
 
 export function getUnitFormat(obsType, unitSystem) {

@@ -33,7 +33,7 @@ const setup = function(httpServer) {
     });
 
     event_emitter.on("NEW_AGGREGATE", (record, measurement) => {
-      // TODO: Rather than the measurement being the event name, it should be "NEW_PACKET"
+      // TODO: Rather than the measurement being the event name, it should be "NEW_AGGREGATE"
       socket.emit(`/${measurement}`, record);
     });
   });

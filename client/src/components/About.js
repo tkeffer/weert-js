@@ -44,7 +44,7 @@ export default class About extends React.PureComponent {
             </li>
             <li>
               Real time updates are done through a publish - subscribe interface
-              using <a href="http://faye.jcoglan.com">Faye;</a>
+              using <a href="https://socket.io/">Socket.io;</a>
             </li>
             <li>
               Real time plots are done using the plotting library{" "}

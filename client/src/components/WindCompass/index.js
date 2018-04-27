@@ -126,7 +126,7 @@ class Wedge extends React.PureComponent {
                 {...rest}
             />);
     }
-};
+}
 
 export default class WindCompass extends React.PureComponent {
 

@@ -44,7 +44,7 @@ const flat_to_deep = function (flat_packet) {
         'fields': {},
     };
 
-    for (let key in flat_packet) {
+    for (let key of Object.keys(flat_packet)) {
         if (key === 'platform')
             deep_packet['tags']['platform'] = flat_packet.platform;
         else if (key === 'stream')

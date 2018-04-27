@@ -9,37 +9,36 @@
  */
 "use strict";
 
-var async        = require('async');
-var frisby       = require('frisby');
-var normalizeUrl = require('normalize-url');
-var request      = require('request');
+const async        = require('async');
+const frisby       = require('frisby');
+const normalizeUrl = require('normalize-url');
+let request        = require('request');
 
-var config = require('../../server/config/config');
+const config = require('../../server/config/config');
 
-var measurements_url = 'http://localhost:3000' + config.server.api + '/measurements';
-var measurement_url  = measurements_url + '/test_measurement';
-var packets_url      = measurement_url + '/packets';
+const measurements_url = 'http://localhost:3000' + config.server.api + '/measurements';
+const measurement_url  = measurements_url + '/test_measurement';
+const packets_url      = measurement_url + '/packets';
 
 // We have to make sure all inserted times are within the retention policy
 // of the database. So, use current time stamps.
-var now = Date.now();
+const now = Date.now();
 
-var timestamp = function (i) {
+const timestamp = function (i) {
     // Base time is an hour ago. Data points every 10 seconds.
     return now - 3600000 + i * 10000;
 };
 
-var temperature = function (i) {
+const temperature = function (i) {
     return 40 - i;
 };
 
-var form_deep_packet = function (i) {
-    let obj = {
+const form_deep_packet = function (i) {
+    return {
         tags     : {platform: 'test_platform'},
         fields   : {temperature: temperature(i)},
         timestamp: timestamp(i),
     };
-    return obj;
 };
 
 let auth_value = 'Basic ' + Buffer.from("weert:weert").toString('base64');
@@ -74,7 +73,7 @@ describe('In the single packet tests', function () {
               .then(function (res) {
                   // We've POSTed a packet. Now try to retrieve it. Get the location
                   // out of the returned header
-                  var packet_link = res.headers.get('location');
+                  const packet_link = res.headers.get('location');
                   // Now retrieve and check the POSTed packet
                   return frisby.get(packet_link)
                                .expect('status', 200)
@@ -91,7 +90,7 @@ describe('In the single packet tests', function () {
               .then(function (res) {
                   // We've POSTed a packet. Now try to delete it. Get the location
                   // out of the returned header
-                  var packet_link = res.headers.get('location');
+                  const packet_link = res.headers.get('location');
                   // Check its value
                   expect(packet_link).toEqual(packets_url + '/' + timestamp(0));
                   // Now delete it.
@@ -167,7 +166,7 @@ describe('Malformed packet tests', function () {
               .then(function (res) {
                   // We've POSTed the packet. Now retrieve it and make sure
                   // the null value is not there.
-                  var packet_link = res.headers.get('location');
+                  const packet_link = res.headers.get('location');
                   // Retrieve and check the POSTed packet
                   return frisby.get(packet_link)
                                .expect('status', 200)
@@ -182,26 +181,26 @@ describe('Malformed packet tests', function () {
 
 // How many packets to use for the test.
 // Must be > 5 for the tests to work.
-var N = 10;
+const N = 10;
 describe("Launch and test " + N + " POSTs of packets", function () {
-    var query;
+    let query;
 
-    var indices         = [];
-    var packets         = [];
-    var reverse_packets = [];
-    for (var i = 0; i < N; i++) {
+    let indices         = [];
+    let packets         = [];
+    let reverse_packets = [];
+    for (let i = 0; i < N; i++) {
         indices[i]                 = i;
         packets[i]                 = form_deep_packet(i);
         reverse_packets[N - i - 1] = packets[i];
     }
 
     // This function will return the URI for the specific packet at a given timestamp
-    var time_link = function (timestamp) {
+    const time_link = function (timestamp) {
         return normalizeUrl(packets_url + '/' + timestamp);
     };
 
-    var results_finished   = false;
-    var results_successful = false;
+    let results_finished   = false;
+    let results_successful = false;
 
     // Before any of the tests, first delete the measurement, then repopulate it
     beforeAll(function (doneFn) {

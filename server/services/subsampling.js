@@ -20,7 +20,7 @@ function setup_cron(measurement_manager) {
 
     let jobs = [];
     for (let ss_spec of ss_specs) {
-        if ((ss_spec.interval % 60000) != 0) {
+        if ((ss_spec.interval % 60000) !== 0) {
             throw new Error("Subsampling interval must be multiple of 60000ms");
         }
         const skip        = ss_spec.interval / 60000;
@@ -211,13 +211,12 @@ function form_agg_clause(aggregates) {
         }
     }
 
-    let agg_clause = aggs.join(', ');
-    return agg_clause;
+    return aggs.join(', ');
 }
 
 function calc_derived(deep_record, aggregates) {
     // Return a copy, adding new, calculated types to the fields.
-    const final = {
+    return {
         ...deep_record,
         fields: {
             ...deep_record.fields,
@@ -229,8 +228,6 @@ function calc_derived(deep_record, aggregates) {
                      }, {}),
         },
     };
-
-    return final;
 }
 
 module.exports = {

@@ -107,7 +107,7 @@ not support the POST method used by the uploader.
   and deleting data measurements.
 - Data are stored in a [InfluxDB](https://www.influxdata.com/) server.
 - Realtime updates are done through a publish - subscribe interface
-  using [Faye](http://faye.jcoglan.com).
+  using [Socket.io](https://socket.io).
 - The client asks for the necessary data through the API, then subscribes to any updates.
 - The client view is managed by React.
 - The client data state is managed by Redux.

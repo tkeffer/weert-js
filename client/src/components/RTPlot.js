@@ -40,8 +40,7 @@ export default class RTPlot extends React.PureComponent {
     const { packets, plotLines } = this.props;
     const obsType = plotLines && plotLines[0] ? plotLines[0].obsType : null;
     const unitSystem = packets.length ? packets[0].unit_system : null;
-    const unitLabel = units.getUnitLabel(obsType, unitSystem);
-    return unitLabel;
+    return units.getUnitLabel(obsType, unitSystem);
   }
 
   getYTickFormatter() {

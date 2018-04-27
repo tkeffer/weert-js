@@ -21,23 +21,23 @@
 
 .WindCompass .tick {
   stroke: #bdbdbd;
-  stroke-width: 1;
+  stroke-width: 1px;
 }
 
 .WindCompass .tick45 {
-  stroke-width: 2;
+  stroke-width: 2px;
 }
 
 .WindCompass .tick90 {
-  stroke-width: 4;
+  stroke-width: 4px;
 }
 
 .WindCompass .currDir {
-  stroke-width: 1;
+  stroke-width: 1px;
 }
 
 .WindCompass .prevDir {
-  stroke-width: 1;
+  stroke-width: 1px;
   color: #bfbfbf;
   fill: #bfbfbf;
 }
@@ -45,7 +45,6 @@
 .WindCompass .speedDisplay {
   font-weight: bold;
   font-size: 3em;
-  kerning: .03em;
   alignment-baseline: central;
   text-anchor: middle;
 }

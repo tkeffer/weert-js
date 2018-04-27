@@ -195,10 +195,10 @@ class MeasurementManager {
                        // cases to take care of.
                        if (aggregates && !group) {
                            // Was anything returned?
-                           if (packet_arrays[0].length == 0) {
+                           if (packet_arrays[0].length === 0) {
                                // No. Return an empty array
                                return Promise.resolve([]);
-                           } else if (packet_arrays[0].length == 1) {
+                           } else if (packet_arrays[0].length === 1) {
                                // There is a single packet, which is what we expected.
                                // Its timestamp should be the *end* of the interval
                                return Promise.resolve([
@@ -417,8 +417,7 @@ class MeasurementManager {
                 if (!rp) rp = '.';
             }
         }
-        const from_clause = db + rp + measurement;
-        return from_clause;
+        return db + rp + measurement;
     };
 
 
