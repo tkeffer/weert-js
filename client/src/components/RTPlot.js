@@ -36,22 +36,26 @@ const defaultProps = {
 };
 
 export default class RTPlot extends React.PureComponent {
+  constructor(props) {
+    super(props);
+    const { packets } = this.props;
+    this.state = {
+      unitSystem: packets.length ? packets[0].unit_system : null
+    };
+  }
   getUnitLabel() {
     const { packets, plotLines } = this.props;
     const obsType = plotLines && plotLines[0] ? plotLines[0].obsType : null;
-    const unitSystem = packets.length ? packets[0].unit_system : null;
-    return units.getUnitLabel(obsType, unitSystem);
+    return units.getUnitLabel(obsType, this.state.unitSystem);
   }
 
   getYTickFormatter() {
     let { yTickFormat } = this.props;
-    if (yTickFormat == null)
-      return undefined;
+    if (yTickFormat == null) return undefined;
     const { packets, plotLines } = this.props;
     if (!isString(yTickFormat)) {
       const obsType = plotLines && plotLines[0] ? plotLines[0].obsType : null;
-      const unitSystem = packets.length ? packets[0].unit_system : null;
-      yTickFormat = units.getUnitFormat(obsType, unitSystem);
+      yTickFormat = units.getUnitFormat(obsType, this.state.unitSystem);
     }
     return tick => sprintf(yTickFormat, tick);
   }
@@ -78,26 +82,19 @@ export default class RTPlot extends React.PureComponent {
   }
 
   render() {
-    const {
-      packets,
-      xDomain,
-      xTicks,
-      componentClass: Component,
-      ...props
-    } = this.props;
+    const { packets, xDomain, xTicks, componentClass: Component, ...props } = this.props;
 
     const timeFormatter = tick => {
       return moment(tick).format(props.xTickFormat);
     };
 
+    const toolTipFormatter = (value, obsType) =>
+      units.getValueString(obsType, value, this.state.unitSystem);
+
     return (
       <div>
         {this.renderLabels(props)}
-        <ResponsiveContainer
-          width={props.width}
-          height={props.height}
-          debounce={props.debounce}
-        >
+        <ResponsiveContainer width={props.width} height={props.height} debounce={props.debounce}>
           <LineChart data={packets} margin={props.margin}>
             <XAxis
               dataKey="timestamp"
@@ -114,7 +111,7 @@ export default class RTPlot extends React.PureComponent {
               tickFormatter={this.getYTickFormatter()}
             />
             <CartesianGrid strokeDasharray="3 3" />
-            <Tooltip labelFormatter={timeFormatter} />
+            <Tooltip labelFormatter={timeFormatter} formatter={toolTipFormatter} />
             {props.plotLines.map((plotLine, i) => {
               const options = {
                 ...utility.getOptions(props),
@@ -127,6 +124,8 @@ export default class RTPlot extends React.PureComponent {
                   dataKey={options.obsType}
                   stroke={options.stroke}
                   dot={options.dot}
+                  activeDot={options.activeDot}
+                  label={options.label}
                   isAnimationActive={options.isAnimationActive}
                   animationDuration={options.animationDuration}
                   animationEasing={options.animationEasing}
