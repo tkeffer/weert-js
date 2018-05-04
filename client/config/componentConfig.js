@@ -15,7 +15,7 @@ export const plotOptions = {
   yInterval: "preserveStartEnd",
   animationDuration: 500,
   dot: false,
-  activeDot: false,   // True to draw dot on mouseover
+  activeDot: true,   // True to draw dot on mouseover
   isAnimationActive: false,
   animationEasing: "linear",
   stroke: "#8884d8",
