@@ -13,12 +13,17 @@ import ObsValue from "./ObsValue";
 
 const propTypes = {
   packet: PropTypes.object.isRequired,
-  obsType: PropTypes.string.isRequired
+  obsType: PropTypes.string.isRequired,
+  isFetching: PropTypes.bool
+};
+
+const defaultProps = {
+  isFetching: false
 };
 
 export default class ObsRow extends React.PureComponent {
   render() {
-    const { packet, obsType } = this.props;
+    const { packet, obsType, isFetching } = this.props;
     let value, unitSystem;
     if (!isEmpty(packet)) {
       value = packet[obsType];
@@ -33,6 +38,7 @@ export default class ObsRow extends React.PureComponent {
           obsType={obsType}
           value={value}
           unitSystem={unitSystem}
+          isFetching={isFetching}
         />
       </tr>
     );
@@ -40,3 +46,4 @@ export default class ObsRow extends React.PureComponent {
 }
 
 ObsRow.propTypes = propTypes;
+ObsRow.defaultProps = defaultProps;

@@ -15,10 +15,12 @@ const propTypes = {
   value: PropTypes.number.isRequired,
   unitSystem: PropTypes.number,
   format: PropTypes.string,
+  isFetching: PropTypes.bool,
   componentClass: PropTypes.string
 };
 
 const defaultProps = {
+  isFetching: false,
   componentClass: "div"
 };
 
@@ -48,10 +50,13 @@ export default class ObsValue extends React.PureComponent {
       value,
       unitSystem,
       format,
+      isFetching,
       componentClass: Component
     } = this.props;
 
-    const newString = units.getValueString(obsType, value, unitSystem, format);
+    const newString = isFetching
+      ? "Loading"
+      : units.getValueString(obsType, value, unitSystem, format);
 
     // Apply a "fade in" if the resultant string has changed.
     const cn = this.state.oldString === newString ? "" : "fadeIn";
