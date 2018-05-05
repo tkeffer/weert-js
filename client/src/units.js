@@ -4,57 +4,53 @@
  * See the file LICENSE for your full rights.
  */
 
-import * as unitConfig from '../config/unitConfig';
-import {sprintf} from 'sprintf-js';
-import moment from 'moment/moment';
+import * as unitConfig from "../config/unitConfig";
+import { sprintf } from "sprintf-js";
+import moment from "moment/moment";
 
 const groupMap = {
-    0x01: unitConfig.unitSystem_US,
-    0x10: unitConfig.unitSystem_Metric,
-    0x11: unitConfig.unitSystem_MetricWX
+  0x01: unitConfig.unitSystem_US,
+  0x10: unitConfig.unitSystem_Metric,
+  0x11: unitConfig.unitSystem_MetricWX
 };
 
 export function getLabel(obsType) {
-    if (obsType in unitConfig.obsLabels) {
-        return unitConfig.obsLabels[obsType] || obsType;
-    } else {
-        return obsType;
-    }
+  if (obsType in unitConfig.obsLabels) {
+    return unitConfig.obsLabels[obsType] || obsType;
+  } else {
+    return obsType;
+  }
 }
 
 export function getUnitGroup(obsType) {
-    const last = obsType.split('_')
-                        .slice(-1)[0];
-    return `group_${last}`;
+  const last = obsType.split("_").slice(-1)[0];
+  return `group_${last}`;
 }
 
 export function getUnit(unitGroup, unitSystem) {
-    const system = groupMap[unitSystem];
-    return  system ? system[unitGroup] : undefined;
+  const system = groupMap[unitSystem];
+  return system ? system[unitGroup] : undefined;
 }
 
 export function getUnitFormat(obsType, unitSystem) {
-    const unitGroup = getUnitGroup(obsType);
-    const unit      = getUnit(unitGroup, unitSystem);
-    // If the unit system is unknown, or can't be found in the unitFormats object, return a generic format
-    return unitConfig.unitFormats[unit] || "%s";
+  const unitGroup = getUnitGroup(obsType);
+  const unit = getUnit(unitGroup, unitSystem);
+  // If the unit system is unknown, or can't be found in the unitFormats object, return a generic format
+  return unitConfig.unitFormats[unit] || "%s";
 }
 
-
 export function getUnitLabel(obsType, unitSystem, plural) {
-    const unitGroup = getUnitGroup(obsType);
-    const unit      = getUnit(unitGroup, unitSystem);
-    const unitLabel = unitConfig.unitLabels[unit];
-    // No label if we don't recognize the unit
-    if (unitLabel === undefined) return "";
-    // Check if this is a unit that has a singular / plural form
-    if (Array.isArray(unitLabel)) {
-        if (plural)
-            return unitLabel[1];
-        else
-            return unitLabel[0];
-    }
-    return unitLabel;
+  const unitGroup = getUnitGroup(obsType);
+  const unit = getUnit(unitGroup, unitSystem);
+  const unitLabel = unitConfig.unitLabels[unit];
+  // No label if we don't recognize the unit
+  if (unitLabel === undefined) return "";
+  // Check if this is a unit that has a singular / plural form
+  if (Array.isArray(unitLabel)) {
+    if (plural) return unitLabel[1];
+    else return unitLabel[0];
+  }
+  return unitLabel;
 }
 
 /**
@@ -66,19 +62,18 @@ export function getUnitLabel(obsType, unitSystem, plural) {
  * @returns {string}
  */
 export function getValueString(obsType, val, unitSystem, format) {
-    if (val === undefined) {
-        return "N/A";
-    }
+  if (val === undefined) {
+    return "N/A";
+  }
 
-    // Special treatment for time
-    if (obsType === 'timestamp') {
-        return moment(val).format(format);
-    }
+  // Special treatment for time
+  if (obsType === "timestamp") {
+    if (format == null) format = "D-MMM-YYYY HH:mm:ss";
+    return moment(val).format(format);
+  }
 
-    // It's a regular ol' observation type. Get a label and format the number.
-    const label      = getUnitLabel(obsType, unitSystem, val);
-    const unitFormat = format || getUnitFormat(obsType, unitSystem);
-    return sprintf(unitFormat, val) + label;
+  // It's a regular ol' observation type. Get a label and format the number.
+  const label = getUnitLabel(obsType, unitSystem, val);
+  const unitFormat = format || getUnitFormat(obsType, unitSystem);
+  return sprintf(unitFormat, val) + label;
 }
-
-
