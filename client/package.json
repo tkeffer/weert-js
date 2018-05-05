@@ -48,9 +48,9 @@
     "redux-devtools": "^3.4.1",
     "source-map-loader": "^0.2.3",
     "style-loader": "^0.19.1",
-    "webpack": "^4.6.0",
+    "webpack": "^4.7.0",
     "webpack-bundle-analyzer": "^2.10.0",
-    "webpack-cli": "^2.0.15",
+    "webpack-cli": "^2.1.2",
     "webpack-merge": "^4.1.1"
   }
 }
