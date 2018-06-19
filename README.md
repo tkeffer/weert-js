@@ -105,13 +105,13 @@ not support the POST method used by the uploader.
 - Uses a [Node](https://nodejs.org/) server with the [Express framework](http://expressjs.com/).
 - The server offers a RESTful API ([described below](#API)) for storing, retrieving,
   and deleting data measurements.
-- Data are stored in a [InfluxDB](https://www.influxdata.com/) server.
+- Data are stored in an [InfluxDB](https://www.influxdata.com/) server.
 - Realtime updates are done through a publish - subscribe interface
   using [Socket.io](https://socket.io).
 - The client asks for the necessary data through the API, then subscribes to any updates.
-- The client view is managed by React.
-- The client data state is managed by Redux.
-- Realtime plots are done using [Recharts](http://recharts.org). This is a charting library that uses
+- The client view is managed by [React](https://reactjs.org/).
+- The client data state is managed by [Redux](https://redux.js.org/).
+- Realtime plots are done using [Recharts](http://recharts.org), a charting library, which uses
   React to create DOM elements. As of 15-Feb-2018 it is still in beta, but seems reasonably stable.
 
 ## Notes
@@ -119,8 +119,8 @@ not support the POST method used by the uploader.
 ### Pub-sub
 
 When new LOOP packets come into WeeRT through the POST interface, they
-are published using Faye. Interested clients can subscribe to these
-publications.
+are published using [Socket.io](https://socket.io/) (an implementation of WebSockets).
+Interested clients can subscribe to these publications.
 
 ### Subsampling
 
