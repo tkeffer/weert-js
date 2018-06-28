@@ -11,7 +11,6 @@ import Grid from "react-bootstrap/lib/Grid";
 import Row from "react-bootstrap/lib/Row";
 import Col from "react-bootstrap/lib/Col";
 import Jumbotron from "react-bootstrap/lib/Jumbotron";
-import Tabs from "react-bootstrap/lib/Tabs";
 import Nav from "react-bootstrap/lib/Nav";
 import NavDropdown from "react-bootstrap/lib/NavDropdown";
 import NavItem from "react-bootstrap/lib/NavItem";
@@ -115,12 +114,16 @@ class AppContainer extends React.PureComponent {
     }
   }
 
+  getCurrentPacket(packets) {
+    return packets.slice(-1)[0];
+  }
+
   render() {
     const { selectedTimeSpan } = this.props;
     const selectedState = this.props.timeSpans[selectedTimeSpan];
     const recentState = this.props.timeSpans.recent;
 
-    const currentPacket = recentState.packets.slice(-1)[0];
+    const currentPacket = this.getCurrentPacket(recentState.packets);
     const isFetchingCurrentPacket = recentState.isFetching;
 
     const { packetTableOptions, windCompassOptions, statsTableOptions } = this.state;
@@ -143,9 +146,9 @@ class AppContainer extends React.PureComponent {
           <Col xs={12} lg={3}>
             <div>
               <PacketTable
-                {...packetTableOptions}
                 packet={currentPacket}
                 isFetching={isFetchingCurrentPacket}
+                {...packetTableOptions}
               />
             </div>
 

@@ -12,8 +12,8 @@ import ObsLabel from "./ObsLabel";
 import ObsValue from "./ObsValue";
 
 const propTypes = {
-  packet: PropTypes.object.isRequired,
   obsType: PropTypes.string.isRequired,
+  packet: PropTypes.object,
   isFetching: PropTypes.bool
 };
 

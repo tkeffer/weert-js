@@ -15,13 +15,13 @@ export const plotOptions = {
   yInterval: "preserveStartEnd",
   animationDuration: 500,
   dot: false,
-  activeDot: true,   // True to draw dot on mouseover
+  activeDot: true, // True to draw dot on mouseover
   isAnimationActive: false,
   animationEasing: "linear",
   stroke: "#8884d8",
   strokeWidth: 2,
   debounce: 200,
-  label: false,       // True to label plot values
+  label: false, // True to label plot values
   plotGroups: {
     recent: {
       xTickFormat: "HH:mm:ss",
@@ -237,4 +237,17 @@ export const statsTableOptions = {
     header: "This year",
     timeFormat: "HH:mm:ss D-MMM"
   }
+};
+
+export const packetTableOptions = {
+  obsTypes: [
+    "timestamp",
+    "wind_speed",
+    "out_temperature",
+    "in_temperature",
+    "radiation_radiation",
+    "sealevel_pressure"
+  ],
+  header: "Current values",
+  staleAge: 120000
 };

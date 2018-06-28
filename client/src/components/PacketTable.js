@@ -7,7 +7,6 @@
 // Render and format a packet
 import React from "react";
 import PropTypes from "prop-types";
-import isEmpty from "lodash/isEmpty";
 import Table from "react-bootstrap/lib/Table";
 
 import ObsRow from "./ObsRow";

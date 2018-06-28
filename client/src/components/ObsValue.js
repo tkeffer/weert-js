@@ -12,7 +12,7 @@ import * as units from "../units";
 
 const propTypes = {
   obsType: PropTypes.string.isRequired,
-  value: PropTypes.number.isRequired,
+  value: PropTypes.number,
   unitSystem: PropTypes.number,
   format: PropTypes.string,
   isFetching: PropTypes.bool,
