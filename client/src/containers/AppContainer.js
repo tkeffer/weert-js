@@ -172,9 +172,9 @@ class AppContainer extends React.PureComponent {
           <Col xs={12} lg={3}>
             <div>
               <PacketTable
+                {...packetTableOptions}
                 packet={currentPacket}
                 isFetching={isFetchingCurrentPacket}
-                {...packetTableOptions}
               />
             </div>
 
