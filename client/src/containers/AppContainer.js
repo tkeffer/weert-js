@@ -114,8 +114,34 @@ class AppContainer extends React.PureComponent {
     }
   }
 
+  /**
+   * Assemble a "current" packet from the array of recent packets
+   * @param packets
+   */
   getCurrentPacket(packets) {
-    return packets.slice(-1)[0];
+    let finalPacket = {};
+    const now = Date.now();
+    const { staleAge, obsTypes } = this.state.packetTableOptions;
+
+    // Iterate through the packets, most recent first
+    for (let i = packets.length - 1; i >= 0; i--) {
+      const packet = packets[i];
+      // If we've already found values for all the required observation types, then break
+      if (Object.keys(finalPacket).length >= Object.keys(obsTypes).length) {
+        break;
+      }
+      // If we have worked so far backwards in the array of packets that the packet is too old, break
+      if (packet.timestamp == null || packet.timestamp < now - staleAge) {
+        break;
+      }
+      // Replace all non-null values
+      for (const obsType of obsTypes) {
+        if (finalPacket[obsType] == null) {
+          finalPacket[obsType] = packet[obsType];
+        }
+      }
+    }
+    return finalPacket;
   }
 
   render() {
