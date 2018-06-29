@@ -136,7 +136,7 @@ class AppContainer extends React.PureComponent {
       }
       // Replace all non-null values
       for (const obsType of obsTypes) {
-        if (finalPacket[obsType] == null) {
+        if (finalPacket[obsType] == null && packet[obsType] != null) {
           finalPacket[obsType] = packet[obsType];
         }
       }
