@@ -119,9 +119,13 @@ class AppContainer extends React.PureComponent {
    * @param packets
    */
   getCurrentPacket(packets) {
-    let finalPacket = {};
     const now = Date.now();
     const { staleAge, obsTypes } = this.state.packetTableOptions;
+    let finalPacket = {};
+    // Add "unit_system" to the list of types to be collected. First make a copy of obsTypes
+    let allObsTypes = obsTypes.slice();
+    // Then add 'unit_system'
+    allObsTypes.push("unit_system");
 
     // Iterate through the packets, most recent first
     for (let i = packets.length - 1; i >= 0; i--) {
@@ -135,7 +139,7 @@ class AppContainer extends React.PureComponent {
         break;
       }
       // Replace all non-null values
-      for (const obsType of obsTypes) {
+      for (const obsType of allObsTypes) {
         if (finalPacket[obsType] == null && packet[obsType] != null) {
           finalPacket[obsType] = packet[obsType];
         }
