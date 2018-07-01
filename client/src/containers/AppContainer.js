@@ -129,11 +129,11 @@ class AppContainer extends React.PureComponent {
 
     // Iterate through the packets, most recent first
     for (let i = packets.length - 1; i >= 0; i--) {
-      const packet = packets[i];
       // If we've already found values for all the required observation types, then break
-      if (Object.keys(finalPacket).length >= Object.keys(obsTypes).length) {
+      if (Object.keys(finalPacket).length >= Object.keys(allObsTypes).length) {
         break;
       }
+      const packet = packets[i];
       // If we have worked so far backwards in the array of packets that the packet is too old, break
       if (packet.timestamp == null || packet.timestamp < now - staleAge) {
         break;
