@@ -14,6 +14,7 @@ export const plotOptions = {
   yTickFormat: undefined,
   yInterval: "preserveStartEnd",
   animationDuration: 500,
+  connectNulls: true, // Connect null data values
   dot: false,
   activeDot: true, // True to draw dot on mouseover
   isAnimationActive: false,
