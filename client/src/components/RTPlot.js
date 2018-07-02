@@ -44,7 +44,7 @@ export default class RTPlot extends React.PureComponent {
     };
   }
   getUnitLabel() {
-    const { packets, plotLines } = this.props;
+    const { plotLines } = this.props;
     const obsType = plotLines && plotLines[0] ? plotLines[0].obsType : null;
     return units.getUnitLabel(obsType, this.state.unitSystem);
   }
@@ -52,7 +52,7 @@ export default class RTPlot extends React.PureComponent {
   getYTickFormatter() {
     let { yTickFormat } = this.props;
     if (yTickFormat == null) return undefined;
-    const { packets, plotLines } = this.props;
+    const { plotLines } = this.props;
     if (!isString(yTickFormat)) {
       const obsType = plotLines && plotLines[0] ? plotLines[0].obsType : null;
       yTickFormat = units.getUnitFormat(obsType, this.state.unitSystem);
@@ -91,11 +91,17 @@ export default class RTPlot extends React.PureComponent {
     const toolTipFormatter = (value, obsType) =>
       units.getValueString(obsType, value, this.state.unitSystem);
 
+    // Remove any packets where the types to be plotted are null. This gets around a bug in Recharts where
+    // option connectNulls doesn't seem to work.
+    const filteredPackets = packets.filter(packet => {
+      return props.plotLines.some(plotLine => packet[plotLine.obsType] != null);
+    });
+
     return (
       <div>
         {this.renderLabels(props)}
         <ResponsiveContainer width={props.width} height={props.height} debounce={props.debounce}>
-          <LineChart data={packets} margin={props.margin}>
+          <LineChart data={filteredPackets} margin={props.margin}>
             <XAxis
               dataKey="timestamp"
               domain={xDomain}
