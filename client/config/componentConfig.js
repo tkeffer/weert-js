@@ -9,19 +9,19 @@ export const plotOptions = {
   height: 200,
   margin: { top: 5, right: 5, left: 5, bottom: 5 },
   nXTicks: 5,
-  type: "linear",
+  type: "linear", // Type of line interpolation. Other choices include 'natural', 'basis', 'monotone'
   xTickFormat: "lll",
   yTickFormat: undefined,
   yInterval: "preserveStartEnd",
   animationDuration: 500,
-  connectNulls: true, // Connect null data values
-  dot: false,
+  connectNulls: false, // Connect null data values if true
+  dot: false, // Show data points as dots
   activeDot: true, // True to draw dot on mouseover
-  isAnimationActive: false,
+  isAnimationActive: false, // Animate the transitions
   animationEasing: "linear",
-  stroke: "#8884d8",
-  strokeWidth: 2,
-  debounce: 200,
+  stroke: "#8884d8", // RGB line color. Can also be a name, such as 'blue'
+  strokeWidth: 2, // Line width
+  debounce: 200, // For resize events
   label: false, // True to label plot values
   plotGroups: {
     recent: {
