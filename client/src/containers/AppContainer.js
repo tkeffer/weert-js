@@ -123,8 +123,10 @@ class AppContainer extends React.PureComponent {
     const now = Date.now();
     const { staleAge, obsTypes } = this.state.packetTableOptions;
     // Create an array of observation types to include in the final packet. Be
-    // sure to include the unit system, as well as what's needed for the wind compass.
-    const allObsTypes = union(obsTypes, ["unit_system"], ["wind_speed", "wind_dir"])
+    // sure to include the unit system, as well as wind speed (used by the wind compass).
+    let allObsTypes = union(obsTypes, ["unit_system", "wind_speed"])
+    // Wind direction will be included with wind speed
+    delete allObsTypes.wind_dir
 
     let finalPacket = {};
 
@@ -143,6 +145,9 @@ class AppContainer extends React.PureComponent {
       for (const obsType of allObsTypes) {
         if (finalPacket[obsType] == null && packet[obsType] != null) {
           finalPacket[obsType] = packet[obsType];
+          if (obsType === 'wind_speed'){
+            finalPacket['wind_dir'] = packet['wind_dir']
+          }
         }
       }
     }
