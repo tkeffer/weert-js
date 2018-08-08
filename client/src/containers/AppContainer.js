@@ -4,6 +4,7 @@
  * See the file LICENSE for your full rights.
  */
 
+import union from "lodash/union";
 import React from "react";
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
@@ -121,11 +122,11 @@ class AppContainer extends React.PureComponent {
   getCurrentPacket(packets) {
     const now = Date.now();
     const { staleAge, obsTypes } = this.state.packetTableOptions;
+    // Create an array of observation types to include in the final packet. Be
+    // sure to include the unit system, as well as what's needed for the wind compass.
+    const allObsTypes = union(obsTypes, ["unit_system"], ["wind_speed", "wind_dir"])
+
     let finalPacket = {};
-    // Add "unit_system" to the list of types to be collected. First make a copy of obsTypes
-    let allObsTypes = obsTypes.slice();
-    // Then add 'unit_system'
-    allObsTypes.push("unit_system");
 
     // Iterate through the packets, most recent first
     for (let i = packets.length - 1; i >= 0; i--) {
