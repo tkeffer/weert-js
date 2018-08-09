@@ -288,8 +288,8 @@ class MeasurementManager {
         now = undefined, span = 'day',
     } = {}) {
         const now_moment  = now ? moment(+now) : moment();
-        let start         = +now_moment.startOf(span);
-        let stop          = +now_moment.endOf(span);
+        let start         = +now_moment.clone().startOf(span);
+        let stop          = +now_moment.clone().endOf(span);
         let queries       = [];
         let ordering      = [];
         const from_clause = this.get_query_from(measurement);
