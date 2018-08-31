@@ -2,11 +2,15 @@
 
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
 
-WeeRT consists of two, independent parts:
-- A real-time logging and display server, written with [Node](https://nodejs.org/en/),
-[Express](http://expressjs.com/), and [InfluxDB](https://www.influxdata.com/).
-- A client, written with [React](https://reactjs.org/) and [Redux](https://redux.js.org/), which runs in a browser
-and interacts with the server.
+WeeRT consists of three, independent parts:
+- A real-time logging and display server, written in Javascript and running on [Node](https://nodejs.org/en/). This
+server listens for real-time data updates from WeeWX, then archives them in
+an [InfluxDB](https://www.influxdata.com/time-series-platform/influxdb/) database. It also acts
+as a webserver for the WeeRT client (below).
+- A WeeWX uploader. This is a [WeeWX service](http://weewx.com/docs/customizing.htm#The_weeWX_service_architecture),
+running on WeeWX, which arranges for your data to be uploaded to the WeeRT server.
+- A client, written in Javascript using [React](https://reactjs.org/) and [Redux](https://redux.js.org/).
+It runs in a browser and interacts with the WeeRT server.
 
 This utility is still EXPERIMENTAL, and will require some skill to install and administer.
 
