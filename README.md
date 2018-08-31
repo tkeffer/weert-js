@@ -5,12 +5,18 @@
 WeeRT consists of two, independent parts:
 - A real-time logging and display server, written with [Node](https://nodejs.org/en/),
 [Express](http://expressjs.com/), and [InfluxDB](https://www.influxdata.com/).
-- A client, written with [React](https://reactjs.org/) and [Redux](https://redux.js.org/),
-that interacts with the server.
+- A client, written with [React](https://reactjs.org/) and [Redux](https://redux.js.org/), which runs in a browser
+and interacts with the server.
 
 This utility is still EXPERIMENTAL, and will require some skill to install and administer.
 
-The server and client use separate install and build procedures.
+In order to use WeeRT, there are three separate install and build procedures:
+
+1. Install the WeeRT server.
+2. Install the WeeRT uploader on WeeWX. This will post LOOP packets to the WeeRT server.
+3. Build the WeeRT client, which will run on a browser.
+
+Instructions follow.
 
 ## Installing the WeeRT server
 
@@ -69,6 +75,8 @@ used by WeeRT. Later versions should work fine.
   ```
 
 ## Installing the WeeRT uploader on WeeWX
+
+The job of the uploader is to post LOOP packets to the WeeRT server (installed above).
 
 1. Make sure you are running WeeWX V3.8 or later. Earlier versions do
 not support the POST method used by the uploader.
