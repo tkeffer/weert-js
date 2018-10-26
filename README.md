@@ -12,7 +12,7 @@ running on WeeWX, which arranges for your data to be uploaded to the WeeRT serve
 - A client, written in Javascript using [React](https://reactjs.org/) and [Redux](https://redux.js.org/).
 It runs in a browser and interacts with the WeeRT server.
 
-![WeeRT architecture](https://raw.githubusercontent.com/weewx/weewx/master/weert_architecture.jpg)
+![WeeRT architecture](./weert_architecture.jpg)
 
 This utility is still EXPERIMENTAL, and will require some skill to install and administer.
 
