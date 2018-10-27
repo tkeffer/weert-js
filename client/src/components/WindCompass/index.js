@@ -61,7 +61,7 @@ const defaultProps = {
     "NNW"
   ],
   maxPrevDirs: 20,
-  wedgeLength: 5,
+  wedgeLength: 8,
   viewBoxSize: 250
 };
 
