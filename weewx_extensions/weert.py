@@ -194,7 +194,7 @@ class WeeRTThread(weewx.restx.RESTThread):
         self.filter_funcs = _compile_filters(loop_filters)
 
     def format_url(self, _):
-        """Return the URL used to post to the WeeRT server"""
+        """Override and return the URL used to post to the WeeRT server"""
 
         url = "http://%s:%s/api/v1/measurements/%s/packets" % (self.host, self.port, self.measurement)
         return url
@@ -209,7 +209,7 @@ class WeeRTThread(weewx.restx.RESTThread):
         return request
 
     def get_post_body(self, packet):
-        """Supply the body and MIME type of the POST"""
+        """Override, then supply the body and MIME type of the POST"""
 
         out_packet = {}
         # Subject all the types to be sent to a filter function.
