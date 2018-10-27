@@ -5,8 +5,8 @@
 #
 
 #
-# See the WeeRT README file for instructions on how to install this uploader
-# in weewx.
+# See the WeeRT README file (https://github.com/tkeffer/weert-js)
+# for instructions on how to install this uploader in weewx.
 #
 
 import base64
@@ -86,11 +86,13 @@ del StringIO
 
 
 class WeeRT(weewx.restx.StdRESTful):
-    """Upload using to the WeeRT server."""
+    """WeeWX service for uploading to the WeeRT server."""
 
     def __init__(self, engine, config_dict):
         super(WeeRT, self).__init__(engine, config_dict)
 
+        # This utility will check the config_dict for any missing options. It returns None if
+        # something is missing.
         weert_dict = weewx.restx.get_site_dict(config_dict, 'WeeRT', 'host', 'port', 'user', 'password')
         if weert_dict is None:
             return
@@ -106,28 +108,32 @@ class WeeRT(weewx.restx.StdRESTful):
 
         # Start with the defaults. Make a copy --- we will be modifying it
         weert_config = configobj.ConfigObj(weert_defaults)['WeeRT']
-        # Merge in the overrides from the config file
+        # Now merge in the overrides from the config file
         weert_config.merge(weert_dict)
 
         # Get the database manager dictionary:
         manager_dict = weewx.manager.get_manager_dict_from_config(config_dict,
                                                                   'wx_binding')
 
+        # Create and start a separate thread to do the actual posting.
         self.loop_queue = Queue.Queue()
         self.archive_thread = WeeRTThread(self.loop_queue, manager_dict,
                                           **weert_config)
         self.archive_thread.start()
 
+        # Bind to the NEW_LOOP_PACKET event.
         self.bind(weewx.NEW_LOOP_PACKET, self.new_loop_packet)
         syslog.syslog(syslog.LOG_INFO, "weert: LOOP packets will be posted to %s:%s" %
                       (weert_config['host'], weert_config['port']))
 
     def new_loop_packet(self, event):
+        "Called when a new loop packet arrives"
+        # Stuff the packet into the queue
         self.loop_queue.put(event.packet)
 
 
 class WeeRTThread(weewx.restx.RESTThread):
-    """Thread that posts to an InfluxDB server"""
+    """Thread that posts to a WeeRT server"""
 
     def __init__(self, queue, manager_dict,
                  host, port,
