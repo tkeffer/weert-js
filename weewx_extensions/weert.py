@@ -13,13 +13,28 @@ import base64
 import json
 import math
 import threading
-import Queue
 import syslog
 import sys
 
-import configobj
-from weeutil.weeutil import to_int
+# Python 2 / 3 compatibility imports
 
+try:
+    # Python 2
+    from Queue import Queue
+except ImportError:
+    # Python 3
+    from queue import Queue
+
+try:
+    # Python 2
+    from StringIO import StringIO
+except ImportError:
+    # Python 3
+    from io import StringIO
+
+import configobj
+
+from weeutil.weeutil import to_int
 import weewx.restx
 
 defaults_ini = """
@@ -79,10 +94,8 @@ defaults_ini = """
         x_wind_speed = windSpeed * math.cos(math.radians(90.0 - windDir)) if (windDir is not None and windSpeed is not None) else None
         y_wind_speed = windSpeed * math.sin(math.radians(90.0 - windDir)) if (windDir is not None and windSpeed is not None) else None
 """
-import StringIO
 
-weert_defaults = configobj.ConfigObj(StringIO.StringIO(defaults_ini))
-del StringIO
+weert_defaults = configobj.ConfigObj(StringIO(defaults_ini))
 
 
 class WeeRT(weewx.restx.StdRESTful):
@@ -116,7 +129,7 @@ class WeeRT(weewx.restx.StdRESTful):
                                                                   'wx_binding')
 
         # Create and start a separate thread to do the actual posting.
-        self.loop_queue = Queue.Queue()
+        self.loop_queue = Queue()
         self.archive_thread = WeeRTThread(self.loop_queue, manager_dict,
                                           **weert_config)
         self.archive_thread.start()
@@ -142,7 +155,7 @@ class WeeRTThread(weewx.restx.RESTThread):
                  platform, stream,
                  loop_filters,
                  protocol_name="WeeRT",
-                 post_interval=None, max_backlog=sys.maxint, stale=None,
+                 post_interval=None, max_backlog=sys.maxsize, stale=None,
                  log_success=True, log_failure=True,
                  timeout=10, max_tries=3, retry_wait=5, retry_login=3600,
                  softwaretype="weewx-%s" % weewx.__version__,
@@ -201,11 +214,14 @@ class WeeRTThread(weewx.restx.RESTThread):
 
     def get_request(self, url):
         """Override and add user and password"""
+
         # Get the basic Request from my superclass
         request = super(WeeRTThread, self).get_request(url)
-        # add the authentication header:
-        base64string = base64.b64encode('%s:%s' % (self.user, self.password))
-        request.add_header("Authorization", "Basic %s" % base64string)
+
+        # Create a base64 byte string with the authorization info
+        base64string = base64.b64encode(('%s:%s' % (self.user, self.password)).encode())
+        # Add the authentication header to the request:
+        request.add_header("Authorization", b"Basic %s" % base64string)
         return request
 
     def get_post_body(self, packet):
