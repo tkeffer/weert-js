@@ -124,14 +124,9 @@ class WeeRT(weewx.restx.StdRESTful):
         # Now merge in the overrides from the config file
         weert_config.merge(weert_dict)
 
-        # Get the database manager dictionary:
-        manager_dict = weewx.manager.get_manager_dict_from_config(config_dict,
-                                                                  'wx_binding')
-
         # Create and start a separate thread to do the actual posting.
         self.loop_queue = Queue()
-        self.archive_thread = WeeRTThread(self.loop_queue, manager_dict,
-                                          **weert_config)
+        self.archive_thread = WeeRTThread(self.loop_queue, **weert_config)
         self.archive_thread.start()
 
         # Bind to the NEW_LOOP_PACKET event.
@@ -148,7 +143,7 @@ class WeeRT(weewx.restx.StdRESTful):
 class WeeRTThread(weewx.restx.RESTThread):
     """Thread that posts to a WeeRT server"""
 
-    def __init__(self, queue, manager_dict,
+    def __init__(self, queue,
                  host, port,
                  user, password,
                  measurement,
@@ -182,7 +177,6 @@ class WeeRTThread(weewx.restx.RESTThread):
         """
         super(WeeRTThread, self).__init__(queue,
                                           protocol_name=protocol_name,
-                                          manager_dict=manager_dict,
                                           post_interval=post_interval,
                                           max_backlog=max_backlog,
                                           stale=stale,
