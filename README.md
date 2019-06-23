@@ -2,7 +2,8 @@
 
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
 
-WeeRT consists of three, independent parts:
+WeeRT is a realtime extension for [WeeWX](http://weewx.com), open-source software for 
+your weather station. It consists of three, independent parts:
 - The WeeRT uploader. This is a [WeeWX service](http://weewx.com/docs/customizing.htm#The_weeWX_service_architecture), 
 which arranges for your data to be uploaded from WeeWX to the WeeRT server.
 - The WeeRT server, a real-time logging and display server, written in Javascript and running on 
@@ -12,6 +13,8 @@ an [InfluxDB](https://www.influxdata.com/time-series-platform/influxdb/) databas
 as a webserver for the WeeRT client.
 - The WeeRT browser client, written in Javascript using [React](https://reactjs.org/) and [Redux](https://redux.js.org/).
 It runs in a browser and interacts with the WeeRT server.
+
+The following diagram illustrates the relationships between the three different pieces:
 
 ![WeeRT architecture](./weert_architecture.jpg)
 
@@ -31,9 +34,9 @@ Instructions follow.
 Hopefully, this limitation can be lifted in the future. To change the timezone on Debian based
 operating systems:
 
-  ```shell
-  $ sudo dpkg-reconfigure tzdata
-  ```
+    ```shell
+    $ sudo dpkg-reconfigure tzdata
+    ```
 
 2. Download and install [InfluxDB](https://www.influxdata.com/). WeeRT was tested with
 version 1.3.5. Later versions should work fine.
@@ -41,9 +44,9 @@ version 1.3.5. Later versions should work fine.
 3. If necessary, start it by whatever means is needed for your operating system. This works
 on Ubuntu 16.04:
 
-  ```shell
-  $ systemctl start influxdb
-  ```
+    ```shell
+    $ systemctl start influxdb
+    ```
 
 4. Download and install [node](https://nodejs.org/en/). WeeRT was tested with version 8.9.0,
 also known as LTS/Carbon. This version or later is needed to support the object "spread" operator
@@ -51,35 +54,35 @@ used by WeeRT. Later versions should work fine.
 
 5. Download WeeRT from the git repository
 
-  ```shell
-  $ git clone https://github.com/tkeffer/weert-js.git
-  ```
+    ```shell
+    $ git clone https://github.com/tkeffer/weert-js.git
+    ```
 
-6. Enter the directory, and install the server dependencies
+6. Enter the WeeRT sub-directory, and install the server dependencies
 
-  ```shell
-  $ cd weert-js
-  $ npm install
-  ```
+    ```shell
+    $ cd weert-js
+    $ npm install
+    ```
 
 7. Start the WeeRT server
 
-  ```shell
-  $ npm start
-  Listening on port 3000
-  ```
+    ```shell
+    $ npm start
+    Listening on port 3000
+    ```
 
 8. To run the test suites, in another shell download and install `jasmine` globally
 
-  ```shell
-  $ npm install -g jasmine
-  ```
+    ```shell
+    $ npm install -g jasmine
+    ```
 
 9. Run the suites
 
-  ```shell
-  $ npm test
-  ```
+    ```shell
+    $ npm test
+    ```
 
 ## Installing the WeeRT uploader on WeeWX
 
@@ -125,7 +128,7 @@ not support the POST method used by the uploader.
 
 
 ## General architecture
-- Uses a [Node](https://nodejs.org/) server with the [Express framework](http://expressjs.com/).
+- The WeeRT server runs on [Node](https://nodejs.org/) using the [Express framework](http://expressjs.com/).
 - The server offers a RESTful API ([described below](#API)) for storing, retrieving,
   and deleting data measurements.
 - Data are stored in an [InfluxDB](https://www.influxdata.com/) server.
@@ -179,7 +182,7 @@ for how to control its logging policies.
 
 ### Observation names
 
-WeeRT uses a different system to name observation types than WeeWx.
+WeeRT uses a different system to name observation types than WeeWX.
 For example, for outside temperature, WeeWX uses `outTemp`, while
 WeeRT uses `out_temperature`. The general pattern is that the last
 part of the observation name, `temperature` in this example, denotes
@@ -276,8 +279,8 @@ ecosystem. It's useful to be aware of the differences.
    ```json
    {
      "timestamp" : 1507432417000,
-     "measurement" : "wxpackets"
-     "tags" : {"platform" : "Red barn", "stream" : "Accurite"}
+     "measurement" : "wxpackets",
+     "tags" : {"platform" : "Red barn", "stream" : "Accurite"},
      "fields" : {"out_temperature" : 20.5, "out_humidity_percent" : 65.0, "unit_system" : 16}
     }
   ```
