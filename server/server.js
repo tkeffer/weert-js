@@ -48,6 +48,7 @@ const MeasurementManager = require("./services/measurement_manager");
 const auth_router_factory = require("./routes/auth_routes");
 const packet_router_factory = require("./routes/packet_routes");
 const stats_router_factory = require("./routes/stats_routes");
+const about_router_factory = require("./routes/about_routes");
 const subsampling = require("./services/subsampling");
 const retention_policies = require("./config/retention_policies");
 // This type of metadata should probably be in a database,
@@ -97,6 +98,9 @@ influx
 
     // Set up the statistics routes
     app.use(config.server.api, stats_router_factory(measurement_manager));
+
+    // Set up the "about" routes
+    app.use(config.server.api, about_router_factory());
 
     /*
      * Error handlers. If we got this far, the request did not match any router. It's a 404.

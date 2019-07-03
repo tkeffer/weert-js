@@ -760,7 +760,7 @@ GET /api/v1/measurements/:measurement
 ```
 
 
-**Return status**
+**Response code**
 
 | *Status* | *Meaning*             |
 |:---------|:----------------------|
@@ -1106,9 +1106,46 @@ Connection: keep-alive
 ```
 
 
+## About
+
+Return information about the WeeRT server
+
+```
+GET /api/v1/about
+```
+
+**Parameters**
+
+None
+
+**Response code**
+
+| *Status* | *Meaning*             |
+|:---------|:----------------------|
+| 200      | Success               |
+
+If successful, the server will return a JSON structure holding information about the uptime of
+the operating system, uptime of the WeeRT process, the Node version number, and the WeeRT
+server version number.
+
+**Example**
+```shell
+$ curl -i --silent -X GET 'http://localhost:3000/api/v1/about
+
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Content-Length: 95
+ETag: W/"5f-Cn3HkGQZH+3Km80XJvOFk8Ndpqc"
+Vary: Accept-Encoding
+Date: Sat, 29 Jun 2019 22:06:14 GMT
+Connection: keep-alive
+
+{"server_uptime":365124,"weert_uptime":413.837,"node_version":"v10.15.2","weert_version":"0.6.0"}
+```
 
 # License & Copyright
 
-Copyright (c) 2015-2018 Tom Keffer <tkeffer@gmail.com>
+Copyright (c) 2015-2019 Tom Keffer <tkeffer@gmail.com>
 
   See the file LICENSE for your full rights.

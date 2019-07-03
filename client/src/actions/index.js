@@ -17,6 +17,9 @@ export const FETCH_STATS_IN_PROGRESS = "FETCH_STATS_IN_PROGRESS";
 export const FETCH_STATS_SUCCESS = "FETCH_STATS_SUCCESS";
 export const FETCH_STATS_FAILURE = "FETCH_STATS_FAILURE";
 export const NEW_PACKET = "NEW_PACKET";
+export const FETCH_ABOUT_IN_PROGRESS = "FETCH_ABOUT_IN_PROGRESS";
+export const FETCH_ABOUT_SUCCESS = "FETCH_ABOUT_SUCCESS";
+export const FETCH_ABOUT_FAILURE = "FETCH_ABOUT_FAILURE";
 
 // Select a new set of tags (such as platform or stream).
 export function selectTags(tags) {
@@ -108,9 +111,7 @@ export function fetchTimeSpanIfNeeded(timeSpan, newOptions) {
     if (shouldFetchTimeSpan(timeSpanState, newOptions)) {
       const { selectedTags } = state;
       const { measurement } = timeSpanState;
-      return dispatch(
-        fetchTimeSpan(measurement, selectedTags, timeSpan, newOptions)
-      );
+      return dispatch(fetchTimeSpan(measurement, selectedTags, timeSpan, newOptions));
     }
   };
 }
@@ -186,5 +187,36 @@ export function fetchStatsIfNeeded(timeSpan) {
       const { measurement } = statsState;
       return dispatch(fetchStats(measurement, selectedTags, timeSpan));
     }
+  };
+}
+
+function fetchAboutInProgress() {
+  return {
+    type: FETCH_ABOUT_IN_PROGRESS
+  };
+}
+
+function receiveAbout(about) {
+  return {
+    type: FETCH_ABOUT_SUCCESS,
+    about
+  };
+}
+
+function receiveAboutFailed(err) {
+  return {
+    type: FETCH_ABOUT_FAILURE,
+    err
+  };
+}
+
+export function fetchAbout() {
+  return dispatch => {
+    // Let the world know that a fetch is in progress
+    dispatch(fetchAboutInProgress());
+    return api
+      .getAbout()
+      .then(about => dispatch(receiveAbout(about)))
+      .catch(err => dispatch(receiveAboutFailed(err)));
   };
 }

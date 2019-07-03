@@ -22,7 +22,8 @@ import {
   selectTimeDetail,
   fetchTimeSpanIfNeeded,
   subscribeMeasurement,
-  fetchStatsIfNeeded
+  fetchStatsIfNeeded,
+  fetchAbout
 } from "../actions";
 import PlotContainer from "./PlotContainer";
 import PacketTable from "../components/PacketTable";
@@ -54,6 +55,7 @@ class AppContainer extends React.PureComponent {
 
   componentDidMount() {
     const { dispatch, selectedTimeSpan } = this.props;
+    const {serverUpdate} = this.state.aboutOptions;
 
     // We always need 'recent' (for the real-time packet display)
     this.fetchAndSubscribeIfNeeded("recent");
@@ -65,6 +67,12 @@ class AppContainer extends React.PureComponent {
     // the day's statistics.
     const selectedStats = selectedTimeSpan === "recent" ? "day" : selectedTimeSpan;
     dispatch(fetchStatsIfNeeded(selectedStats));
+
+    function getAbout(){
+      dispatch(fetchAbout());
+      setTimeout(getAbout, serverUpdate)
+    }
+    getAbout();
   }
 
   componentWillUnmount() {
@@ -124,9 +132,9 @@ class AppContainer extends React.PureComponent {
     const { staleAge, obsTypes } = this.state.packetTableOptions;
     // Create an array of observation types to include in the final packet. Be
     // sure to include the unit system, as well as wind speed (used by the wind compass).
-    let allObsTypes = union(obsTypes, ["unit_system", "wind_speed"])
+    let allObsTypes = union(obsTypes, ["unit_system", "wind_speed"]);
     // Wind direction will be included with wind speed
-    delete allObsTypes.wind_dir
+    delete allObsTypes.wind_dir;
 
     let finalPacket = {};
 
@@ -145,8 +153,8 @@ class AppContainer extends React.PureComponent {
       for (const obsType of allObsTypes) {
         if (finalPacket[obsType] == null && packet[obsType] != null) {
           finalPacket[obsType] = packet[obsType];
-          if (obsType === 'wind_speed'){
-            finalPacket['wind_dir'] = packet['wind_dir']
+          if (obsType === "wind_speed") {
+            finalPacket["wind_dir"] = packet["wind_dir"];
           }
         }
       }
@@ -172,6 +180,8 @@ class AppContainer extends React.PureComponent {
       selectedStatsSpan = selectedTimeSpan;
       selectedStats = this.props.stats[selectedTimeSpan];
     }
+
+    const aboutState = this.props.about;
 
     return (
       <Grid fluid={true}>
@@ -205,7 +215,7 @@ class AppContainer extends React.PureComponent {
               />
             </div>
             <div>
-              <About />
+              <About {...aboutState} />
             </div>
           </Col>
 

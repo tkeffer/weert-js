@@ -131,6 +131,13 @@ const state = {
     year: {
       // ...
     }
+  },
+  
+  about: {
+    server_uptime : 415833,
+    weert_uptime : 16528.58,
+    node_version : "v10.15.2",
+    weert_version : "0.6.0",
   }
 };
 ```

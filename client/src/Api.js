@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018 Tom Keffer <tkeffer@gmail.com>
+ * Copyright (c) 2016-2019 Tom Keffer <tkeffer@gmail.com>
  *
  * See the file LICENSE for your full rights.
  */
@@ -51,4 +51,13 @@ export function subscribe(measurement, tags, callback) {
 
 export function unsubscribe(socket) {
   socket.close();
+}
+
+export function getAbout() {
+  const url = `http://${window.location.host}/api/v1/about`;
+
+  return fetch(url).then(response => {
+    if (!response.ok) return Promise.reject(new Error(response.statusText));
+    return response.json();
+  });
 }

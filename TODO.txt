@@ -20,6 +20,10 @@ CLIENT
 
 Add reducers and UI code to deal with failed requests FETCH_TIMESPAN_FAILURE and FETCH_STATS_FAILURE.
 
+Same with FETCH_ABOUT_FAILURE.
+
+Take advantage of isFetching in About component.
+
 Introduce a system of style classes.
 
 Need a timer that at the end of a time spans ('day', 'wee', etc.) emits an event, advancing the chart.

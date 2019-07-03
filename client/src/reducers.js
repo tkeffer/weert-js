@@ -16,7 +16,10 @@ import {
   FETCH_STATS_IN_PROGRESS,
   FETCH_STATS_SUCCESS,
   FETCH_STATS_FAILURE,
-  NEW_PACKET
+  NEW_PACKET,
+  FETCH_ABOUT_IN_PROGRESS,
+  FETCH_ABOUT_SUCCESS,
+  FETCH_ABOUT_FAILURE
 } from "./actions";
 
 const initialTags = {
@@ -95,6 +98,14 @@ const initialStatsState = {
     measurement: "wxrecords",
     data: {}
   }
+};
+
+const initialAbout = {
+  isFetching: false,
+  server_uptime: undefined,
+  weert_uptime: undefined,
+  node_version: "unknown",
+  weert_version: "unknown"
 };
 
 function reduceTags(state = initialTags, action) {
@@ -183,13 +194,33 @@ function reduceStats(state = initialStatsState, action) {
   }
 }
 
+function reduceAbout(state = initialAbout, action) {
+  switch (action.type) {
+    case FETCH_ABOUT_IN_PROGRESS:
+      return {
+        ...state,
+        isFetching: true
+      };
+    case FETCH_ABOUT_SUCCESS:
+      return {
+        ...state,
+        isFetching: false,
+        ...action.about
+      };
+    case FETCH_ABOUT_FAILURE:
+    default:
+      return state;
+  }
+}
+
 // Combine all the reducers into one big reducer. The final state will be a composite, with keys
 // 'selectedTags', 'selectedTimeSpan', 'timeSpans' and 'stats':
 const rootReducer = combineReducers({
   selectedTags: reduceTags,
   selectedTimeSpan: reduceSelectedTimeSpan,
   timeSpans: reduceTimeSpans,
-  stats: reduceStats
+  stats: reduceStats,
+  about: reduceAbout
 });
 
 export default rootReducer;
@@ -209,10 +240,7 @@ function pushPacketOnTimeSpans(state, action) {
     const { options, packets } = state[timeSpan];
 
     // Does this time span use the incoming measurement? Also, we cannot handle aggregations
-    if (
-      state[timeSpan].measurement === measurement &&
-      options.aggregation === undefined
-    ) {
+    if (state[timeSpan].measurement === measurement && options.aggregation === undefined) {
       // The new state will be the old state, with the packet array replaced with an
       // array that has the packet inserted into the proper spot.
       newState[timeSpan] = {
