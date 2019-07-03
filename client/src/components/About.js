@@ -4,20 +4,28 @@
  * See the file LICENSE for your full rights.
  */
 import React from "react";
-const humanizeDuration = require('humanize-duration')
+const humanizeDuration = require("humanize-duration");
+
+// React component that represents a row in the "About server" table.
+function DataRow(props) {
+  const { label, value, isFetching } = props;
+  return (
+    <tr>
+      <td>{label}</td>
+      <td style={{ fontWeight: "bold", paddingLeft: "10px" }}>
+        {isFetching && "Loading"}
+        {!isFetching && <span>{value}</span>}
+      </td>
+    </tr>
+  );
+}
 
 export default class About extends React.PureComponent {
   render() {
     const { server_uptime, weert_uptime, node_version, weert_version, isFetching } = this.props;
+    // Get nice, human readable strings from the raw uptime value
     const server_uptime_str = humanizeDuration(parseInt(server_uptime, 10) * 1000.0);
     const weert_uptime_str = humanizeDuration(parseInt(weert_uptime, 10) * 1000.0);
-    const labelStyle = {
-    };
-
-    const dataStyle = {
-      "font-weight": "bold",
-      "padding-left": "10px",
-    };
 
     return (
       <div>
@@ -65,24 +73,16 @@ export default class About extends React.PureComponent {
             </li>
           </ul>
           <h4>Server information</h4>
-          <table style={{"margin-left": "30px"}}>
-            <tr>
-              <td style={labelStyle}>Node version</td>
-              <td style={dataStyle}>{node_version}</td>
-            </tr>
-            <tr>
-              <td style={labelStyle}>Server uptime</td>
-              <td style={dataStyle}>{server_uptime_str}</td>
-            </tr>
-            <tr>
-              <td style={labelStyle}>WeeRT uptime</td>
-              <td style={dataStyle}>{weert_uptime_str}</td>
-            </tr>
-            <tr>
-              <td style={labelStyle}>WeeRT version</td>
-              <td style={dataStyle}>{weert_version}</td>
-            </tr>
-          </table>
+          <div style={{ opacity: isFetching ? 0.5 : 1 }}>
+            <table style={{ marginLeft: "30px" }}>
+              <tbody>
+                <DataRow label="Node version" value={node_version} isFetching={isFetching} />
+                <DataRow label="Server uptime" value={server_uptime_str} isFetching={isFetching} />
+                <DataRow label="WeeRT uptime" value={weert_uptime_str} isFetching={isFetching} />
+                <DataRow label="WeeRT version" value={weert_version} isFetching={isFetching} />
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     );
