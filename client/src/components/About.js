@@ -4,6 +4,7 @@
  * See the file LICENSE for your full rights.
  */
 import React from "react";
+import PropTypes from "prop-types";
 const humanizeDuration = require("humanize-duration");
 
 // React component that represents a row in the "About server" table.
@@ -19,6 +20,20 @@ function DataRow(props) {
     </tr>
   );
 }
+
+const propTypes = {
+  node_version: PropTypes.string.isRequired,
+  server_uptime: PropTypes.number,
+  weert_uptime: PropTypes.number,
+  weert_version: PropTypes.string.isRequired,
+  isFetching: PropTypes.bool
+};
+
+const defaultProps = {
+  server_uptime: undefined,
+  weert_uptime: undefined,
+  isFetching: false
+};
 
 export default class About extends React.PureComponent {
   render() {
@@ -88,3 +103,6 @@ export default class About extends React.PureComponent {
     );
   }
 }
+
+About.propTypes = propTypes;
+About.defaultProps = defaultProps;

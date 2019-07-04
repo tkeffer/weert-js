@@ -49,13 +49,14 @@ class AppContainer extends React.PureComponent {
     this.handleChange = this.handleChange.bind(this);
     this.state = {
       subscriptions: {},
+      firstRender: true,
       ...config
     };
   }
 
   componentDidMount() {
     const { dispatch, selectedTimeSpan } = this.props;
-    const {serverUpdate} = this.state.aboutOptions;
+    const { serverUpdate } = this.state.aboutOptions;
 
     // We always need 'recent' (for the real-time packet display)
     this.fetchAndSubscribeIfNeeded("recent");
@@ -68,9 +69,10 @@ class AppContainer extends React.PureComponent {
     const selectedStats = selectedTimeSpan === "recent" ? "day" : selectedTimeSpan;
     dispatch(fetchStatsIfNeeded(selectedStats));
 
-    function getAbout(){
+    // Set a timer to regularly fetch new info about the WeeRT server
+    function getAbout() {
       dispatch(fetchAbout());
-      setTimeout(getAbout, serverUpdate)
+      setTimeout(getAbout, serverUpdate);
     }
     getAbout();
   }
@@ -92,6 +94,8 @@ class AppContainer extends React.PureComponent {
       const selectedStats = selectedTimeSpan === "recent" ? "day" : selectedTimeSpan;
       dispatch(fetchStatsIfNeeded(selectedStats));
     }
+    // No longer the first render
+    this.setState({ ...this.state, firstRender: false });
   }
 
   handleChange(key) {
@@ -181,7 +185,7 @@ class AppContainer extends React.PureComponent {
       selectedStats = this.props.stats[selectedTimeSpan];
     }
 
-    const aboutState = this.props.about;
+    const aboutProps = this.props.about;
 
     return (
       <Grid fluid={true}>
@@ -215,7 +219,8 @@ class AppContainer extends React.PureComponent {
               />
             </div>
             <div>
-              <About {...aboutState} />
+              {/* Render the "Loading" comment only during the first render. */}
+              <About {...aboutProps} isFetching={aboutProps.isFetching && this.state.firstRender} />
             </div>
           </Col>
 
