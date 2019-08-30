@@ -21,6 +21,7 @@
     "d3-scale": "^2.2.2",
     "d3-transition": "^1.2.0",
     "humanize-duration": "^3.20.1",
+    "lodash-es": "^4.17.14",
     "moment": "^2.23.0",
     "prop-types": "^15.7.2",
     "react": "^16.9.0",
