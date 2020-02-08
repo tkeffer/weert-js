@@ -1,5 +1,5 @@
 #
-#  Copyright (c) 2017 Tom Keffer <tkeffer@gmail.com>
+#  Copyright (c) 2017-2020 Tom Keffer <tkeffer@gmail.com>
 #
 #     See the file LICENSE for your full rights.
 #
@@ -13,7 +13,6 @@ import base64
 import json
 import math
 import threading
-import syslog
 import sys
 
 # Python 2 / 3 compatibility imports
@@ -37,7 +36,39 @@ import configobj
 from weeutil.weeutil import to_int
 import weewx.restx
 
-defaults_ini = """
+try:
+    # Test for new-style weewx logging by trying to import weeutil.logger
+    import weeutil.logger
+    import logging
+    log = logging.getLogger(__name__)
+
+    def logdbg(msg):
+        log.debug(msg)
+
+    def loginf(msg):
+        log.info(msg)
+
+    def logerr(msg):
+        log.error(msg)
+
+except ImportError:
+    # Old-style weewx logging
+    import syslog
+
+    def logmsg(level, msg):
+        syslog.syslog(level, 'weert: %s:' % msg)
+
+    def logdbg(msg):
+        logmsg(syslog.LOG_DEBUG, msg)
+
+    def loginf(msg):
+        logmsg(syslog.LOG_INFO, msg)
+
+    def logerr(msg):
+        logmsg(syslog.LOG_ERR, msg)
+
+
+DEFAULTS_INI = """
 [WeeRT]
 
     # The WeeRT server
@@ -95,7 +126,7 @@ defaults_ini = """
         y_wind_speed = windSpeed * math.sin(math.radians(90.0 - windDir)) if (windDir is not None and windSpeed is not None) else None
 """
 
-weert_defaults = configobj.ConfigObj(StringIO(defaults_ini))
+weert_defaults = configobj.ConfigObj(StringIO(DEFAULTS_INI), encoding='utf-8')
 
 
 class WeeRT(weewx.restx.StdRESTful):
@@ -115,8 +146,8 @@ class WeeRT(weewx.restx.StdRESTful):
         try:
             getattr(weewx.restx.RESTThread, 'get_post_body')
         except AttributeError:
-            syslog.syslog(syslog.LOG_NOTICE, 'weert: WeeWX needs to be upgraded to V3.8 in order to run WeeRT')
-            syslog.syslog(syslog.LOG_NOTICE, '****   WeeRT upload skipped')
+            loginf('WeeWX needs to be upgraded to V3.8 in order to run WeeRT')
+            loginf('****   WeeRT upload skipped')
             return
 
         # Start with the defaults. Make a copy --- we will be modifying it
@@ -131,8 +162,8 @@ class WeeRT(weewx.restx.StdRESTful):
 
         # Bind to the NEW_LOOP_PACKET event.
         self.bind(weewx.NEW_LOOP_PACKET, self.new_loop_packet)
-        syslog.syslog(syslog.LOG_INFO, "weert: LOOP packets will be posted to %s:%s" %
-                      (weert_config['host'], weert_config['port']))
+        loginf("LOOP packets will be posted to %s:%s"
+               % (weert_config['host'], weert_config['port']))
 
     def new_loop_packet(self, event):
         "Called when a new loop packet arrives"
@@ -233,11 +264,12 @@ class WeeRTThread(weewx.restx.RESTThread):
             except NameError:
                 pass
 
-        body = {"measurement": self.measurement,
-                "tags": {"platform": self.platform, "stream": self.stream},
-                "timestamp": int(packet["dateTime"] * 1000),  # Convert to milliseconds
-                "fields": out_packet
-                }
+        body = {
+            "measurement": self.measurement,
+            "tags": {"platform": self.platform, "stream": self.stream},
+            "timestamp": int(packet["dateTime"] * 1000),  # Convert to milliseconds
+            "fields": out_packet
+        }
         json_body = json.dumps(body)
         return json_body, 'application/json'
 
