@@ -6,14 +6,14 @@
 
 "use strict";
 
-const Server = require("socket.io");
-const debug = require("debug")("weert:client_notifier");
-
-const config = require("../config/config");
-const event_emitter = require("./event_emitter");
+import {Server} from 'socket.io';
+import debugFactory from 'debug';
+const debug = debugFactory("weert:client_notifier");
+import config from '../config/config.js';
+import event_emitter from './event_emitter.js';
 
 // Set up the pub-sub facility
-const setup = function(httpServer) {
+export const setup = function(httpServer) {
   let io = new Server(httpServer, config.socket_io);
 
   io.on("connection", function(socket) {
@@ -37,8 +37,4 @@ const setup = function(httpServer) {
       socket.emit(`/${measurement}`, record);
     });
   });
-};
-
-module.exports = {
-  setup
 };

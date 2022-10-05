@@ -11,11 +11,11 @@
 
 'use strict';
 
-const debug   = require('debug')('weert:routes');
-const express = require('express');
-
-const auxtools  = require('../auxtools');
-const stats_policies = require('../config/stats_policies')
+import debugFactory from 'debug';
+const debug = debugFactory('weert:routes');
+import express from 'express';
+import auxtools from '../auxtools.js';
+import stats_policies from '../config/stats_policies.js';
 
 const StatsRouterFactory = function (measurement_manager) {
 
@@ -49,4 +49,4 @@ const StatsRouterFactory = function (measurement_manager) {
     return router;
 };
 
-module.exports = StatsRouterFactory;
+export default StatsRouterFactory;

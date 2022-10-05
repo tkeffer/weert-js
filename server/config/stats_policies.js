@@ -4,7 +4,7 @@
  * See the file LICENSE for your full rights.
  */
 
-module.exports = {
+export default {
     'altimeter_pressure'     : ['MIN', 'MAX'],
     'dewpoint_temperature'   : ['MIN', 'MAX'],
     'extra1_humidity_percent': ['MIN', 'MAX'],

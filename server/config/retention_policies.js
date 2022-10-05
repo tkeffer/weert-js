@@ -9,7 +9,7 @@
  * Right now, there is only one, 'h24', but others could be added.
  */
 
-module.exports = {
+export default {
     "h24": {
         database   : 'weert',
         duration   : '24h',

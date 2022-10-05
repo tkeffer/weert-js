@@ -6,6 +6,6 @@
 
 'use strict';
 
-const events = require('events');
+import events from 'events';
 
-module.exports = new events.EventEmitter();
+export default new events.EventEmitter();

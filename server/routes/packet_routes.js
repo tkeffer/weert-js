@@ -11,11 +11,11 @@
 
 'use strict';
 
-const debug   = require('debug')('weert:routes');
-const express = require('express');
-
-const auxtools = require('../auxtools');
-const event_emitter = require('../services/event_emitter')
+import debugFactory from 'debug';
+const debug = debugFactory('weert:routes');
+import express from 'express';
+import auxtools from '../auxtools.js';
+import event_emitter from '../services/event_emitter.js';
 
 const PacketRouterFactory = function (measurement_manager) {
 
@@ -168,4 +168,4 @@ const PacketRouterFactory = function (measurement_manager) {
 
 };
 
-module.exports = PacketRouterFactory;
+export default PacketRouterFactory;

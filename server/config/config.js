@@ -7,7 +7,7 @@
 /*
  * Configuration information for WeeRT
  */
-module.exports = {
+export default {
   // Set to 0 (zero) for no debugging, 1 (one) for debugging.
   debug: 1,
 

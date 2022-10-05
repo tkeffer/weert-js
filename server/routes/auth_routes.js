@@ -11,9 +11,10 @@
 
 "use strict";
 
-const debug   = require('debug')('weert:auth');
-const express = require('express');
-const auth    = require('basic-auth');
+import debugFactory from 'debug';
+const debug = debugFactory('weert:auth');
+import express from 'express';
+import auth from 'basic-auth';
 
 const AuthRouterFactory = function (users) {
 
@@ -59,6 +60,6 @@ const unauthorized = function (req, res, user_info) {
     debug(`IP ${req.ip} unauthorized for ${req.method} to ${req.originalUrl}`);
 };
 
-module.exports = AuthRouterFactory;
+export default AuthRouterFactory;
 
 

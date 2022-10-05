@@ -1,9 +1,8 @@
-#!/usr/bin/env node
-/*
- * Copyright (c) 2016-2018 Tom Keffer <tkeffer@gmail.com>
- *
- * See the file LICENSE for your full rights.
- */
+#!/usr/bin/env node/*
+/* Copyright (c) 2016-2022 Tom Keffer <tkeffer@gmail.com>
+*
+* See the file LICENSE for your full rights.
+*/
 
 "use strict";
 
@@ -11,13 +10,20 @@
  * This first part is pretty much boilerplate for any Express
  * application.
  */
-const bodyParser = require("body-parser");
-const compression = require("compression");
-const debug = require("debug")("weert:server");
-const http = require("http");
-const logger = require("morgan");
-const path = require("path");
-const express = require("express");
+import bodyParser from "body-parser";
+import compression from "compression";
+import debugFactory from "debug";
+
+const debug = debugFactory("weert:server");
+import http from "http";
+import logger from "morgan";
+import express from "express";
+
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const app = express();
 
 // Set up the view engine
@@ -43,20 +49,24 @@ app.use(express.static(path.join(__dirname, "../client/dist")));
 /*
  * Now comes the WeeRT-specific stuff
  */
-const config = require("./config/config");
-const MeasurementManager = require("./services/measurement_manager");
-const auth_router_factory = require("./routes/auth_routes");
-const packet_router_factory = require("./routes/packet_routes");
-const stats_router_factory = require("./routes/stats_routes");
-const about_router_factory = require("./routes/about_routes");
-const subsampling = require("./services/subsampling");
-const retention_policies = require("./config/retention_policies");
+import config from "./config/config.js";
+
+import MeasurementManager from "./services/measurement_manager.js";
+import auth_router_factory from "./routes/auth_routes.js";
+import packet_router_factory from "./routes/packet_routes.js";
+import stats_router_factory from "./routes/stats_routes.js";
+import about_router_factory from "./routes/about_routes.js";
+import subsampling from "./services/subsampling.js";
+import retention_policies from "./config/retention_policies.js";
+import { setup } from "./services/client_notifier.js";
+
 // This type of metadata should probably be in a database,
 // but for now, retrieve it from a JSON file
-const measurement_config = require("./meta_data/measurement_config");
+import measurement_config from "./meta_data/measurement_config.json" assert { type: "json" };
 
 // Set up the database and its managers
-const Influx = require("influx");
+import Influx from "influx";
+
 const influx = new Influx.InfluxDB(config.influxdb);
 
 influx
@@ -108,7 +118,7 @@ influx
      */
     app.use(function(req, res, next) {
       debug("caught 404");
-      let err = new Error("Page not found: " + req.originalUrl);
+      let err    = new Error("Page not found: " + req.originalUrl);
       err.status = 404;
       next(err);
     });
@@ -156,7 +166,7 @@ influx
     });
 
     // Set up the system to notify remote clients using socket.io.
-    require("./services/client_notifier").setup(httpServer);
+    setup(httpServer);
 
     // Start listening!
     httpServer.listen(config.server.port);

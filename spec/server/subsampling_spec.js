@@ -6,16 +6,14 @@
 
 "use strict";
 
-const async = require('async');
-const _     = require('lodash');
-
-const event_emitter      = require('../../server/services/event_emitter');
-const config             = require('../../server/config/config');
-const stats_policies     = require('../../server/config/stats_policies');
-const MeasurementManager = require('../../server/services/measurement_manager');
-const subsampling        = require('../../server/services/subsampling');
-
-const Influx = require('influx');
+import async from 'async';
+import _ from 'lodash';
+import event_emitter from '../../server/services/event_emitter.js';
+import config from '../../server/config/config.js';
+import stats_policies from '../../server/config/stats_policies.js';
+import MeasurementManager from '../../server/services/measurement_manager.js';
+import subsampling from '../../server/services/subsampling.js';
+import Influx from 'influx';
 const influx = new Influx.InfluxDB(config.influxdb);
 
 // Null measurement config needed for these tests.
@@ -145,7 +143,6 @@ function summary_reducer(summary, packet) {
 }
 
 function expected_records(packet_array, platform) {
-    let records = [];
 
     return _.range(start, start + period, record_interval)
             .map(start_of_interval => {
@@ -187,7 +184,6 @@ const packet_array2 = expected_packets('platform2');
 const record_array1 = expected_records(packet_array1, 'platform1');
 const record_array2 = expected_records(packet_array2, 'platform2');
 
-const packet_array1_summary = packet_array1.reduce(summary_reducer, {});
 const record_array1_summary = record_array1.reduce(summary_reducer, {});
 
 function populate_db(measurement_manager, packet_array) {
@@ -204,7 +200,7 @@ function populate_db(measurement_manager, packet_array) {
         for (let packet of packet_array) {
             q.push(packet);
         }
-        q.drain = () => resolve(N);
+        q.drain(() => resolve(N))
     });
 }
 

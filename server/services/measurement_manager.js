@@ -5,12 +5,10 @@
  */
 
 'use strict';
-const moment       = require('moment');
-const _            = require('lodash');
-const auxtools     = require('../auxtools');
-const sub_sampling = require('./subsampling');
-
-const default_aggregation_policy = require('../config/aggregate_policies');
+import moment from 'moment';
+import auxtools from '../auxtools.js';
+import sub_sampling from './subsampling.js';
+import default_aggregation_policy from '../config/aggregate_policies.js';
 
 /*
  * Class to manage the InfluxDB database
@@ -423,4 +421,4 @@ class MeasurementManager {
 
 }
 
-module.exports = MeasurementManager;
+export default MeasurementManager;

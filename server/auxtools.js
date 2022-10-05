@@ -9,8 +9,8 @@
  */
 'use strict';
 
-const url          = require('url');
-const normalizeUrl = require('normalize-url');
+import url from 'url';
+import normalizeUrl from 'normalize-url';
 
 const locationPath = function (originalUrl, protocol, host, name) {
     const base_pathname = url.parse(originalUrl).pathname;
@@ -131,7 +131,7 @@ const ceil = function (x, interval) {
     return Math.ceil(x / interval) * interval;
 };
 
-module.exports = {
+export default {
     resourcePath,
     fromError,
     flat_to_deep,

@@ -10,10 +10,10 @@
 
 "use strict";
 
-const debug   = require("debug")("weert:routes");
-const express = require("express");
-const os = require("os");
-const pjson = require('../../package.json');
+import debugFactory from 'debug';
+import express from 'express';
+import os from 'os';
+import pjson from '../../package.json' assert { type: "json" };
 
 const AboutRouterFactory = function() {
 
@@ -34,4 +34,4 @@ const AboutRouterFactory = function() {
   return router;
 };
 
-module.exports = AboutRouterFactory;
+export default AboutRouterFactory;

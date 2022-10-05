@@ -4,7 +4,7 @@
  * See the file LICENSE for your full rights.
  */
 
-module.exports = {
+export default {
     'altimeter_pressure'            : 'MEAN(altimeter_pressure)',
     'console_voltage'               : 'LAST(console_voltage)',
     'dewpoint_temperature'          : 'MEAN(dewpoint_temperature)',

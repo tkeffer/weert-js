@@ -10,9 +10,9 @@
  * such as daily, could be added.
  */
 
-const aggregate_policies = require('./aggregate_policies');
+import aggregate_policies from './aggregate_policies.js';
 
-module.exports = [
+export default [
     {
         interval   : 300000,    // = 5 minutes in milliseconds
         source     : 'wxpackets',

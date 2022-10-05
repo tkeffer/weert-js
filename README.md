@@ -38,19 +38,21 @@ operating systems:
     $ sudo dpkg-reconfigure tzdata
     ```
 
-2. Download and install [InfluxDB](https://www.influxdata.com/). WeeRT was tested with
-version 1.3.5. Later versions should work fine.
-
+2. Install [InfluxDB](https://www.influxdata.com/). WeeRT was tested with
+version 1.8.10. In particular, *InfluxDB Version 2.x will not work*! The following works on Ubuntu. 
+    ```shell
+   sudo apt install influxdb
+    ``` 
+ 
 3. If necessary, start it by whatever means is needed for your operating system. This works
-on Ubuntu 16.04:
+on Ubuntu 22.04:
 
     ```shell
     $ systemctl start influxdb
     ```
 
-4. Download and install [node](https://nodejs.org/en/). WeeRT was tested with version 8.9.0,
-also known as LTS/Carbon. This version or later is needed to support the object "spread" operator
-used by WeeRT. Later versions should work fine.
+4. Download and install [node](https://nodejs.org/en/). WeeRT was tested with version 18.10.0,
+also known as LTS/Gallium. Later versions should work fine.
 
 5. Download WeeRT from the git repository
 
@@ -68,7 +70,7 @@ used by WeeRT. Later versions should work fine.
 7. Start the WeeRT server
 
     ```shell
-    $ npm start
+    $ npm run start
     Listening on port 3000
     ```
 
@@ -81,7 +83,7 @@ used by WeeRT. Later versions should work fine.
 9. Run the suites
 
     ```shell
-    $ npm test
+    $ npm run test
     ```
 
 ## Installing the WeeRT uploader on WeeWX
