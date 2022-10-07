@@ -1,8 +1,8 @@
 #!/usr/bin/env node/*
 /* Copyright (c) 2016-2022 Tom Keffer <tkeffer@gmail.com>
-*
-* See the file LICENSE for your full rights.
-*/
+ *
+ * See the file LICENSE for your full rights.
+ */
 
 "use strict";
 
@@ -19,8 +19,9 @@ import http from "http";
 import logger from "morgan";
 import express from "express";
 
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -71,7 +72,7 @@ const influx = new Influx.InfluxDB(config.influxdb);
 
 influx
   .getDatabaseNames()
-  .then(names => {
+  .then((names) => {
     // Check to see if the chosen database has been created
     if (!names.includes(config.influxdb.database)) {
       // The database does not exist. Create it.
@@ -91,7 +92,7 @@ influx
     // Return a promise to resolve setting up all the retention policies.
     return Promise.all(ps);
   })
-  .then(result => {
+  .then((result) => {
     debug(`Finished setting up ${result.length} retention policies`);
 
     // Create a manager for the measurements, using the influx driver
@@ -116,9 +117,9 @@ influx
      * Error handlers. If we got this far, the request did not match any router. It's a 404.
      * Catch it and forward to error handler
      */
-    app.use(function(req, res, next) {
+    app.use(function (req, res, next) {
       debug("caught 404");
-      let err    = new Error("Page not found: " + req.originalUrl);
+      let err = new Error("Page not found: " + req.originalUrl);
       err.status = 404;
       next(err);
     });
@@ -126,12 +127,12 @@ influx
     // Development error handler --- rendering the full "err" object will
     // include the stack (and lots of other stuff)
     if (app.get("env") === "development") {
-      app.use(function(err, req, res, next) {
+      app.use(function (err, req, res, next) {
         res.status(err.status || 500);
         // Render the error view. Include the err object
         res.render("error", {
           message: err.message,
-          error: err
+          error: err,
         });
         debug("error:", err);
       });
@@ -139,12 +140,12 @@ influx
 
     // production error handler
     // no stacktraces leaked to user
-    app.use(function(err, req, res, next) {
+    app.use(function (err, req, res, next) {
       res.status(err.status || 500);
       // Render the error view. No err object
       res.render("error", {
         message: err.message,
-        error: {}
+        error: {},
       });
     });
 
@@ -153,7 +154,7 @@ influx
      */
     let httpServer = http.createServer(app);
     // Trap any error events and exit
-    httpServer.on("error", err => {
+    httpServer.on("error", (err) => {
       console.log("Unable to start server");
       switch (err.errno) {
         case "EADDRINUSE":
@@ -172,7 +173,7 @@ influx
     httpServer.listen(config.server.port);
     console.log("Listening on port", config.server.port);
   })
-  .catch(err => {
+  .catch((err) => {
     console.error(`Error creating Influx database!`, err);
     process.exit(1);
   });

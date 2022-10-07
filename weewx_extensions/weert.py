@@ -1,5 +1,5 @@
 #
-#  Copyright (c) 2017-2020 Tom Keffer <tkeffer@gmail.com>
+#  Copyright (c) 2017-2022 Tom Keffer <tkeffer@gmail.com>
 #
 #     See the file LICENSE for your full rights.
 #

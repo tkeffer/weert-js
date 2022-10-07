@@ -93,7 +93,8 @@ The job of the uploader is to post LOOP packets to the WeeRT server (installed a
 1. Make sure you are running WeeWX V3.8 or later. Earlier versions do
 not support the POST method used by the uploader.
 
-2. Put the `weert.py` module in the WeeWX `user` subdirectory.
+2. Put the `weert.py` module (located in the `weewx_extensions` subdirectory) in the 
+WeeWX `user` subdirectory.
 
 3. Add the following to `weewx.conf`:
 
@@ -161,6 +162,31 @@ and measurement 'wxrecords' as its destination.
 
 The retention time of the LOOP packets is set by a configuration file,
 but the default is 24 hours. After that, they are discarded.
+
+### Querying Influx
+
+If you wish to query the database directly using the influx command-line client, you must
+attach the retention policy name. For example, to see all packets a typical session might
+look like (user inputs are in <b>bold</b>):
+
+<pre>
+$ <b>influx -username weert -password weertL</b>
+Connected to http://localhost:8086 version 1.8.10
+InfluxDB shell version: 1.8.10
+> <b>use weert;</b>
+> <b>select * from h24.wxpackets limit 5;</b>
+name: wxpackets
+time                altimeter_pressure console_voltage dewpoint_temperature extra1_temperature gauge_pressure     heatindex_temperature in_humidity_percent in_temperature out_humidity_percent out_temperature platform         radiation_radiation rain_rain sealevel_pressure stream         unit_system uv_uv wind_dir wind_speed windchill_temperature x_wind_speed y_wind_speed
+----                ------------------ --------------- -------------------- ------------------ --------------     --------------------- ------------------- -------------- -------------------- --------------- --------         ------------------- --------- ----------------- ------         ----------- ----- -------- ---------- --------------------- ------------ ------------
+1665142885000000000 30.225527640402586 4.81            46.7763303997396     30                 29.467510004692507 49.339                52                  69.7           87                   50.5            default_platform 0                   0         30.207            default_stream 1           0              0          50.5                               
+1665142887000000000 30.226523472560547 4.81            46.7763303997396     30                 29.468485523943166 49.339                51                  69.7           87                   50.5            default_platform 0                   0         30.208            default_stream 1           0              0          50.5                               
+1665142889000000000 30.226523472560547 4.81            46.7763303997396     30                 29.468485523943166 49.339                51                  69.7           87                   50.5            default_platform 0                   0         30.208            default_stream 1           0              0          50.5                               
+1665142891000000000 30.226523472560547 4.81            46.7763303997396     30                 29.468485523943166 49.339                51                  69.7           87                   50.5            default_platform 0                   0         30.208            default_stream 1           0              0          50.5                               
+1665142893000000000 30.226523472560547 4.81            46.7763303997396     30                 29.468485523943166 49.339                51                  69.7           87                   50.5            default_platform 0                   0         30.208            default_stream 1           0              0          50.5                               
+</pre>
+
+Note how the query asked for measurement `h24.wxpackets`, where `h24` is the default retention policy
+used by WeeRT.
 
 ### Log entries
 
