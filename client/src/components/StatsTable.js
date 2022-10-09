@@ -7,7 +7,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import isEmpty from 'lodash/isEmpty';
-import Table from 'react-bootstrap/lib/Table';
+import {Table} from 'react-bootstrap';
 import * as units from '../units';
 import * as utility from '../utility';
 

@@ -16,12 +16,12 @@ const propTypes = {
   unitSystem: PropTypes.number,
   format: PropTypes.string,
   isFetching: PropTypes.bool,
-  componentClass: PropTypes.string
+  componentClass: PropTypes.string,
 };
 
 const defaultProps = {
   isFetching: false,
-  componentClass: "div"
+  componentClass: "div",
 };
 
 export default class ObsValue extends React.PureComponent {
@@ -51,7 +51,7 @@ export default class ObsValue extends React.PureComponent {
       unitSystem,
       format,
       isFetching,
-      componentClass: Component
+      componentClass: Component,
     } = this.props;
 
     const newString = isFetching

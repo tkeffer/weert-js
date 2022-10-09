@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018 Tom Keffer <tkeffer@gmail.com>
+ * Copyright (c) 2016-2022 Tom Keffer <tkeffer@gmail.com>
  *
  * See the file LICENSE for your full rights.
  */
@@ -20,30 +20,30 @@ module.exports = {
         test: /\.js$/,
         exclude: /node_modules/,
         use: {
-          loader: "babel-loader"
-        }
+          loader: "babel-loader",
+        },
       },
       {
         test: /\.html$/,
         use: [
           {
             loader: "html-loader",
-            options: { minimize: true }
-          }
-        ]
+            options: { minimize: true },
+          },
+        ],
       },
       {
         test: /\.css$/,
-        use: ["style-loader", "css-loader"]
-      }
-    ]
+        use: ["style-loader", "css-loader"],
+      },
+    ],
   },
   plugins: [
     // This will inject the necessary <script> tag, with a link to the bundle, into the index.html file
     new HtmlWebpackPlugin({
       template: "./src/index.html",
       filename: "./index.html",
-      inject: "body"
+      inject: "body",
     }),
 
     new DuplicatePackageCheckerPlugin({ verbose: true }),
@@ -53,5 +53,6 @@ module.exports = {
 
     // Very useful to profile the size of included modules:
     // new BundleAnalyzerPlugin(),
-  ]
+  ],
+  target: 'browserslist'
 };

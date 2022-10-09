@@ -7,7 +7,7 @@
 // Render and format a packet
 import React from "react";
 import PropTypes from "prop-types";
-import Table from "react-bootstrap/lib/Table";
+import Table from "react-bootstrap/Table";
 
 import ObsRow from "./ObsRow";
 
