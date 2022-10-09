@@ -4,10 +4,11 @@
  * See the file LICENSE for your full rights.
  */
 
-import "babel-polyfill";
-
 import React from "react";
-import { render } from "react-dom";
 import Root from "./containers/Root";
 
-render(<Root />, document.getElementById("root"));
+import { createRoot } from "react-dom/client";
+
+const container = document.getElementById("root");
+const root = createRoot(container);
+root.render(<Root />);
