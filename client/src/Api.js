@@ -4,7 +4,7 @@
  * See the file LICENSE for your full rights.
  */
 
-import io from "socket.io-client";
+import {io} from "socket.io-client";
 
 export function getPackets(measurement, tags, start, stop, aggregation) {
   const { platform, stream } = tags;

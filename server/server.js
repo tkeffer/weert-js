@@ -1,5 +1,6 @@
-#!/usr/bin/env node/*
-/* Copyright (c) 2016-2022 Tom Keffer <tkeffer@gmail.com>
+#!/usr/bin/env node
+/*
+ * Copyright (c) 2016-2022 Tom Keffer <tkeffer@gmail.com>
  *
  * See the file LICENSE for your full rights.
  */

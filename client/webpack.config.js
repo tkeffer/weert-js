@@ -54,5 +54,4 @@ module.exports = {
     // Very useful to profile the size of included modules:
     // new BundleAnalyzerPlugin(),
   ],
-  target: 'browserslist'
 };
