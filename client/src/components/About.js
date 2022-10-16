@@ -5,7 +5,7 @@
  */
 import React from "react";
 import PropTypes from "prop-types";
-const humanizeDuration = require("humanize-duration");
+import humanizeDuration from "humanize-duration";
 
 // React component that represents a row in the "About server" table.
 function DataRow(props) {
@@ -26,19 +26,19 @@ const propTypes = {
   server_uptime: PropTypes.number,
   weert_uptime: PropTypes.number,
   weert_version: PropTypes.string.isRequired,
-  isFetching: PropTypes.bool
+  isFetching: PropTypes.bool,
 };
 
 const defaultProps = {
   server_uptime: undefined,
   weert_uptime: undefined,
-  isFetching: false
+  isFetching: false,
 };
 
 export default class About extends React.PureComponent {
   render() {
     const { server_uptime, weert_uptime, node_version, weert_version, isFetching } = this.props;
-    // Get nice, human readable strings from the raw uptime value
+    // Get nice, human-readable strings from the raw uptime value
     const server_uptime_str = humanizeDuration(parseInt(server_uptime, 10) * 1000.0);
     const weert_uptime_str = humanizeDuration(parseInt(weert_uptime, 10) * 1000.0);
 
@@ -49,7 +49,7 @@ export default class About extends React.PureComponent {
           style={{
             borderStyle: "solid",
             borderWidth: "1px",
-            borderColor: "#ddd"
+            borderColor: "#ddd",
           }}
         >
           <h4>Server</h4>

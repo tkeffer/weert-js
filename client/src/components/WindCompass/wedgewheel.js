@@ -5,6 +5,7 @@
  */
 
 import React from "react";
+// D3 is used, but only for transitions. All DOM manipulations are done through React.
 import d3 from "../d3";
 import PropTypes from "prop-types";
 

@@ -12,9 +12,6 @@ import React from "react";
 import PropTypes from "prop-types";
 import classnames from "classnames";
 
-// D3 is used, but only for transitions. All DOM manipulations are done through React.
-import d3 from "../d3";
-
 import "./index.css";
 import WedgeWheel from "./wedgewheel";
 
@@ -31,8 +28,6 @@ const propTypes = {
   naText: PropTypes.string,
   windSpeedUnitLabel: PropTypes.string,
   ordinalText: PropTypes.arrayOf(PropTypes.string),
-  maxPrevDirs: PropTypes.number,
-  wedgeLength: PropTypes.number,
   viewBoxSize: PropTypes.number,
 };
 
@@ -61,8 +56,6 @@ const defaultProps = {
     "NW",
     "NNW",
   ],
-  maxPrevDirs: 20,
-  wedgeLength: 8,
   viewBoxSize: 250,
 };
 
@@ -87,19 +80,6 @@ const Tick = ({ angle, radius, tickLength }) => {
 export default class WindCompass extends React.PureComponent {
   constructor(props) {
     super(props);
-    // This will hold the previous wind directions, as well as a unique key for each direction.
-    this.state = { key: 0, prevDirs: [] };
-  }
-
-  componentWillReceiveProps() {
-    // Make a copy. We want prevDirs to always be immutable
-    let newPrevDirs = [...this.state.prevDirs];
-    // Push the direction on to the array of previous directions.
-    newPrevDirs.push([this.props.windDirection, this.state.key]);
-    // Trim any stale directions off the front
-    newPrevDirs.splice(0, newPrevDirs.length - this.props.maxPrevDirs);
-    // Set prevDirs to the "new" prevDirs. Update the key.
-    this.setState({ ...this.state, key: this.state.key + 1, prevDirs: newPrevDirs });
   }
 
   generateTicks(centerX, centerY, radius) {
