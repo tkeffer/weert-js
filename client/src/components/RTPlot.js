@@ -9,6 +9,7 @@ import PropTypes from "prop-types";
 import moment from "moment/moment";
 import isString from "lodash/isString";
 import { sprintf } from "sprintf-js";
+
 import {
   Line,
   LineChart,

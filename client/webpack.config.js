@@ -18,10 +18,8 @@ module.exports = {
     rules: [
       {
         test: /\.js$/,
-        exclude: /node_modules/,
-        use: {
-          loader: "babel-loader",
-        },
+        enforce: 'pre',
+        use: ["babel-loader", "source-map-loader"],
       },
       {
         test: /\.html$/,

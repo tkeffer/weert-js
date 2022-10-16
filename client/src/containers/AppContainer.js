@@ -8,14 +8,13 @@ import union from "lodash/union";
 import React from "react";
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
-import Grid from "react-bootstrap/lib/Grid";
-import Row from "react-bootstrap/lib/Row";
-import Col from "react-bootstrap/lib/Col";
-import Jumbotron from "react-bootstrap/lib/Jumbotron";
-import Nav from "react-bootstrap/lib/Nav";
-import NavDropdown from "react-bootstrap/lib/NavDropdown";
-import NavItem from "react-bootstrap/lib/NavItem";
-import MenuItem from "react-bootstrap/lib/MenuItem";
+
+import Col from "react-bootstrap/Col";
+import Container from "react-bootstrap/Container";
+import Nav from "react-bootstrap/Nav";
+import NavDropdown from "react-bootstrap/NavDropdown";
+import Navbar from "react-bootstrap/Navbar";
+import Row from "react-bootstrap/Row";
 
 import {
   selectTimeSpan,
@@ -23,7 +22,7 @@ import {
   fetchTimeSpanIfNeeded,
   subscribeMeasurement,
   fetchStatsIfNeeded,
-  fetchAbout
+  fetchAbout,
 } from "../actions";
 import PlotContainer from "./PlotContainer";
 import PacketTable from "../components/PacketTable";
@@ -36,11 +35,11 @@ import * as api from "../Api";
 const propTypes = {
   selectedTags: PropTypes.shape({
     platform: PropTypes.string,
-    stream: PropTypes.string
+    stream: PropTypes.string,
   }).isRequired,
   selectedTimeSpan: PropTypes.string.isRequired,
   timeSpans: PropTypes.object.isRequired,
-  dispatch: PropTypes.func.isRequired
+  dispatch: PropTypes.func.isRequired,
 };
 
 class AppContainer extends React.PureComponent {
@@ -50,7 +49,7 @@ class AppContainer extends React.PureComponent {
     this.state = {
       subscriptions: {},
       firstRender: true,
-      ...config
+      ...config,
     };
   }
 
@@ -74,6 +73,7 @@ class AppContainer extends React.PureComponent {
       dispatch(fetchAbout());
       setTimeout(getAbout, serverUpdate);
     }
+
     getAbout();
   }
 
@@ -121,8 +121,8 @@ class AppContainer extends React.PureComponent {
         ...this.state,
         subscriptions: {
           ...this.state.subscriptions,
-          [measurement]: subscription
-        }
+          [measurement]: subscription,
+        },
       });
     }
   }
@@ -188,10 +188,8 @@ class AppContainer extends React.PureComponent {
     const aboutProps = this.props.about;
 
     return (
-      <Grid fluid={true}>
-        <Jumbotron>
-          <h2>Welcome to WeeRT</h2>
-        </Jumbotron>
+      <Container fluid={true}>
+        <h2 className="welcome">Welcome to WeeRT</h2>
         <Row>
           <Col xs={12} lg={3}>
             <div>
@@ -225,26 +223,29 @@ class AppContainer extends React.PureComponent {
           </Col>
 
           <Col xs={12} lg={9}>
-            <Nav
-              bsStyle="tabs"
-              activeKey={this.state.selectedTimeSpan}
-              onSelect={this.handleChange}
-            >
-              <NavDropdown eventKey="recent" title="Recent..." id="recent-dropdown">
-                <MenuItem eventKey="recent.5">5 minutes</MenuItem>
-                <MenuItem eventKey="recent.10">10 minutes</MenuItem>
-                <MenuItem eventKey="recent.30">30 minutes</MenuItem>
-                <MenuItem eventKey="recent.60">60 minutes</MenuItem>
-              </NavDropdown>
-              <NavItem eventKey="day">Day</NavItem>
-              <NavItem eventKey="week">Week</NavItem>
-              <NavItem eventKey="month">Month</NavItem>
-              <NavItem eventKey="year">Year</NavItem>
-            </Nav>
+            <Navbar bg="light" expand="lg">
+              <Navbar.Brand href="#home">WeeRT</Navbar.Brand>
+              <Nav
+                bsstyle="tabs"
+                activeKey={this.state.selectedTimeSpan}
+                onSelect={this.handleChange}
+              >
+                <NavDropdown eventkey="recent" title="Time scale..." id="recent-dropdown">
+                  <NavDropdown.Item eventkey="recent.5">5 minutes</NavDropdown.Item>
+                  <NavDropdown.Item eventkey="recent.10">10 minutes</NavDropdown.Item>
+                  <NavDropdown.Item eventkey="recent.30">30 minutes</NavDropdown.Item>
+                  <NavDropdown.Item eventkey="recent.60">60 minutes</NavDropdown.Item>
+                  <NavDropdown.Item eventkey="day">Day</NavDropdown.Item>
+                  <NavDropdown.Item eventkey="week">Week</NavDropdown.Item>
+                  <NavDropdown.Item eventkey="month">Month</NavDropdown.Item>
+                  <NavDropdown.Item eventkey="year">Year</NavDropdown.Item>
+                </NavDropdown>
+              </Nav>
+            </Navbar>
             <PlotContainer selectedTimeSpan={selectedTimeSpan} selectedState={selectedState} />
           </Col>
         </Row>
-      </Grid>
+      </Container>
     );
   }
 }
