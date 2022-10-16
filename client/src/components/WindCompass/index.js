@@ -16,6 +16,7 @@ import classnames from "classnames";
 import d3 from "../d3";
 
 import "./index.css";
+import WedgeWheel from "./wedgewheel";
 
 /*
  * WindCompass PropTypes:
@@ -32,7 +33,7 @@ const propTypes = {
   ordinalText: PropTypes.arrayOf(PropTypes.string),
   maxPrevDirs: PropTypes.number,
   wedgeLength: PropTypes.number,
-  viewBoxSize: PropTypes.number
+  viewBoxSize: PropTypes.number,
 };
 
 const defaultProps = {
@@ -58,11 +59,11 @@ const defaultProps = {
     "W",
     "WNW",
     "NW",
-    "NNW"
+    "NNW",
   ],
   maxPrevDirs: 20,
   wedgeLength: 8,
-  viewBoxSize: 250
+  viewBoxSize: 250,
 };
 
 /**
@@ -82,65 +83,6 @@ const Tick = ({ angle, radius, tickLength }) => {
     />
   );
 };
-
-/**
- * Draw a single "wedge," used to show the direction of the wind. Animate it if the direction changes.
- * @param {number} angle The direction of the wind. 0=N, 90=E, etc.
- * @param {number} radius The inside radius of the wedge in SVG viewBox units
- * @param {number} wedgeLength The size of the wedge in SVG viewBox units
- */
-class Wedge extends React.PureComponent {
-  constructor(props) {
-    super(props);
-    // Save the initial angle as state. This will be used to animate the wedge should it move.
-    this.state = { angle: props.angle };
-  }
-
-  componentWillReceiveProps(nextProps) {
-    // Get the starting and ending angles
-    let startAngle = this.props.angle;
-    let endAngle = nextProps.angle;
-
-    // To do a transition, both angles must be defined, and not equal to each other.
-    // Otherwise, just jump to the ending angle.
-    if (startAngle == null || endAngle == null || startAngle === endAngle) {
-      this.setState({ angle: endAngle });
-    } else {
-      // Need to do a transition
-      const transitionDuration = this.props.transitionDuration || 1000;
-      // Use d3 to calculate a linear transition.
-      // TODO: Should we be using react-transition-group instead??
-      d3
-        .transition()
-        .duration(transitionDuration)
-        .ease(d3.easeLinear)
-        .tween("attr.transform", () => {
-          // Return the transition function. It will take an argument, t, in the domain [0,1].
-          // Depending on t, transition to the interpolated angle. D3 will supply values of t that
-          // insure the transition will look smooth.
-          return t => {
-            this.setState({ angle: interpolateDegrees(startAngle, endAngle)(t) });
-          };
-        });
-    }
-  }
-
-  render() {
-    const { radius, wedgeLength, ...rest } = this.props;
-    // Get the angle from state
-    const { angle } = this.state;
-    // If the wind direction is undefined, render nothing
-    if (angle == null) return null;
-    return (
-      <path
-        d={`M${-wedgeLength} ${-radius - wedgeLength} L0 ${-radius} L${wedgeLength} ${-radius -
-          wedgeLength} Z`}
-        transform={`rotate(${angle})`}
-        {...rest}
-      />
-    );
-  }
-}
 
 export default class WindCompass extends React.PureComponent {
   constructor(props) {
@@ -165,7 +107,7 @@ export default class WindCompass extends React.PureComponent {
 
     return (
       <g transform={`translate(${centerX}, ${centerY})`}>
-        {tickAngles.map(angle => (
+        {tickAngles.map((angle) => (
           <Tick angle={angle} radius={radius} tickLength={this.props.tickLength} key={angle} />
         ))}
       </g>
@@ -209,33 +151,6 @@ export default class WindCompass extends React.PureComponent {
     );
   }
 
-  generateDirections(centerX, centerY, radius) {
-    // Generate the previous directions first, then the current direction,
-    // so the latter will be on the top.
-    return (
-      <g transform={`translate(${centerX}, ${centerY})`}>
-        {/* First the previous directions */}
-        {this.state.prevDirs.map(([angle, key], i) => (
-          <Wedge
-            angle={angle}
-            radius={radius}
-            wedgeLength={this.props.wedgeLength}
-            className="prevDir"
-            opacity={(i + 1) / this.state.prevDirs.length}
-            key={key}
-          />
-        ))}
-        {/* Then the current direction */}
-        <Wedge
-          angle={this.props.windDirection}
-          radius={radius}
-          wedgeLength={this.props.wedgeLength}
-          className="currDir"
-        />
-      </g>
-    );
-  }
-
   windDirToCardinalConverter(dir) {
     let ordinal = Math.round(dir / 22.5);
     if (ordinal === 16) ordinal = 0;
@@ -255,7 +170,12 @@ export default class WindCompass extends React.PureComponent {
           {isFetching && this.generateIsFetching()}
           {!isFetching && this.generateSpeedDisplay()}
           {!isFetching && this.generateOrdinalDisplay()}
-          {this.generateDirections(centerX, centerY, radius)}
+          <WedgeWheel
+            windDirection={this.props.windDirection}
+            centerX={centerX}
+            centerY={centerY}
+            radius={radius}
+          />
         </svg>
       </div>
     );
@@ -272,36 +192,4 @@ function generateTickPositions(ticksPerQuad) {
     angles.push(q);
   }
   return angles;
-}
-
-// This will return a function that interpolates between a and b.
-function interpolateDegrees(a, b) {
-  if (a == null) a = 0;
-  if (b == null) b = 0;
-
-  // Normalize a and b to the domain [0, 360).
-  a = a % 360.0;
-  if (a < 0) a += 360.0;
-  b = b % 360.0;
-  if (b < 0) b += 360.0;
-
-  // Detect which is the shortest way around. Should we go around the North side?
-  if (Math.abs(b - a) > 180) {
-    return function(t) {
-      let ax, bx, shift;
-      if (a > b) {
-        shift = 360 - a;
-        ax = 0;
-        bx = b + shift;
-      } else {
-        shift = 360 - b;
-        bx = 0;
-        ax = a + shift;
-      }
-      let v = d3.interpolateNumber(ax, bx)(t) - shift;
-      if (v < 0) v += 360;
-      return v;
-    };
-  }
-  return d3.interpolateNumber(a, b);
 }
