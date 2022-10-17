@@ -87,6 +87,12 @@ DEFAULTS_INI = """
 
     # The "measurement" name (this is an InfluxDB terminology).
     measurement = wxpackets
+    
+    # One try only
+    max_tries = 1
+    
+    # Short timeout
+    timeout = 2
 
     [[loop_filters]]
         # These items will be included in the post to the database.
@@ -183,7 +189,7 @@ class WeeRTThread(weewx.restx.RESTThread):
                  protocol_name="WeeRT",
                  post_interval=None, max_backlog=sys.maxsize, stale=None,
                  log_success=True, log_failure=True,
-                 timeout=10, max_tries=3, retry_wait=5, retry_login=3600,
+                 timeout=2, max_tries=1, retry_wait=5, retry_login=3600,
                  softwaretype="weewx-%s" % weewx.__version__,
                  skip_upload=False):
 
