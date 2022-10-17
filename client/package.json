@@ -1,6 +1,6 @@
 {
     "name": "weert-client",
-    "version": "0.2.0",
+    "version": "0.7.0",
     "description": "The client to go along with the WeeRT server",
     "scripts": {
         "build": "webpack --mode production",
@@ -30,12 +30,12 @@
         "redux": "^4.2.0",
         "redux-logger": "^3.0.6",
         "redux-thunk": "^2.4.1",
-        "socket.io-client": "^4.5.2",
+        "socket.io-client": "^4.5.3",
         "sprintf-js": "^1.1.2"
     },
     "devDependencies": {
         "@babel/core": "^7.19.3",
-        "@babel/preset-env": "^7.19.3",
+        "@babel/preset-env": "^7.19.4",
         "@babel/preset-react": "^7.18.6",
         "babel-loader": "^8.2.5",
         "clean-webpack-plugin": "^4.0.0",
@@ -49,17 +49,5 @@
         "webpack-bundle-analyzer": "^4.6.1",
         "webpack-cli": "^4.10.0",
         "webpack-merge": "^5.8.0"
-    },
-    "browserslist": {
-        "production": [
-            ">0.2%",
-            "not dead",
-            "not op_mini all"
-        ],
-        "development": [
-            "last 1 chrome version",
-            "last 1 firefox version",
-            "last 1 safari version"
-        ]
     }
 }
