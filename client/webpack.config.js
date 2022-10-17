@@ -14,12 +14,15 @@ const DuplicatePackageCheckerPlugin = require("duplicate-package-checker-webpack
 
 module.exports = {
   module: {
-    // NB: Before Webpack 2, "rules" was called "modules".
     rules: [
       {
         test: /\.js$/,
+        exclude: /node_modules/,
         enforce: 'pre',
-        use: ["babel-loader", "source-map-loader"],
+        use: [
+          "babel-loader",
+          "source-map-loader"
+        ],
       },
       {
         test: /\.html$/,
