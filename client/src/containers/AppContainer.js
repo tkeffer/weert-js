@@ -224,22 +224,30 @@ class AppContainer extends React.PureComponent {
 
           <Col xs={12} lg={9}>
             <Navbar bg="light" expand="lg">
-              <Navbar.Brand href="#home">WeeRT</Navbar.Brand>
+              <Navbar.Brand href="#home">Time span=></Navbar.Brand>
               <Nav
                 bsstyle="tabs"
                 activeKey={this.state.selectedTimeSpan}
                 onSelect={this.handleChange}
               >
-                <NavDropdown eventkey="recent" title="Time scale..." id="recent-dropdown">
-                  <NavDropdown.Item eventkey="recent.5">5 minutes</NavDropdown.Item>
-                  <NavDropdown.Item eventkey="recent.10">10 minutes</NavDropdown.Item>
-                  <NavDropdown.Item eventkey="recent.30">30 minutes</NavDropdown.Item>
-                  <NavDropdown.Item eventkey="recent.60">60 minutes</NavDropdown.Item>
-                  <NavDropdown.Item eventkey="day">Day</NavDropdown.Item>
-                  <NavDropdown.Item eventkey="week">Week</NavDropdown.Item>
-                  <NavDropdown.Item eventkey="month">Month</NavDropdown.Item>
-                  <NavDropdown.Item eventkey="year">Year</NavDropdown.Item>
+                <NavDropdown eventKey="recent" title="Recent..." id="recent-dropdown">
+                  <NavDropdown.Item eventKey="recent.5">5 minutes</NavDropdown.Item>
+                  <NavDropdown.Item eventKey="recent.10">10 minutes</NavDropdown.Item>
+                  <NavDropdown.Item eventKey="recent.30">30 minutes</NavDropdown.Item>
+                  <NavDropdown.Item eventKey="recent.60">60 minutes</NavDropdown.Item>
                 </NavDropdown>
+                <Nav.Item>
+                  <Nav.Link eventKey="day">Day</Nav.Link>
+                </Nav.Item>
+                <Nav.Item>
+                  <Nav.Link eventKey="week">Week</Nav.Link>
+                </Nav.Item>
+                <Nav.Item>
+                  <Nav.Link eventKey="month">Month</Nav.Link>
+                </Nav.Item>
+                <Nav.Item>
+                  <Nav.Link eventKey="year">Year</Nav.Link>
+                </Nav.Item>
               </Nav>
             </Navbar>
             <PlotContainer selectedTimeSpan={selectedTimeSpan} selectedState={selectedState} />
