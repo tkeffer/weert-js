@@ -23,7 +23,7 @@ export default class ObsLabel extends React.PureComponent {
     // Destructure the props, assigning componentClass to the variable Component...
     const { componentClass: Component, obsType } = this.props;
     // ... then use Component as the element type
-    return <Component>{units.getLabel(obsType)}</Component>;
+    return <Component className="label">{units.getLabel(obsType)}</Component>;
   }
 }
 

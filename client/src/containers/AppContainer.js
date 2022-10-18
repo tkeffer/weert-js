@@ -192,34 +192,27 @@ class AppContainer extends React.PureComponent {
         <h2 className="welcome">Welcome to WeeRT</h2>
         <Row>
           <Col xs={12} lg={3}>
-            <div>
               <PacketTable
                 {...packetTableOptions}
                 packet={currentPacket}
                 isFetching={isFetchingCurrentPacket}
               />
-            </div>
 
-            <div>
               <WindCompass
                 {...windCompassOptions}
                 windSpeed={currentPacket ? currentPacket["wind_speed"] : undefined}
                 windDirection={currentPacket ? currentPacket["wind_dir"] : undefined}
                 isFetching={isFetchingCurrentPacket}
               />
-            </div>
 
-            <div>
               <StatsTable
                 {...statsTableOptions[selectedStatsSpan]}
                 statsData={selectedStats.data}
                 isFetching={selectedStats.isFetching}
               />
-            </div>
-            <div>
+
               {/* Render the "Loading" comment only during the first render. */}
               <About {...aboutProps} isFetching={aboutProps.isFetching && this.state.firstRender} />
-            </div>
           </Col>
 
           <Col xs={12} lg={9}>
@@ -230,7 +223,7 @@ class AppContainer extends React.PureComponent {
                 activeKey={this.state.selectedTimeSpan}
                 onSelect={this.handleChange}
               >
-                <NavDropdown eventKey="recent" title="Recent..." id="recent-dropdown">
+                <NavDropdown title="Recent..." id="recent-dropdown">
                   <NavDropdown.Item eventKey="recent.5">5 minutes</NavDropdown.Item>
                   <NavDropdown.Item eventKey="recent.10">10 minutes</NavDropdown.Item>
                   <NavDropdown.Item eventKey="recent.30">30 minutes</NavDropdown.Item>

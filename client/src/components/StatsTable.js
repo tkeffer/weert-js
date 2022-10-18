@@ -25,14 +25,13 @@ const defaultProps = {
     componentClass: 'div',
 };
 
-function Line(props) {
+/* Return a rendering for a value at a certain time. */
+function ValueAt(props) {
 
-    const {obsType, statsData, unitSystem, timeFormat, stats, componentClass: ComponentProp} = props;
-
-    const Component = ComponentProp || 'span';
+    const {obsType, statsData, unitSystem, timeFormat, stats} = props;
 
     return (
-        <Component>
+        <span>
             {`${units.getValueString(obsType,
                                      utility.getNested([obsType, stats, "value"],
                                                        statsData),
@@ -49,35 +48,62 @@ function Line(props) {
                                         unitSystem,
                                         timeFormat)}`
             }
-        </Component>
+        </span>
     );
 }
 
-function MinMaxColumn(props) {
 
-    const {obsType, statsData, unitSystem, timeFormat} = props;
-    return (
-        <td>
-            <Line obsType={obsType} statsData={statsData} unitSystem={unitSystem} timeFormat={timeFormat}
-                  stats={'min'}/>
-            <br/>
-            <Line obsType={obsType} statsData={statsData} unitSystem={unitSystem} timeFormat={timeFormat}
-                  stats={'max'}/>
-        </td>
-    );
-}
+/* Return a rendering for min and max values for a specific observation type */
+function MinMaxValues(props) {
+  const {obsType, statsData, unitSystem, timeFormat} = props;
 
-function MinMaxRow(props) {
-    const {obsType} = props;
     return (
+      <React.Fragment>
         <tr>
-            <td>Low {units.getLabel(obsType)}<br/>High {units.getLabel(obsType)}</td>
-            <MinMaxColumn
-                {...props}
-            />
+          <td className="label">
+            Low {units.getLabel(obsType)}
+          </td>
+          <td className="data">
+            <ValueAt obsType={obsType} statsData={statsData} unitSystem={unitSystem} timeFormat={timeFormat}
+                     stats={'min'}/>
+          </td>
         </tr>
+        <tr>
+          <td className="label">
+            High {units.getLabel(obsType)}
+          </td>
+          <td className="data">
+            <ValueAt obsType={obsType} statsData={statsData} unitSystem={unitSystem} timeFormat={timeFormat}
+                     stats={'max'}/>
+          </td>
+        </tr>
+      </React.Fragment>
+    )
+}
 
-    );
+function MaxWind(props) {
+  const {obsType, statsData, unitSystem, timeFormat} = props;
+
+  return (
+    <div>
+      <tr>
+        <td className="label">
+          Max Wind Speed
+        </td>
+        <td className="data">
+          <td className="data">
+            <ValueAt
+              obsType='wind_speed'
+              statsData={statsData}
+              unitSystem={unitSystem}
+              timeFormat={timeFormat}
+              stats='max'
+            />
+          </td>
+        </td>
+      </tr>
+    </div>
+  )
 }
 
 /*
@@ -96,50 +122,45 @@ export default class StatsTable extends React.PureComponent {
         }
 
         return (
-            <Component>
-                <h2>{header}</h2>
+            <Component className="stats_table">
+                <div className="widget_title">{header}</div>
                 {isFetching && isEmpty(statsData) && <h3>Loading...</h3>}
                 {!isFetching && isEmpty(statsData) && <h3>Empty stats place holder</h3>}
                 {!isEmpty(statsData) &&
                  <div style={{opacity: isFetching ? 0.5 : 1}}>
                      <Table bordered hover>
-                         <tbody>
-                         <tr>
-                             <td>Max Wind Speed</td>
-                             <Line
-                                 obsType='wind_speed'
-                                 statsData={statsData}
-                                 unitSystem={unitSystem}
-                                 timeFormat={timeFormat}
-                                 stats='max'
-                                 componentClass='td'
-                             />
-                         </tr>
-                         <MinMaxRow
-                             obsType='out_temperature'
-                             statsData={statsData}
-                             unitSystem={unitSystem}
-                             timeFormat={timeFormat}
-                         />
-                         <MinMaxRow
-                             obsType='in_temperature'
-                             statsData={statsData}
-                             unitSystem={unitSystem}
-                             timeFormat={timeFormat}
-                         />
-                         <MinMaxRow
-                             obsType='radiation_radiation'
-                             statsData={statsData}
-                             unitSystem={unitSystem}
-                             timeFormat={timeFormat}
-                         />
-                         <MinMaxRow
-                             obsType='sealevel_pressure'
-                             statsData={statsData}
-                             unitSystem={unitSystem}
-                             timeFormat={timeFormat}
-                         />
-                         </tbody>
+                       <tbody>
+                       <MinMaxValues
+                         obsType='wind_speed'
+                         statsData={statsData}
+                         unitSystem={unitSystem}
+                         timeFormat={timeFormat}
+                       />
+                       <MinMaxValues
+                         obsType='out_temperature'
+                         statsData={statsData}
+                         unitSystem={unitSystem}
+                         timeFormat={timeFormat}
+                       />
+                       <MinMaxValues
+                         obsType='in_temperature'
+                         statsData={statsData}
+                         unitSystem={unitSystem}
+                         timeFormat={timeFormat}
+                       />
+                       <MinMaxValues
+                         obsType='radiation_radiation'
+                         statsData={statsData}
+                         unitSystem={unitSystem}
+                         timeFormat={timeFormat}
+                       />
+                       <MinMaxValues
+                         obsType='sealevel_pressure'
+                         statsData={statsData}
+                         unitSystem={unitSystem}
+                         timeFormat={timeFormat}
+                       />
+                       </tbody>
                      </Table>
                  </div>}
             </Component>

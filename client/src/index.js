@@ -9,6 +9,8 @@ import Root from "./containers/Root";
 
 import { createRoot } from "react-dom/client";
 
+import "./weert.css"
+
 const container = document.getElementById("root");
 const root = createRoot(container);
 root.render(<Root />);

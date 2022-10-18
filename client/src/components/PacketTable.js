@@ -39,7 +39,7 @@ export default class PacketTable extends React.PureComponent {
     const { componentClass: Component, obsTypes, header, isFetching, packet } = this.props;
     return (
       <Component>
-        <h2>{header}</h2>
+        <div className="widget_title">{header}</div>
         {
           <div style={{ opacity: isFetching ? 0.5 : 1 }}>
             <Table bordered hover>
