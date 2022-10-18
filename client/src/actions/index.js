@@ -16,10 +16,10 @@ export const FETCH_TIMESPAN_FAILURE = "FETCH_TIMESPAN_FAILURE";
 export const FETCH_STATS_IN_PROGRESS = "FETCH_STATS_IN_PROGRESS";
 export const FETCH_STATS_SUCCESS = "FETCH_STATS_SUCCESS";
 export const FETCH_STATS_FAILURE = "FETCH_STATS_FAILURE";
-export const NEW_PACKET = "NEW_PACKET";
-export const FETCH_ABOUT_IN_PROGRESS = "FETCH_ABOUT_IN_PROGRESS";
-export const FETCH_ABOUT_SUCCESS = "FETCH_ABOUT_SUCCESS";
-export const FETCH_ABOUT_FAILURE = "FETCH_ABOUT_FAILURE";
+export const NEW_PACKET               = "NEW_PACKET";
+export const FETCH_UPTIME_IN_PROGRESS = "FETCH_UPTIME_IN_PROGRESS";
+export const FETCH_UPTIME_SUCCESS = "FETCH_UPTIME_SUCCESS";
+export const FETCH_UPTIME_FAILURE = "FETCH_UPTIME_FAILURE";
 
 // Select a new set of tags (such as platform or stream).
 export function selectTags(tags) {
@@ -190,33 +190,33 @@ export function fetchStatsIfNeeded(timeSpan) {
   };
 }
 
-function fetchAboutInProgress() {
+function fetchUptimeInProgress() {
   return {
-    type: FETCH_ABOUT_IN_PROGRESS
+    type: FETCH_UPTIME_IN_PROGRESS
   };
 }
 
-function receiveAbout(about) {
+function receiveUptime(uptime) {
   return {
-    type: FETCH_ABOUT_SUCCESS,
-    about
+    type: FETCH_UPTIME_SUCCESS,
+    uptime
   };
 }
 
-function receiveAboutFailed(err) {
+function receiveUptimeFailed(err) {
   return {
-    type: FETCH_ABOUT_FAILURE,
+    type: FETCH_UPTIME_FAILURE,
     err
   };
 }
 
-export function fetchAbout() {
+export function fetchUptime() {
   return dispatch => {
     // Let the world know that a fetch is in progress
-    dispatch(fetchAboutInProgress());
+    dispatch(fetchUptimeInProgress());
     return api
-      .getAbout()
-      .then(about => dispatch(receiveAbout(about)))
-      .catch(err => dispatch(receiveAboutFailed(err)));
+      .getUptime()
+      .then(uptime => dispatch(receiveUptime(uptime)))
+      .catch(err => dispatch(receiveUptimeFailed(err)));
   };
 }

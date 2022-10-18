@@ -20,7 +20,7 @@ CLIENT
 
 Add reducers and UI code to deal with failed requests FETCH_TIMESPAN_FAILURE and FETCH_STATS_FAILURE.
 
-Same with FETCH_ABOUT_FAILURE.
+Same with FETCH_UPTIME_FAILURE.
 
 Introduce a system of style classes.
 

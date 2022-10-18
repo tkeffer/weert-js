@@ -253,6 +253,6 @@ export const packetTableOptions = {
   staleAge: 120000
 };
 
-export const aboutOptions = {
+export const uptimeOptions = {
   serverUpdate: 5000, // How often to update the server information in milliseconds
 }

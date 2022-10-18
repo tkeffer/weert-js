@@ -17,9 +17,9 @@ import {
   FETCH_STATS_SUCCESS,
   FETCH_STATS_FAILURE,
   NEW_PACKET,
-  FETCH_ABOUT_IN_PROGRESS,
-  FETCH_ABOUT_SUCCESS,
-  FETCH_ABOUT_FAILURE
+  FETCH_UPTIME_IN_PROGRESS,
+  FETCH_UPTIME_SUCCESS,
+  FETCH_UPTIME_FAILURE
 } from "./actions";
 
 const initialTags = {
@@ -100,7 +100,7 @@ const initialStatsState = {
   }
 };
 
-const initialAbout = {
+const initialUptime = {
   isFetching: false,
   server_uptime: undefined,
   weert_uptime: undefined,
@@ -194,20 +194,20 @@ function reduceStats(state = initialStatsState, action) {
   }
 }
 
-function reduceAbout(state = initialAbout, action) {
+function reduceUptime(state = initialUptime, action) {
   switch (action.type) {
-    case FETCH_ABOUT_IN_PROGRESS:
+    case FETCH_UPTIME_IN_PROGRESS:
       return {
         ...state,
         isFetching: true
       };
-    case FETCH_ABOUT_SUCCESS:
+    case FETCH_UPTIME_SUCCESS:
       return {
         ...state,
         isFetching: false,
-        ...action.about
+        ...action.uptime
       };
-    case FETCH_ABOUT_FAILURE:
+    case FETCH_UPTIME_FAILURE:
     default:
       return state;
   }
@@ -220,7 +220,7 @@ const rootReducer = combineReducers({
   selectedTimeSpan: reduceSelectedTimeSpan,
   timeSpans: reduceTimeSpans,
   stats: reduceStats,
-  about: reduceAbout
+  uptime: reduceUptime
 });
 
 export default rootReducer;

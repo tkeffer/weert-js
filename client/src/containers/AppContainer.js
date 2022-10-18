@@ -22,14 +22,14 @@ import {
   fetchTimeSpanIfNeeded,
   subscribeMeasurement,
   fetchStatsIfNeeded,
-  fetchAbout,
+  fetchUptime,
 } from "../actions";
 import PlotContainer from "./PlotContainer";
 import PacketTable from "../components/PacketTable";
 import WindCompass from "../components/WindCompass";
 import StatsTable from "../components/StatsTable";
 import About from "../components/About";
-import ServerTable from "../components/ServerTable"
+import ServerTable from "../components/ServerTable";
 
 import * as config from "../../config/componentConfig";
 import * as api from "../Api";
@@ -57,7 +57,8 @@ class AppContainer extends React.PureComponent {
 
   componentDidMount() {
     const { dispatch, selectedTimeSpan } = this.props;
-    const { serverUpdate } = this.state.aboutOptions;
+    const { serverUpdate } = this.state.uptimeOptions;
+    console.log("serverUpdate=", serverUpdate)
 
     // We always need 'recent' (for the real-time packet display)
     this.fetchAndSubscribeIfNeeded("recent");
@@ -71,12 +72,12 @@ class AppContainer extends React.PureComponent {
     dispatch(fetchStatsIfNeeded(selectedStats));
 
     // Set a timer to regularly fetch new info about the WeeRT server
-    function getAbout() {
-      dispatch(fetchAbout());
-      setTimeout(getAbout, serverUpdate);
+    function getUptime() {
+      dispatch(fetchUptime());
+      setTimeout(getUptime, serverUpdate);
     }
 
-    getAbout();
+    getUptime();
   }
 
   componentWillUnmount() {
@@ -187,33 +188,36 @@ class AppContainer extends React.PureComponent {
       selectedStats = this.props.stats[selectedTimeSpan];
     }
 
-    const aboutProps = this.props.about;
+    const uptimeProps = this.props.uptime;
+
     return (
       <Container fluid={true}>
         <h2 className="welcome">Welcome to WeeRT</h2>
         <Row>
           <Col xs={8} lg={2}>
-              <PacketTable
-                {...packetTableOptions}
-                packet={currentPacket}
-                isFetching={isFetchingCurrentPacket}
-              />
+            <PacketTable
+              {...packetTableOptions}
+              packet={currentPacket}
+              isFetching={isFetchingCurrentPacket}
+            />
 
-              <WindCompass
-                {...windCompassOptions}
-                windSpeed={currentPacket ? currentPacket["wind_speed"] : undefined}
-                windDirection={currentPacket ? currentPacket["wind_dir"] : undefined}
-                isFetching={isFetchingCurrentPacket}
-              />
+            <WindCompass
+              {...windCompassOptions}
+              windSpeed={currentPacket ? currentPacket["wind_speed"] : undefined}
+              windDirection={currentPacket ? currentPacket["wind_dir"] : undefined}
+              isFetching={isFetchingCurrentPacket}
+            />
 
-              <StatsTable
-                {...statsTableOptions[selectedStatsSpan]}
-                statsData={selectedStats.data}
-                isFetching={selectedStats.isFetching}
-              />
+            <StatsTable
+              {...statsTableOptions[selectedStatsSpan]}
+              statsData={selectedStats.data}
+              isFetching={selectedStats.isFetching}
+            />
 
-            <ServerTable {...aboutProps} isFetching={aboutProps.isFetching}/>
-            <About {...aboutProps} isFetching={aboutProps.isFetching && this.state.firstRender} />
+            <ServerTable {...uptimeProps} isFetching={uptimeProps.isFetching} />
+
+            <About />
+
           </Col>
 
           <Col xs={12} lg={9}>

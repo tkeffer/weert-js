@@ -53,7 +53,7 @@ export function unsubscribe(socket) {
   socket.close();
 }
 
-export function getAbout() {
+export function getUptime() {
   const url = `http://${window.location.host}/api/v1/about`;
 
   return fetch(url).then(response => {
