@@ -107,7 +107,7 @@ function MaxWind(props) {
 }
 
 /*
- * Place holder for a table holding statistics
+ * A table holding statistics
  */
 export default class StatsTable extends React.PureComponent {
     render() {

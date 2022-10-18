@@ -29,6 +29,8 @@ import PacketTable from "../components/PacketTable";
 import WindCompass from "../components/WindCompass";
 import StatsTable from "../components/StatsTable";
 import About from "../components/About";
+import ServerTable from "../components/ServerTable"
+
 import * as config from "../../config/componentConfig";
 import * as api from "../Api";
 
@@ -186,12 +188,11 @@ class AppContainer extends React.PureComponent {
     }
 
     const aboutProps = this.props.about;
-
     return (
       <Container fluid={true}>
         <h2 className="welcome">Welcome to WeeRT</h2>
         <Row>
-          <Col xs={12} lg={3}>
+          <Col xs={8} lg={2}>
               <PacketTable
                 {...packetTableOptions}
                 packet={currentPacket}
@@ -211,13 +212,12 @@ class AppContainer extends React.PureComponent {
                 isFetching={selectedStats.isFetching}
               />
 
-              {/* Render the "Loading" comment only during the first render. */}
-              <About {...aboutProps} isFetching={aboutProps.isFetching && this.state.firstRender} />
+            <ServerTable {...aboutProps} isFetching={aboutProps.isFetching}/>
+            <About {...aboutProps} isFetching={aboutProps.isFetching && this.state.firstRender} />
           </Col>
 
           <Col xs={12} lg={9}>
             <Navbar bg="light" expand="lg">
-              <Navbar.Brand href="#home">Time span=></Navbar.Brand>
               <Nav
                 bsstyle="tabs"
                 activeKey={this.state.selectedTimeSpan}

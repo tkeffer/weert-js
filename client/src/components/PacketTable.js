@@ -16,7 +16,6 @@ const propTypes = {
   obsTypes: PropTypes.arrayOf(PropTypes.string),
   header: PropTypes.string,
   isFetching: PropTypes.bool,
-  componentClass: PropTypes.string
 };
 
 const defaultProps = {
@@ -31,14 +30,13 @@ const defaultProps = {
   ],
   header: "Current values",
   isFetching: true,
-  componentClass: "div"
 };
 
 export default class PacketTable extends React.PureComponent {
   render() {
-    const { componentClass: Component, obsTypes, header, isFetching, packet } = this.props;
+    const { obsTypes, header, isFetching, packet } = this.props;
     return (
-      <Component>
+      <div>
         <div className="widget_title">{header}</div>
         {
           <div style={{ opacity: isFetching ? 0.5 : 1 }}>
@@ -52,7 +50,7 @@ export default class PacketTable extends React.PureComponent {
             </Table>
           </div>
         }
-      </Component>
+      </div>
     );
   }
 }

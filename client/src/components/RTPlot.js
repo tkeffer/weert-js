@@ -63,7 +63,7 @@ export default class RTPlot extends React.PureComponent {
 
   renderLabels(props) {
     return (
-      <h4 style={{ textAlign: "center" }}>
+      <h5 style={{ textAlign: "center" }}>
         <span style={{ float: "left" }}>{this.getUnitLabel()}</span>
         <span>
           {props.plotLines.map((plotLine, i) => {
@@ -78,7 +78,7 @@ export default class RTPlot extends React.PureComponent {
             );
           })}
         </span>
-      </h4>
+      </h5>
     );
   }
 
