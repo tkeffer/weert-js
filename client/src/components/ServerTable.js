@@ -8,20 +8,6 @@ import PropTypes from "prop-types";
 import Table from "react-bootstrap/Table";
 import humanizeDuration from "humanize-duration";
 
-// React component that represents a row in the "Server Information" table.
-function DataRow(props) {
-  const { label, value, isFetching } = props;
-  return (
-    <tr>
-      <td className="label">{label}</td>
-      <td className="fadeIn data" key={value} style={{ fontWeight: "bold", paddingLeft: "10px" }}>
-        {isFetching && "Loading"}
-        {!isFetching && <span>{value}</span>}
-      </td>
-    </tr>
-  );
-}
-
 const propTypes = {
   node_version: PropTypes.string.isRequired,
   server_uptime: PropTypes.number,
@@ -35,6 +21,20 @@ const defaultProps = {
   weert_uptime: undefined,
   isFetching: false,
 };
+
+// React component that represents a row in the "Server Information" table.
+function DataRow(props) {
+  const { label, value, isFetching } = props;
+  const value_str = isFetching ? "Loading" : value;
+  return (
+    <tr>
+      <td className="label">{label}</td>
+      <td className="fadeIn data" style={{ fontWeight: "bold", paddingLeft: "10px" }}>
+        {value_str}
+      </td>
+    </tr>
+  );
+}
 
 export default class ServerTable extends React.PureComponent {
   render() {
@@ -53,21 +53,25 @@ export default class ServerTable extends React.PureComponent {
                 <DataRow
                   label="Server uptime"
                   value={server_uptime_str}
+                  key={"server_uptime"}
                   isFetching={isFetching}
                 />
                 <DataRow
                   label="WeeRT uptime"
                   value={weert_uptime_str}
+                  key={"weert_uptime"}
                   isFetching={isFetching}
                 />
                 <DataRow
                   label="WeeRT version"
                   value={weert_version}
+                  key={"weert_version"}
                   isFetching={isFetching}
                 />
                 <DataRow
                   label="Node version"
                   value={node_version}
+                  key={"node_version"}
                   isFetching={isFetching}
                 />
               </tbody>
