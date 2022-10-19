@@ -11,21 +11,14 @@ import * as units from "../units";
 
 const propTypes = {
   obsType: PropTypes.string.isRequired,
-  componentClass: PropTypes.string
 };
 
-const defaultProps = {
-  componentClass: "div"
-};
 
 export default class ObsLabel extends React.PureComponent {
   render() {
-    // Destructure the props, assigning componentClass to the variable Component...
-    const { componentClass: Component, obsType } = this.props;
-    // ... then use Component as the element type
-    return <Component className="label">{units.getLabel(obsType)}</Component>;
+    const { obsType } = this.props;
+    return <span className="label">{units.getLabel(obsType)}</span>;
   }
 }
 
 ObsLabel.propTypes = propTypes;
-ObsLabel.defaultProps = defaultProps;

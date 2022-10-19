@@ -32,14 +32,17 @@ export default class ObsRow extends React.PureComponent {
 
     return (
       <tr>
-        <ObsLabel componentClass={"td"} obsType={obsType} />
-        <ObsValue
-          componentClass={"td"}
-          obsType={obsType}
-          value={value}
-          unitSystem={unitSystem}
-          isFetching={isFetching}
-        />
+        <td>
+          <ObsLabel obsType={obsType} />
+        </td>
+        <td>
+          <ObsValue
+            obsType={obsType}
+            value={value}
+            unitSystem={unitSystem}
+            isFetching={isFetching}
+          />
+        </td>
       </tr>
     );
   }
