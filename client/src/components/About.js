@@ -19,7 +19,7 @@ export default function About() {
           borderWidth: "1px",
           borderColor: "#ddd",
           padding: "10px",
-          "font-size": "80%"
+          fontSize: "80%"
         }}
       >
 
