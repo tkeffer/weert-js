@@ -214,7 +214,7 @@ function reduceUptime(state = initialUptime, action) {
 }
 
 // Combine all the reducers into one big reducer. The final state will be a composite, with keys
-// 'selectedTags', 'selectedTimeSpan', 'timeSpans' and 'stats':
+// 'selectedTags', 'selectedTimeSpan', 'timeSpans', 'stats', and 'uptime':
 const rootReducer = combineReducers({
   selectedTags: reduceTags,
   selectedTimeSpan: reduceSelectedTimeSpan,

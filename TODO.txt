@@ -4,6 +4,8 @@ CONFIGURATION
 
 SERVER
 
+Migrate to InfluxDB V2.x
+
 * CQs need to record wind gusts.
 
 Need to record gust directions.

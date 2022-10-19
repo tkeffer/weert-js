@@ -1,6 +1,4 @@
-# State
-
-Sample state:
+# Typical state in redux
 
 ```javascript
 const state = {
@@ -133,7 +131,8 @@ const state = {
     }
   },
   
-  about: {
+  uptime: {
+    isFetching: false,
     server_uptime : 415833,
     weert_uptime : 16528.58,
     node_version : "v10.15.2",
