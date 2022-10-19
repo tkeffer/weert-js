@@ -51,11 +51,6 @@ export default class ServerTable extends React.PureComponent {
             <Table bordered hover>
               <tbody>
                 <DataRow
-                  label="Node version"
-                  value={node_version}
-                  isFetching={isFetching}
-                />
-                <DataRow
                   label="Server uptime"
                   value={server_uptime_str}
                   isFetching={isFetching}
@@ -68,6 +63,11 @@ export default class ServerTable extends React.PureComponent {
                 <DataRow
                   label="WeeRT version"
                   value={weert_version}
+                  isFetching={isFetching}
+                />
+                <DataRow
+                  label="Node version"
+                  value={node_version}
                   isFetching={isFetching}
                 />
               </tbody>
