@@ -14,39 +14,34 @@ import ObsValue from "./ObsValue";
 const propTypes = {
   obsType: PropTypes.string.isRequired,
   packet: PropTypes.object,
-  isFetching: PropTypes.bool
+  isFetching: PropTypes.bool,
 };
 
 const defaultProps = {
-  isFetching: false
+  isFetching: false,
 };
 
-export default class ObsRow extends React.PureComponent {
-  render() {
-    const { packet, obsType, isFetching } = this.props;
-    let value, unitSystem;
-    if (!isEmpty(packet)) {
-      value = packet[obsType];
-      unitSystem = packet["unit_system"];
-    }
-
-    return (
-      <tr>
-        <td className="label">
-          <ObsLabel obsType={obsType} />
-        </td>
-        <td className="data">
-          <ObsValue
-            obsType={obsType}
-            value={value}
-            unitSystem={unitSystem}
-            isFetching={isFetching}
-          />
-        </td>
-      </tr>
-    );
+function ObsRow(props) {
+  const { packet, obsType, isFetching } = props;
+  let value, unitSystem;
+  if (!isEmpty(packet)) {
+    value = packet[obsType];
+    unitSystem = packet["unit_system"];
   }
+
+  return (
+    <tr>
+      <td className="label">
+        <ObsLabel obsType={obsType} />
+      </td>
+      <td className="data">
+        <ObsValue obsType={obsType} value={value} unitSystem={unitSystem} isFetching={isFetching} />
+      </td>
+    </tr>
+  );
 }
 
 ObsRow.propTypes = propTypes;
 ObsRow.defaultProps = defaultProps;
+
+export default ObsRow;

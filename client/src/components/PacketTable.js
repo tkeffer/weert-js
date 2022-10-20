@@ -26,34 +26,34 @@ const defaultProps = {
     "out_temperature",
     "in_temperature",
     "radiation_radiation",
-    "sealevel_pressure"
+    "sealevel_pressure",
   ],
   header: "Current values",
   isFetching: true,
 };
 
-export default class PacketTable extends React.PureComponent {
-  render() {
-    const { obsTypes, header, isFetching, packet } = this.props;
-    return (
-      <div>
-        <div className="widget_title">{header}</div>
-        {
-          <div style={{ opacity: isFetching ? 0.5 : 1 }}>
-            <Table bordered hover>
-              <tbody>
-                {/* Include a key. See https://reactjs.org/docs/reconciliation.html#keys */}
-                {obsTypes.map(obsType => (
-                  <ObsRow obsType={obsType} packet={packet} key={obsType} isFetching={isFetching} />
-                ))}
-              </tbody>
-            </Table>
-          </div>
-        }
-      </div>
-    );
-  }
+function PacketTable(props) {
+  const { obsTypes, header, isFetching, packet } = props;
+  return (
+    <div>
+      <div className="widget_title">{header}</div>
+      {
+        <div style={{ opacity: isFetching ? 0.5 : 1 }}>
+          <Table bordered hover>
+            <tbody>
+              {/* Include a key. See https://reactjs.org/docs/reconciliation.html#keys */}
+              {obsTypes.map((obsType) => (
+                <ObsRow obsType={obsType} packet={packet} key={obsType} isFetching={isFetching} />
+              ))}
+            </tbody>
+          </Table>
+        </div>
+      }
+    </div>
+  );
 }
 
 PacketTable.propTypes = propTypes;
 PacketTable.defaultProps = defaultProps;
+
+export default PacketTable;

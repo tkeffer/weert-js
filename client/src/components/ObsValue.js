@@ -21,7 +21,7 @@ const defaultProps = {
   isFetching: false,
 };
 
-export default function ObsValue(props) {
+function ObsValue(props) {
   const { obsType, value, unitSystem, format, isFetching } = props;
 
   const newString = isFetching
@@ -39,3 +39,5 @@ export default function ObsValue(props) {
 
 ObsValue.propTypes = propTypes;
 ObsValue.defaultProps = defaultProps;
+
+export default ObsValue;

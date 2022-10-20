@@ -13,12 +13,11 @@ const propTypes = {
   obsType: PropTypes.string.isRequired,
 };
 
-
-export default class ObsLabel extends React.PureComponent {
-  render() {
-    const { obsType } = this.props;
-    return <span>{units.getLabel(obsType)}</span>;
-  }
+function ObsLabel(props) {
+  const { obsType } = props;
+  return <span>{units.getLabel(obsType)}</span>;
 }
 
 ObsLabel.propTypes = propTypes;
+
+export default ObsLabel;
