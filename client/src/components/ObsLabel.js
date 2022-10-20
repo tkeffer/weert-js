@@ -17,7 +17,7 @@ const propTypes = {
 export default class ObsLabel extends React.PureComponent {
   render() {
     const { obsType } = this.props;
-    return <span className="label">{units.getLabel(obsType)}</span>;
+    return <span>{units.getLabel(obsType)}</span>;
   }
 }
 

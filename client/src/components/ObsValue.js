@@ -31,7 +31,7 @@ export default function ObsValue(props) {
   // Use the string as they key. If it changes, React will recognize it as a new component
   // that needs to be rerendered, causing the fade-in.
   return (
-    <span key={newString} className="fadeIn data">
+    <span key={newString} className="fadeIn">
       {newString}
     </span>
   );

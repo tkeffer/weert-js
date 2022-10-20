@@ -32,10 +32,10 @@ export default class ObsRow extends React.PureComponent {
 
     return (
       <tr>
-        <td>
+        <td className="label">
           <ObsLabel obsType={obsType} />
         </td>
-        <td>
+        <td className="data">
           <ObsValue
             obsType={obsType}
             value={value}
