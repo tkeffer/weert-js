@@ -194,7 +194,7 @@ class AppContainer extends React.PureComponent {
       <Container fluid={true}>
         <h2 className="welcome">Welcome to WeeRT</h2>
         <Row>
-          <Col xs={8} lg={2}>
+          <Col xs={4} lg={3}>
             <PacketTable
               {...packetTableOptions}
               packet={currentPacket}
@@ -220,7 +220,7 @@ class AppContainer extends React.PureComponent {
 
           </Col>
 
-          <Col xs={12} lg={9}>
+          <Col xs={8} lg={9}>
             <Navbar bg="light" expand="lg">
               <Nav
                 bsstyle="tabs"
