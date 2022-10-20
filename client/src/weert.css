@@ -121,6 +121,24 @@ a:hover {
 */
 }
 
+@keyframes fadeIn {
+    0% {
+        opacity: 0
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+.fadeIn {
+    animation-name: fadeIn;
+    animation-duration: 1s;
+}
+.welcome {
+    font-size: 40px;
+    text-align: center;
+}
+
 
 /* This will cause a bottom border under every 2nd <tr> */
 .stats_table table tr:nth-of-type(2n) {
