@@ -8,80 +8,82 @@ import PropTypes from "prop-types";
 import Table from "react-bootstrap/Table";
 import humanizeDuration from "humanize-duration";
 
-const propTypes = {
-  node_version: PropTypes.string.isRequired,
-  server_uptime: PropTypes.number,
-  weert_uptime: PropTypes.number,
-  weert_version: PropTypes.string.isRequired,
-  isFetching: PropTypes.bool,
-};
-
-const defaultProps = {
-  server_uptime: undefined,
-  weert_uptime: undefined,
-  isFetching: false,
-};
-
 // React component that represents a row in the "Server Information" table.
-function DataRow(props) {
+function DataRow (props) {
   const { label, value, isFetching } = props;
-  const value_str = isFetching ? "Loading" : value;
+  const value_str                    = isFetching ? "Loading" : value;
   return (
     <tr>
-      <td className="label">{label}</td>
-      <td className="fadeIn data" style={{ fontWeight: "bold", paddingLeft: "10px" }}>
-        {value_str}
+      <td className='label' style={{ width: "30%" }}>
+        {label}
+      </td>
+      <td className='data' style={{ fontWeight: "bold", paddingLeft: "10px", width: "70%" }}>
+        <span key={value_str} className='fadeIn'>
+          {value_str}
+        </span>
       </td>
     </tr>
   );
 }
 
-export default class ServerTable extends React.PureComponent {
-  render() {
-    const { server_uptime, weert_uptime, node_version, weert_version, isFetching } = this.props;
-    // Get nice, human-readable strings from the raw uptime value
-    const server_uptime_str = humanizeDuration(parseInt(server_uptime, 10) * 1000.0);
-    const weert_uptime_str = humanizeDuration(parseInt(weert_uptime, 10) * 1000.0);
+/* Show uptime information about the WeeRT server */
+function ServerTable (props) {
 
-    return (
-      <div>
-        <div className="widget_title">Server information</div>
-        {
-          <div style={{ opacity: isFetching ? 0.5 : 1 }}>
-            <Table bordered hover>
-              <tbody>
-                <DataRow
-                  label="Server uptime"
-                  value={server_uptime_str}
-                  key={"server_uptime"}
-                  isFetching={isFetching}
-                />
-                <DataRow
-                  label="WeeRT uptime"
-                  value={weert_uptime_str}
-                  key={"weert_uptime"}
-                  isFetching={isFetching}
-                />
-                <DataRow
-                  label="WeeRT version"
-                  value={weert_version}
-                  key={"weert_version"}
-                  isFetching={isFetching}
-                />
-                <DataRow
-                  label="Node version"
-                  value={node_version}
-                  key={"node_version"}
-                  isFetching={isFetching}
-                />
-              </tbody>
-            </Table>
-          </div>
-        }
-      </div>
-    );
-  }
+  const { server_uptime, weert_uptime, node_version, weert_version, isFetching } = props;
+
+  // Get nice, human-readable strings from the raw uptime value
+  const server_uptime_str = humanizeDuration(parseInt(server_uptime, 10) * 1000.0);
+  const weert_uptime_str = humanizeDuration(parseInt(weert_uptime, 10) * 1000.0);
+
+  return (
+    <div>
+      <div className='widget_title'>Server information</div>
+      {
+        <div style={{ opacity: isFetching ? 0.5 : 1 }}>
+          <Table bordered hover>
+            <tbody>
+            <DataRow
+              label='Server uptime'
+              value={server_uptime_str}
+              key={"server_uptime"}
+              isFetching={isFetching}
+            />
+            <DataRow
+              label='WeeRT uptime'
+              value={weert_uptime_str}
+              key={"weert_uptime"}
+              isFetching={isFetching}
+            />
+            <DataRow
+              label='WeeRT version'
+              value={weert_version}
+              key={"weert_version"}
+              isFetching={isFetching}
+            />
+            <DataRow
+              label='Node version'
+              value={node_version}
+              key={"node_version"}
+              isFetching={isFetching}
+            />
+            </tbody>
+          </Table>
+        </div>
+      }
+    </div>
+  );
 }
 
-ServerTable.propTypes = propTypes;
-ServerTable.defaultProps = defaultProps;
+ServerTable.propTypes = {
+  server_uptime: PropTypes.number,
+  weert_uptime: PropTypes.number,
+  isFetching: PropTypes.bool,
+};
+
+ServerTable.defaultProps = {
+  server_uptime: undefined,
+  weert_uptime: undefined,
+  isFetching: false
+};
+
+export default ServerTable;
