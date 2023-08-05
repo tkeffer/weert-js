@@ -93,6 +93,9 @@ DEFAULTS_INI = """
     
     # Short timeout
     timeout = 2
+    
+    # Don't allow much of a backlog
+    max_backlog = 2
 
     [[loop_filters]]
         # These items will be included in the post to the database.
