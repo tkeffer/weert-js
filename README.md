@@ -2,6 +2,14 @@
 
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
 
+## Archived
+
+This repository has been _archived_. It proved too difficult to install and maintain.
+
+No further development will be done.
+
+## Overview
+
 WeeRT is a realtime extension for [WeeWX](http://weewx.com), open-source software for 
 your weather station. It consists of three, independent parts:
 - The WeeRT uploader. This is a [WeeWX service](http://weewx.com/docs/customizing.htm#The_weeWX_service_architecture), 
